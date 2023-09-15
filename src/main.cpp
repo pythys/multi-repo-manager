@@ -1,23 +1,40 @@
 #include <CLI/CLI.hpp>
 #include <iostream>
+#include <string>
 
 int main(int argc, char **argv) {
     CLI::App app("multi-repo-manager");
-    std::string name;
-    app.add_option("--name", name, "Your name");
 
-    try {
-        app.parse(argc, argv);
-    } catch (const CLI::ParseError &e) {
-        return app.exit(e);
+    CLI::App *sync = app.add_subcommand(
+        "sync",
+        "Sync local repositories with a configured list"
+    );
+
+    std::string config_file = "default.yaml";
+    sync->add_option(
+        "--config,-c",
+        config_file,
+        "Configuration file"
+    );
+
+    CLI::App *find = app.add_subcommand(
+        "find",
+        "Generate a repository configuration from existing repositories"
+    );
+
+    CLI11_PARSE(app, argc, argv);
+
+    if (*sync) {
+        std::cout << "Running sync with config: "
+                  << config_file
+                  << "\n";
+        // TODO
     }
 
-    if(!name.empty()) {
-        std::cout << "Hello, " << name << "!\n";
-    } else {
-        std::cout << "Hello, World!\n";
+    if (*find) {
+        std::cout << "Running find\n";
+        // TODO
     }
 
     return 0;
 }
-
