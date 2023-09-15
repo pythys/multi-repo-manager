@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main(int argc, char **argv) {
-    CLI::App app("CLI11 demo application");
+    CLI::App app("multi-repo-manager");
     std::string name;
     app.add_option("--name", name, "Your name");
 
