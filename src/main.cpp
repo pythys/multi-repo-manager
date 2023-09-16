@@ -1,6 +1,7 @@
-#include <CLI/CLI.hpp>
 #include <iostream>
 #include <string>
+#include <CLI/CLI.hpp>
+#include "sync.hpp"
 
 int main(int argc, char **argv) {
     CLI::App app("multi-repo-manager");
@@ -28,7 +29,7 @@ int main(int argc, char **argv) {
         std::cout << "Running sync with config: "
                   << config_file
                   << "\n";
-        // TODO
+        runSync(config_file);
     }
 
     if (*find) {
