@@ -26,9 +26,6 @@ int main(int argc, char **argv) {
     CLI11_PARSE(app, argc, argv);
 
     if (*sync) {
-        std::cout << "Running sync with config: "
-                  << config_file
-                  << "\n";
         runSync(config_file);
     }
 
