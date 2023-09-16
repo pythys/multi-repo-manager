@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
 
     CLI::App *find = app.add_subcommand(
         "find",
-        "Generate a repository configuration from existing repositories"
+        "Generate a configuration from existing repositories"
     );
 
     CLI11_PARSE(app, argc, argv);
