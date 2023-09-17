@@ -2,6 +2,7 @@
 #include <CLI/CLI.hpp>
 #include "sync.hpp"
 #include "find.hpp"
+#include "exec.hpp"
 
 int main(int argc, char **argv) {
     CLI::App app("mrm");
@@ -16,7 +17,7 @@ int main(int argc, char **argv) {
         "--config,-c",
         config_file,
         "Configuration file"
-    )->required()->type_name("file");;
+    )->required()->type_name("file");
 
     std::string sync_path = ".";
     sync->add_option(
@@ -37,6 +38,31 @@ int main(int argc, char **argv) {
         "Path to search for existing repositories. Defaults to \".\""
     )->type_name("dir");
 
+    CLI::App *exec = app.add_subcommand(
+        "exec",
+        "Execute a custom command on repositories of a certain type"
+    );
+
+    std::string custom_command;
+    exec->add_option(
+        "--exec,-x",
+        custom_command,
+        "The custom command to run"
+    )->required()->type_name("command");
+
+    std::string repo_type = "all";
+    exec->add_option(
+        "--type,-t",
+        repo_type,
+        "Type of repositories to target. Defaults to 'all'"
+    )->type_name("type");
+
+    exec->add_option(
+        "--config,-c",
+        config_file,
+        "Configuration file for the exec command"
+    )->required()->type_name("file");
+
     CLI11_PARSE(app, argc, argv);
 
     if (*sync) {
@@ -45,6 +71,10 @@ int main(int argc, char **argv) {
 
     if (*find) {
         return run_find(find_path);
+    }
+
+    if (*exec) {
+        return run_exec(custom_command, config_file, repo_type);
     }
 
     return 0;
