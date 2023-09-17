@@ -40,6 +40,7 @@ def package():
 
 task_dependencies = {
     'build': [],
+    'watch': [],
     'package': ['build'],
 }
 
