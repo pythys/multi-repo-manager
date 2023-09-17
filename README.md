@@ -11,8 +11,12 @@ direct on host:
 
 through vcpkg:
 
-- [boost](https://github.com/boostorg/boost)
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
+
+candidates (not yet added):
+
+- [boost](https://github.com/boostorg/boost)
 - [fmt](https://github.com/fmtlib/fmt)
 - [googletest](https://github.com/google/googletest)
 - [spdlog](https://github.com/gabime/spdlog)
@@ -23,4 +27,3 @@ through vcpkg:
 ./build.py clean
 ./build.py build
 ```
-
