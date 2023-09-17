@@ -1,4 +1,5 @@
+#include "tree.hpp"
 #include <string>
-#include <yaml-cpp/yaml.h>
+#include <vector>
 
-YAML::Node get_config(const std::string& config_file);
+std::vector<Tree> get_config(const std::string& config_file);
