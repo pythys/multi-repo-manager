@@ -1,4 +1,7 @@
-# multi-repo-manager
+# mrm
+
+MRM (multi-repo-manager) is a tool to help in managing a large number of
+repositories in a sane way utilizing bulk transactions and yaml configurations
 
 ## requirements
 
