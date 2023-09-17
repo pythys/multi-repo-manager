@@ -4,7 +4,7 @@
 #include "find.hpp"
 
 int main(int argc, char **argv) {
-    CLI::App app("multi-repo-manager");
+    CLI::App app("mrm");
 
     CLI::App *sync = app.add_subcommand(
         "sync",
