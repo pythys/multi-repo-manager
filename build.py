@@ -10,6 +10,7 @@ def show_help():
     print("\nAvailable tasks:")
     print("  clean        Clean the build directory.")
     print("  build        Build the project.")
+    print("  watch        Watch file changes to recompile.")
     print("  package      Package the project.")
 
 def clean():
@@ -25,6 +26,13 @@ def build():
         subprocess.run(["cmake", "--build", "build"])
     else:
         raise EnvironmentError("VCPKG_ROOT environment variable is not set.")
+
+def watch():
+    print("Watching file changes...")
+    try:
+        subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py build"], shell=True)
+    except KeyboardInterrupt:
+        print("Stopped watching for changes.")
 
 def package():
     print("Packaging project...")

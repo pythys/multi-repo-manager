@@ -11,6 +11,7 @@ direct on host:
 - [make](https://www.gnu.org/software/make)
 - [vcpkg](https://github.com/microsoft/vcpkg)
 - [python](https://www.python.org)
+- [entr](https://github.com/eradman/entr)
 
 through vcpkg:
 
