@@ -11,6 +11,8 @@ else()
 endif()
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(mrm ${SOURCES})
+
+# packages
 find_package(CLI11 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 target_link_libraries(mrm PRIVATE CLI11::CLI11)
