@@ -40,11 +40,11 @@ int main(int argc, char **argv) {
     CLI11_PARSE(app, argc, argv);
 
     if (*sync) {
-        runSync(config_file);
+        return runSync(config_file);
     }
 
     if (*find) {
-        runFind(find_path);
+        return runFind(find_path);
     }
 
     return 0;

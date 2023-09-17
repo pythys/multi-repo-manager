@@ -2,8 +2,9 @@
 #include <iostream>
 #include <string>
 
-void runFind(const std::string& path) {
+int runFind(const std::string& path) {
     std::cout << "Running find with path: "
               << path
               << std::endl;
+    return 0;
 }

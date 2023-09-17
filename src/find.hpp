@@ -1,4 +1,4 @@
 #pragma once
 #include <string>
 
-void runFind(const std::string& path);
+int runFind(const std::string& path);

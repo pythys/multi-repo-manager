@@ -2,8 +2,9 @@
 #include <iostream>
 #include <string>
 
-void runSync(const std::string& config_file) {
+int runSync(const std::string& config_file) {
     std::cout << "Running sync with config: "
               << config_file
               << std::endl;
+    return 0;
 }
