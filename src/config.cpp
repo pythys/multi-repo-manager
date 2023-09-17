@@ -13,12 +13,18 @@ Remote to_remote(const YAML::Node& node) {
 
 Repo to_repo(const YAML::Node& node) {
     std::vector<Remote> remotes;
-    std::transform(
-        node["remotes"].begin(),
-        node["remotes"].end(),
-        std::back_inserter(remotes),
-        to_remote
-    );
+    if (node["remotes"] && node["remotes"].IsSequence()) {
+        std::transform(
+            node["remotes"].begin(),
+            node["remotes"].end(),
+            std::back_inserter(remotes),
+            to_remote
+        );
+    } else {
+        std::cerr << "Warning: 'remotes' node is missing or not a sequence for repo "
+                  << node["name"].as<std::string>("unknown")
+                  << std::endl;
+    }
     return {node["name"].as<std::string>(), remotes};
 }
 
