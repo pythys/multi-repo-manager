@@ -2,11 +2,12 @@
 
 ## requirements
 
-on host:
+direct on host:
 
 - [cmake](https://cmake.org)
 - [make](https://www.gnu.org/software/make)
 - [vcpkg](https://github.com/microsoft/vcpkg)
+- [python](https://www.python.org)
 
 through vcpkg:
 
