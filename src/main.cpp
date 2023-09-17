@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "sync.hpp"
