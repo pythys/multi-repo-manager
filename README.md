@@ -15,8 +15,8 @@ direct on host:
 
 through vcpkg:
 
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
 
 candidates (not yet added):
 
