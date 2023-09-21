@@ -8,9 +8,9 @@ def show_help():
     print("\nAvailable options:")
     print("  -h, --help   Show this help message and exit.")
     print("\nAvailable tasks:")
-    print("  clean        Clean the build directory.")
+    print("  clean        Clean generated artifacts.")
     print("  build        Build the project.")
-    print("  watch        Watch file changes to recompile.")
+    print("  watch        Watch file changes to rebuild.")
     print("  package      Package the project.")
 
 def clean():
