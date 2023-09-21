@@ -23,6 +23,7 @@ candidates (not yet added):
 - [boost](https://github.com/boostorg/boost)
 - [fmt](https://github.com/fmtlib/fmt)
 - [googletest](https://github.com/google/googletest)
+- [libgit2cpp](https://github.com/AndreyG/libgit2cpp)
 - [spdlog](https://github.com/gabime/spdlog)
 
 ## build
