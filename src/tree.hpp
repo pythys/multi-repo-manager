@@ -1,3 +1,6 @@
+#ifndef TREE_HPP
+#define TREE_HPP
+
 #include <string>
 #include <vector>
 
@@ -16,3 +19,5 @@ struct Tree {
     std::string root;
     std::vector<Repo> repos;
 };
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef EXEC_HPP
+#define EXEC_HPP
+
 #include <string>
 
 int run_exec(
@@ -5,3 +8,5 @@ int run_exec(
     const std::string &config_file,
     const std::string &repo_type
 );
+
+#endif
