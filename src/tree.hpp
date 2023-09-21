@@ -12,6 +12,7 @@ struct Remote {
 
 struct Repo {
     std::string name;
+    std::string type;
     std::vector<Remote> remotes;
 };
 
