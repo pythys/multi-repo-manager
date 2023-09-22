@@ -25,7 +25,11 @@ Repo to_repo(const YAML::Node& node) {
                   << node["name"].as<std::string>("unknown")
                   << std::endl;
     }
-    return {node["name"].as<std::string>(), remotes};
+    return {
+        node["name"].as<std::string>(),
+        node["type"].as<std::string>(),
+        remotes
+    };
 }
 
 Tree to_tree(const YAML::Node& node) {
