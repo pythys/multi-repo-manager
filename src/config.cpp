@@ -3,11 +3,23 @@
 #include <yaml-cpp/yaml.h>
 #include <algorithm>
 
+RemoteType to_remote_type(const std::string& str) {
+    if (str == "https") return RemoteType::HTTPS;
+    if (str == "ssh") return RemoteType::SSH;
+    throw std::runtime_error("Invalid RemoteType: " + str);
+}
+
+RepoType to_repo_type(const std::string& str) {
+    if (str == "git") return RepoType::GIT;
+    if (str == "svn") return RepoType::SVN;
+    throw std::runtime_error("Invalid RepoType: " + str);
+}
+
 Remote to_remote(const YAML::Node& node) {
     return {
         node["name"].as<std::string>(),
         node["url"].as<std::string>(),
-        node["type"].as<std::string>()
+        to_remote_type(node["type"].as<std::string>())
     };
 }
 
@@ -27,7 +39,7 @@ Repo to_repo(const YAML::Node& node) {
     }
     return {
         node["name"].as<std::string>(),
-        node["type"].as<std::string>(),
+        to_repo_type(node["type"].as<std::string>()),
         remotes
     };
 }
