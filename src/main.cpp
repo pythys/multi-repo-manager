@@ -1,8 +1,8 @@
-#include <string>
 #include <CLI/CLI.hpp>
-#include "sync.hpp"
-#include "find.hpp"
+#include <string>
 #include "exec.hpp"
+#include "find.hpp"
+#include "sync.hpp"
 
 int main(int argc, char **argv) {
     CLI::App app("mrm");
