@@ -14,6 +14,8 @@ add_executable(mrm ${SOURCES})
 
 # packages
 find_package(CLI11 CONFIG REQUIRED)
+find_package(unofficial-libgit2 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 target_link_libraries(mrm PRIVATE CLI11::CLI11)
+target_link_libraries(mrm PRIVATE unofficial::libgit2::libgit2)
 target_link_libraries(mrm PRIVATE yaml-cpp)
