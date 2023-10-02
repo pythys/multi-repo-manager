@@ -1,0 +1,75 @@
+trees:
+- root: public
+  repos:
+  - name: finance/ledger
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/ledger/ledger
+      type: https
+  - name: finance/backtrader
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/mementum/backtrader
+      type: https
+  - name: finance/qlib
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/microsoft/qlib
+      type: https
+  - name: editor/emacs
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/emacs-mirror/emacs
+      type: https
+  - name: compiler/antlr4
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/antlr/antlr4
+      type: https
+  - name: compiler/flex
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/westes/flex
+      type: https
+  - name: compiler/llvm-project
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/llvm/llvm-project
+      type: https
+  - name: compiler/bison
+    type: git
+    remotes:
+    - name: origin
+      url: https://git.savannah.gnu.org/git/bison.git
+      type: https
+  - name: chat/converse.js
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/conversejs/converse.js
+      type: https
+  - name: chat/xmpp.js
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/xmppjs/xmpp.js/
+      type: https
+  - name: chat/openfire/openfire-restAPI-plugin
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/igniterealtime/openfire-restAPI-plugin
+      type: https
+  - name: chat/openfire/Smack
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/igniterealtime/Smack
+      type: https
