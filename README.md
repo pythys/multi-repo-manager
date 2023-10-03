@@ -5,7 +5,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 
 ## requirements
 
-### install on host
+### installed on host
 
 - [cmake](https://cmake.org)
 - [entr](https://github.com/eradman/entr)
@@ -13,7 +13,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 - [python](https://www.python.org)
 - [vcpkg](https://github.com/microsoft/vcpkg)
 
-### install on vcpkg
+### installed via vcpkg
 
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
 - [libgit2](https://github.com/libgit2/libgit2) `vcpkg install libgit2`
