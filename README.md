@@ -8,23 +8,29 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 direct on host:
 
 - [cmake](https://cmake.org)
-- [make](https://www.gnu.org/software/make)
-- [vcpkg](https://github.com/microsoft/vcpkg)
-- [python](https://www.python.org)
 - [entr](https://github.com/eradman/entr)
+- [make](https://www.gnu.org/software/make)
+- [python](https://www.python.org)
+- [vcpkg](https://github.com/microsoft/vcpkg)
 
 through vcpkg:
 
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
+- [libgit2](https://github.com/libgit2/libgit2) `vcpkg install libgit2`
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
+
+automatically resolved:
+
+- [googletest](https://github.com/google/googletest)
 
 candidates (not yet added):
 
 - [boost](https://github.com/boostorg/boost)
+  general purpose library completing std
 - [fmt](https://github.com/fmtlib/fmt)
-- [googletest](https://github.com/google/googletest)
-- [libgit2cpp](https://github.com/AndreyG/libgit2cpp)
+  string formatting library
 - [spdlog](https://github.com/gabime/spdlog)
+  logging library
 
 ## build
 
