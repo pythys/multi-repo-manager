@@ -18,8 +18,8 @@ int run_sync(const std::string& config_file) {
      */
     std::ranges::for_each(config, [](const Tree& tree) {
         std::ranges::for_each(tree.repos, [&tree](const auto& repo) {
-            fs::path p(tree.root + "/" + repo.name);
-            if (fs::exists(p) && fs::is_directory(p)) {
+            fs::path repo_dir(tree.root + "/" + repo.name);
+            if (fs::exists(repo_dir) && fs::is_directory(repo_dir)) {
                 std::cout << "path exists" << std::endl;
             } else {
                 std::cout << "path does not exist" << std::endl;
