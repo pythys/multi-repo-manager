@@ -5,7 +5,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 
 ## requirements
 
-direct on host:
+### install on host
 
 - [cmake](https://cmake.org)
 - [entr](https://github.com/eradman/entr)
@@ -13,17 +13,17 @@ direct on host:
 - [python](https://www.python.org)
 - [vcpkg](https://github.com/microsoft/vcpkg)
 
-through vcpkg:
+### install on vcpkg
 
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
 - [libgit2](https://github.com/libgit2/libgit2) `vcpkg install libgit2`
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
 
-automatically resolved:
+### automatically installed
 
 - [googletest](https://github.com/google/googletest)
 
-candidates (not yet added):
+### candidates (not installed)
 
 - [boost](https://github.com/boostorg/boost)
   general purpose library completing std
