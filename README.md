@@ -17,6 +17,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
 - [libgit2](https://github.com/libgit2/libgit2) `vcpkg install libgit2`
+- [tbb](https://github.com/oneapi-src/oneTBB) `vcpkg install tbb`
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
 
 ### automatically installed
@@ -31,6 +32,8 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   string formatting library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
+- [thread-pool](https://github.com/bshoshany/thread-pool)
+  thread pooling library
 
 ## build
 
