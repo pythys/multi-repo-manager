@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <execution>
 #include <filesystem>
 #include <iostream>
 #include <string>
@@ -17,12 +16,10 @@ int run_sync(const std::string& config_file) {
      * - true: update the remotes
      * - false: clone the repository
      */
-    std::for_each(std::execution::par,
-                  config.begin(),
+    std::for_each(config.begin(),
                   config.end(),
                   [](const Tree& tree) {
-        std::for_each(std::execution::par,
-                      tree.repos.begin(),
+        std::for_each(tree.repos.begin(),
                       tree.repos.end(),
                       [&tree](const auto& repo) {
             fs::path repo_dir(tree.root + "/" + repo.name);
