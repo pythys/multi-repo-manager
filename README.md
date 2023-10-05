@@ -30,6 +30,8 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   general purpose library completing std
 - [fmt](https://github.com/fmtlib/fmt)
   string formatting library
+- [PDCurses](https://github.com/wmcbrine/PDCurses)
+  multi-platform curses library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
 - [thread-pool](https://github.com/bshoshany/thread-pool)
