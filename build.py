@@ -10,6 +10,7 @@ def show_help():
     print("\nAvailable tasks:")
     print("  clean        Clean generated artifacts.")
     print("  build        Build the project.")
+    print("  test         Run all tests.")
     print("  watch        Watch file changes to rebuild.")
     print("  package      Package the project.")
 
@@ -27,10 +28,13 @@ def build():
     else:
         raise EnvironmentError("VCPKG_ROOT environment variable is not set.")
 
+def test():
+    subprocess.run(["ctest"], cwd="build")
+
 def watch():
     print("Watching file changes...")
     try:
-        subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py build"], shell=True)
+        subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py test"], shell=True)
     except KeyboardInterrupt:
         print("Stopped watching for changes.")
 
@@ -40,6 +44,7 @@ def package():
 
 task_dependencies = {
     'build': [],
+    'test': ['build'],
     'watch': [],
     'package': ['build'],
 }

@@ -23,3 +23,4 @@ target_link_libraries(mrm PRIVATE unofficial::libgit2::libgit2)
 target_link_libraries(mrm PRIVATE yaml-cpp)
 
 add_subdirectory(tests)
+enable_testing()
