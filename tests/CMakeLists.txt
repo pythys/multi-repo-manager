@@ -5,6 +5,7 @@ FetchContent_Declare(
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 file(GLOB TEST_SRCS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
 foreach(test_src ${TEST_SRCS})
   get_filename_component(test_name ${test_src} NAME_WE)
