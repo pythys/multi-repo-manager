@@ -17,7 +17,7 @@ def show_help():
 def clean():
     print("Cleaning build directory...")
     subprocess.run(["rm", "-rf", "build"])
-    subprocess.run(["rm", "TAGS"])
+    subprocess.run(["rm", "-f", "TAGS"])
 
 def build():
     print("Building project...")

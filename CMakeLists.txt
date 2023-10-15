@@ -9,18 +9,14 @@ if(MSVC)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic -fmodules-ts)
 endif()
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-add_executable(mrm ${SOURCES})
 
 # packages
 find_package(CLI11 CONFIG REQUIRED)
 find_package(TBB CONFIG REQUIRED)
 find_package(unofficial-libgit2 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
-target_link_libraries(mrm PRIVATE CLI11::CLI11)
-target_link_libraries(mrm PRIVATE TBB::tbb TBB::tbbmalloc)
-target_link_libraries(mrm PRIVATE unofficial::libgit2::libgit2)
-target_link_libraries(mrm PRIVATE yaml-cpp)
 
+# subdirectories
+add_subdirectory(src)
 add_subdirectory(tests)
 enable_testing()

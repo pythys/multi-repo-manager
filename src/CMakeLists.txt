@@ -1,0 +1,6 @@
+file(GLOB_RECURSE SOURCES "*.cpp")
+add_executable(mrm ${SOURCES})
+target_link_libraries(mrm PRIVATE CLI11::CLI11)
+target_link_libraries(mrm PRIVATE TBB::tbb TBB::tbbmalloc)
+target_link_libraries(mrm PRIVATE unofficial::libgit2::libgit2)
+target_link_libraries(mrm PRIVATE yaml-cpp)
