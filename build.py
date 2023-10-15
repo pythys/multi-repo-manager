@@ -25,7 +25,7 @@ def build():
     if vcpkg_root:
         vcpkg_cmake_str = f"{vcpkg_root}/scripts/buildsystems/vcpkg.cmake"
         subprocess.run(["cmake", "-B", "build", "-S", ".", "-D", f"CMAKE_TOOLCHAIN_FILE={vcpkg_cmake_str}"])
-        subprocess.run(["cmake", "--build", "build"])
+        subprocess.run(["cmake", "--build", "build", "-j", str(os.cpu_count())])
     else:
         raise EnvironmentError("VCPKG_ROOT environment variable is not set.")
 
