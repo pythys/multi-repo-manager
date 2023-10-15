@@ -17,6 +17,7 @@ def show_help():
 def clean():
     print("Cleaning build directory...")
     subprocess.run(["rm", "-rf", "build"])
+    subprocess.run(["rm", "TAGS"])
 
 def build():
     print("Building project...")
@@ -37,6 +38,10 @@ def watch():
         subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py test"], shell=True)
     except KeyboardInterrupt:
         print("Stopped watching for changes.")
+
+def tags():
+    print("Generating emacs ctags...")
+    subprocess.run(["ctags", "-e", "-R"])
 
 def package():
     print("Packaging project...")
