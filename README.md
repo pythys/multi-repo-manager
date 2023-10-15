@@ -8,6 +8,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 ### installed on host
 
 - [cmake](https://cmake.org)
+- [ctags](https://github.com/universal-ctags/ctags)
 - [entr](https://github.com/eradman/entr)
 - [make](https://www.gnu.org/software/make)
 - [python](https://www.python.org)
