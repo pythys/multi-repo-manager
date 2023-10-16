@@ -18,5 +18,5 @@ find_package(yaml-cpp CONFIG REQUIRED)
 
 # subdirectories
 add_subdirectory(src)
-add_subdirectory(tests)
 enable_testing()
+add_subdirectory(tests)
