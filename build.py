@@ -12,6 +12,7 @@ def show_help():
     print("  build        Build the project.")
     print("  test         Run all tests.")
     print("  watch        Watch file changes to rebuild.")
+    print("  tags         Generate ctags for emacs")
     print("  package      Package the project.")
 
 def clean():
