@@ -44,3 +44,9 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 ./build.py clean
 ./build.py build
 ```
+
+To get help on available commands:
+
+``` sh
+./build.py --help
+```
