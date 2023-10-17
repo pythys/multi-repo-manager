@@ -16,7 +16,7 @@ def show_help():
     print("  package      Package the project.")
 
 def clean():
-    print("Cleaning build directory...")
+    print("Cleaning artifacts...")
     subprocess.run(["rm", "-rf", "build"])
     subprocess.run(["rm", "-f", "TAGS"])
 
