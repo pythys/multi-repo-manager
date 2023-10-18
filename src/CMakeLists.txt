@@ -1,6 +1,10 @@
-file(GLOB_RECURSE SOURCES "*.cpp")
-list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp")
-add_library(mrm_core STATIC ${SOURCES})
+add_library(mrm_core STATIC)
+target_sources(mrm_core PRIVATE
+  config.cpp
+  exec.cpp
+  find.cpp
+  sync.cpp
+)
 add_executable(mrm main.cpp)
 target_link_libraries(mrm PRIVATE mrm_core)
 target_link_libraries(mrm PRIVATE CLI11::CLI11)
