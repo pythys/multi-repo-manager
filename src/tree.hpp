@@ -4,8 +4,8 @@
 #include <string>
 #include <vector>
 
-enum RemoteType { HTTPS, SSH };
-enum RepoType { GIT, SVN };
+enum class RemoteType { HTTPS, SSH, GIT };
+enum class RepoType { GIT, SVN };
 
 struct Remote {
     std::string name;

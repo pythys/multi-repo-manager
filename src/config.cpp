@@ -6,6 +6,7 @@
 RemoteType to_remote_type(const std::string& str) {
     if (str == "https") return RemoteType::HTTPS;
     if (str == "ssh") return RemoteType::SSH;
+    if (str == "git") return RemoteType::GIT;
     throw std::runtime_error("Invalid RemoteType: " + str);
 }
 
