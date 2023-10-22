@@ -1,3 +1,6 @@
+find_package(TBB CONFIG REQUIRED)
+find_package(unofficial-libgit2 CONFIG REQUIRED)
+find_package(yaml-cpp CONFIG REQUIRED)
 add_library(mrm_core STATIC)
 target_sources(mrm_core PRIVATE
   config.cpp

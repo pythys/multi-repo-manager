@@ -9,14 +9,6 @@ if(MSVC)
 else()
     add_compile_options(-Wall -Wextra -Wpedantic -fmodules-ts)
 endif()
-
-# packages
-find_package(CLI11 CONFIG REQUIRED)
-find_package(TBB CONFIG REQUIRED)
-find_package(unofficial-libgit2 CONFIG REQUIRED)
-find_package(yaml-cpp CONFIG REQUIRED)
-
-# subdirectories
 add_subdirectory(src)
 enable_testing()
 add_subdirectory(tests)

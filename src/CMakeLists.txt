@@ -1,3 +1,4 @@
+find_package(CLI11 CONFIG REQUIRED)
 add_subdirectory(lib)
 include_directories(lib)
 add_executable(mrm main.cpp)
