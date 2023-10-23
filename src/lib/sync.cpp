@@ -16,6 +16,8 @@ int run_sync(const std::string& config_file) {
      * is path a directory and a repo ?
      * - true: update the remotes
      * - false: clone the repository
+     *
+     * The logic must wait for parent repos before cloning nested repos
      */
     std::for_each(std::execution::par,
                   config.begin(),
