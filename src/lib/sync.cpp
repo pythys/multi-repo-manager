@@ -22,7 +22,7 @@ int run_sync(const std::string& config_file) {
     std::for_each(std::execution::par,
                   config.begin(),
                   config.end(),
-                  [](const Tree& tree) {
+                  [](const auto& tree) {
         std::for_each(std::execution::par,
                       tree.repos.begin(),
                       tree.repos.end(),
