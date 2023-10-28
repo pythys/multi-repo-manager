@@ -12,3 +12,4 @@ target_sources(mrm_core PRIVATE
 target_link_libraries(mrm_core PRIVATE TBB::tbb TBB::tbbmalloc)
 target_link_libraries(mrm_core PRIVATE unofficial::libgit2::libgit2)
 target_link_libraries(mrm_core PRIVATE yaml-cpp)
+target_link_libraries(mrm_core PRIVATE Boost::graph)
