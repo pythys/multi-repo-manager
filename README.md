@@ -32,6 +32,10 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 - [tbb](https://github.com/oneapi-src/oneTBB) `vcpkg install tbb`
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
 
+to install all vcpkg packages in one shot (defined in vcpkg.json):
+
+`vcpkg install --feature-flags=manifests`
+
 ### automatically installed
 
 - [googletest](https://github.com/google/googletest)
