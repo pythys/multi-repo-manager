@@ -2,14 +2,10 @@
   "name": "mrm",
   "version-string": "1.0.0",
   "dependencies": [
+    "boost",
     "cli11",
     "libgit2",
     "tbb",
-    "yaml-cpp",
-    {
-      "name": "boost",
-      "default-features": false,
-      "features": ["graph"]
-    }
+    "yaml-cpp"
   ]
 }
