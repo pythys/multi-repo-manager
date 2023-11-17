@@ -11,6 +11,8 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   needed in various dependencies
 - [autoconf-archive](https://www.gnu.org/software/autoconf-archive/)
   needed in installing boost with vcpkg
+- [clang](https://clang.llvm.org/)
+  needed for clangd and clang-tidy
 - [cmake](https://cmake.org)
   main build system for the project
 - [ctags](https://github.com/universal-ctags/ctags)
