@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.27)
 project(mrm VERSION 1.0)
+
+# compile options
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -18,8 +20,12 @@ else()
         -std=c++20
     )
 endif()
+
+# sub-projects
 add_subdirectory(src)
 enable_testing()
 add_subdirectory(tests)
+
+# cpack
 set(CPACK_GENERATOR "TGZ;ZIP")
 include(CPack)
