@@ -52,6 +52,7 @@ def watch():
 def emacs():
     print("Generating emacs ctags...")
     subprocess.run(["ctags", "-e", "-R"])
+    print("Linking compile_commands.json...")
     subprocess.run(["ln", "-sf", "build/compile_commands.json", "compile_commands.json"])
 
 def package():
