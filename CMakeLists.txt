@@ -22,10 +22,10 @@ else()
         -std=c++20
     )
 endif()
+enable_testing()
 
 # sub-projects
 add_subdirectory(src)
-enable_testing()
 add_subdirectory(tests)
 
 # cpack
