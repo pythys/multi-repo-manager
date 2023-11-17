@@ -12,6 +12,7 @@ def show_help():
     print("  build        Build the project.")
     print("  test         Run all tests.")
     print("  watch        Watch file changes to rebuild.")
+    print("  lint         Lint with cpplint.")
     print("  emacs        Generate emacs artifacts")
     print("  package      Package the project.")
 
@@ -48,6 +49,12 @@ def watch():
         subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py test"], shell=True)
     except KeyboardInterrupt:
         print("Stopped watching for changes.")
+
+def lint():
+    print("Linting src directory...")
+    subprocess.run(["cpplint", "--recursive", "src"])
+    print("Linting tests directory...")
+    subprocess.run(["cpplint", "--recursive", "tests"])
 
 def emacs():
     print("Generating emacs ctags...")
