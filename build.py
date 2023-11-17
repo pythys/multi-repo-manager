@@ -12,20 +12,29 @@ def show_help():
     print("  build        Build the project.")
     print("  test         Run all tests.")
     print("  watch        Watch file changes to rebuild.")
-    print("  tags         Generate ctags for emacs")
+    print("  emacs        Generate emacs artifacts")
     print("  package      Package the project.")
 
 def clean():
     print("Cleaning artifacts...")
-    subprocess.run(["rm", "-rf", "build"])
-    subprocess.run(["rm", "-f", "TAGS"])
+    subprocess.run(["rm", "-rf",
+        ".cache",
+        "TAGS",
+        "build",
+        "compile_commands.json"
+    ])
 
 def build():
     print("Building project...")
     vcpkg_root = os.environ.get('VCPKG_ROOT')
     if vcpkg_root:
         vcpkg_cmake_str = f"{vcpkg_root}/scripts/buildsystems/vcpkg.cmake"
-        subprocess.run(["cmake", "-B", "build", "-S", ".", "-D", f"CMAKE_TOOLCHAIN_FILE={vcpkg_cmake_str}"])
+        subprocess.run(["cmake",
+            "-B", "build",
+            "-S", ".",
+            "-D", f"CMAKE_TOOLCHAIN_FILE={vcpkg_cmake_str}",
+            "-DCMAKE_EXPORT_COMPILE_COMMANDS=YES"
+        ])
         subprocess.run(["cmake", "--build", "build", "-j", str(os.cpu_count())])
     else:
         raise EnvironmentError("VCPKG_ROOT environment variable is not set.")
@@ -40,9 +49,10 @@ def watch():
     except KeyboardInterrupt:
         print("Stopped watching for changes.")
 
-def tags():
+def emacs():
     print("Generating emacs ctags...")
     subprocess.run(["ctags", "-e", "-R"])
+    subprocess.run(["ln", "-sf", "build/compile_commands.json", "compile_commands.json"])
 
 def package():
     print("Packaging project...")
@@ -51,6 +61,7 @@ def package():
 task_dependencies = {
     'build': [],
     'test': ['build'],
+    'emacs': ['build'],
     'watch': [],
     'package': ['build'],
 }
