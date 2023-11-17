@@ -15,6 +15,8 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   needed for clangd and clang-tidy
 - [cmake](https://cmake.org)
   main build system for the project
+- [cpplint](https://github.com/cpplint/cpplint)
+  linting tool for C++
 - [ctags](https://github.com/universal-ctags/ctags)
   generating tags for development with emacs
 - [entr](https://github.com/eradman/entr)
