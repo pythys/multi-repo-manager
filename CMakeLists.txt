@@ -7,7 +7,15 @@ set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "ac01f462-0f5f-432a-86aa-acef252918a
 if(MSVC)
     add_compile_options(/W4 /experimental:module)
 else()
-    add_compile_options(-Wall -Wextra -Wpedantic -fmodules-ts)
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wshadow
+        -Wconversion
+        -Wpedantic
+        -Werror
+        -fmodules-ts
+    )
 endif()
 add_subdirectory(src)
 enable_testing()
