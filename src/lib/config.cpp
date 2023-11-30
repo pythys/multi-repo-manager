@@ -41,7 +41,8 @@ Repo to_repo(const YAML::Node& node) {
     return {
         node["name"].as<std::string>(),
         to_repo_type(node["type"].as<std::string>()),
-        remotes
+        remotes,
+        std::vector<Repo>()
     };
 }
 
@@ -60,7 +61,6 @@ std::vector<Tree> get_config(const std::string& config_file) {
     std::vector<Tree> trees;
     try {
         YAML::Node config = YAML::LoadFile(config_file);
-
         if (config["trees"]) {
             std::transform(
                 config["trees"].begin(),
@@ -76,6 +76,19 @@ std::vector<Tree> get_config(const std::string& config_file) {
         std::cerr << "Error loading YAML file: "
                   << e.what()
                   << std::endl;
+    }
+    return trees;
+}
+
+std::vector<Tree> get_dependencies(const std::string& config_file) {
+    std::vector<Tree> trees = get_config(config_file);
+    for (auto& tree : trees) {
+        std::sort(
+            tree.repos.begin(),
+            tree.repos.end(),
+            [](const Repo& a, const Repo& b) {
+                return a.name < b.name;
+            });
     }
     return trees;
 }

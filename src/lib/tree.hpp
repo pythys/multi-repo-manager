@@ -17,6 +17,7 @@ struct Repo {
     std::string name;
     RepoType type;
     std::vector<Remote> remotes;
+    std::vector<Repo> children;
 };
 
 struct Tree {
