@@ -89,6 +89,7 @@ std::vector<Tree> get_dependencies(const std::string& config_file) {
             [](const Repo& a, const Repo& b) {
                 return a.name < b.name;
             });
+        // TODO figure out algorithm to build repo dependency tree
     }
     return trees;
 }
