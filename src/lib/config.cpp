@@ -85,11 +85,11 @@ std::vector<Repo> find_children(const Repo repo, const std::vector<Repo> all_rep
     return children;
 }
 
-std::vector<Repo> dependency_tree(Repo level_repo, std::vector<Repo> all_repos) {
+std::vector<Repo> to_dependency_tree(Repo level_repo, std::vector<Repo> all_repos) {
     std::vector<Repo> child_repos = find_children(level_repo, all_repos);
     if (!child_repos.empty()) {
         for (auto& child : child_repos) {
-            child.children = dependency_tree(child, all_repos);
+            child.children = to_dependency_tree(child, all_repos);
         }
     }
     return child_repos;
@@ -125,7 +125,7 @@ std::vector<Tree> get_dependencies(const std::string& config_file) {
         for (auto& repo : tree.repos) {
             std::vector<Repo> parent_repos = find_parents(repo, tree.repos);
             if (parent_repos.empty()) {
-                repo.children = dependency_tree(repo, tree.repos);
+                repo.children = to_dependency_tree(repo, tree.repos);
                 level_repos.push_back(repo);
             }
         }
