@@ -57,29 +57,6 @@ Tree to_tree(const YAML::Node& node) {
     return {node["root"].as<std::string>(), repos};
 }
 
-std::vector<Tree> get_config(const std::string& config_file) {
-    std::vector<Tree> trees;
-    try {
-        YAML::Node config = YAML::LoadFile(config_file);
-        if (config["trees"]) {
-            std::transform(
-                config["trees"].begin(),
-                config["trees"].end(),
-                std::back_inserter(trees),
-                to_tree
-            );
-        } else {
-            std::cerr << "Error: 'trees' node is missing."
-                      << std::endl;
-        }
-    } catch (YAML::Exception &e) {
-        std::cerr << "Error loading YAML file: "
-                  << e.what()
-                  << std::endl;
-    }
-    return trees;
-}
-
 bool is_direct_child(const Repo parent, const Repo child) {
     bool is_child_longer = child.name.size() > parent.name.size();
     bool contains_parent = child.name.substr(0, parent.name.size()) == parent.name;
@@ -116,6 +93,29 @@ std::vector<Repo> dependency_tree(Repo level_repo, std::vector<Repo> all_repos) 
         }
     }
     return child_repos;
+}
+
+std::vector<Tree> get_config(const std::string& config_file) {
+    std::vector<Tree> trees;
+    try {
+        YAML::Node config = YAML::LoadFile(config_file);
+        if (config["trees"]) {
+            std::transform(
+                config["trees"].begin(),
+                config["trees"].end(),
+                std::back_inserter(trees),
+                to_tree
+            );
+        } else {
+            std::cerr << "Error: 'trees' node is missing."
+                      << std::endl;
+        }
+    } catch (YAML::Exception &e) {
+        std::cerr << "Error loading YAML file: "
+                  << e.what()
+                  << std::endl;
+    }
+    return trees;
 }
 
 std::vector<Tree> get_dependencies(const std::string& config_file) {
