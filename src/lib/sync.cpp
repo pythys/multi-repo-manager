@@ -11,7 +11,7 @@
 namespace fs = std::filesystem;
 
 int run_sync(const std::string& config_file) {
-    std::vector<Tree> config = get_config(config_file);
+    std::vector<Tree> config = get_dependencies(config_file);
     /* TODO implement parallel algorithm as follows
      * is path a directory and a repo ?
      * - true: update the remotes
