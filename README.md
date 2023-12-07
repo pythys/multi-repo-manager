@@ -52,8 +52,6 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
   multi-platform curses library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
-- [thread-pool](https://github.com/bshoshany/thread-pool)
-  thread pooling library
 
 ## build
 
