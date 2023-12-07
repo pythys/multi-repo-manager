@@ -24,7 +24,18 @@ TEST(ConfigTests, SshProtocolIdentified) {
     EXPECT_EQ(trees[2].repos[0].remotes[0].type, RemoteType::SSH);
 }
 
-TEST(ConfigTests, NestingStructureEnforced) {
+TEST(ConfigTests, NestingFirstLevel) {
     std::vector<Tree> trees = parse_dependencies("nested_repos.yml");
     EXPECT_EQ(trees[0].repos.size(), 1);
+}
+
+TEST(ConfigTests, NestingSecondLevel) {
+    std::vector<Tree> trees = parse_dependencies("nested_repos.yml");
+    EXPECT_EQ(trees[0].repos[0].children.size(), 2);
+}
+
+TEST(ConfigTests, NestingThirdLevel) {
+    std::vector<Tree> trees = parse_dependencies("nested_repos.yml");
+    EXPECT_EQ(trees[0].repos[0].children[0].children.size(), 1);
+    EXPECT_EQ(trees[0].repos[0].children[1].children.size(), 0);
 }

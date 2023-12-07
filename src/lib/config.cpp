@@ -80,16 +80,56 @@ std::vector<Tree> get_config(const std::string& config_file) {
     return trees;
 }
 
+bool is_direct_child(const Repo parent, const Repo child) {
+    bool is_child_longer = child.name.size() > parent.name.size();
+    bool contains_parent = child.name.substr(0, parent.name.size()) == parent.name;
+    bool slash_separated = child.name[parent.name.size()] == '/';
+    bool only_one_slash = child.name.find('/', parent.name.size() + 1) == std::string::npos;
+    return is_child_longer && contains_parent && slash_separated && only_one_slash;
+}
+
+std::vector<Repo> find_parents(const Repo repo, const std::vector<Repo> all_repos) {
+    std::vector<Repo> parents;
+    for (auto& parent : all_repos) {
+        if (is_direct_child(parent, repo)) {
+            parents.push_back(parent);
+        }
+    }
+    return parents;
+}
+
+std::vector<Repo> find_children(const Repo repo, const std::vector<Repo> all_repos) {
+    std::vector<Repo> children;
+    for (auto& child : all_repos) {
+        if (is_direct_child(repo, child)) {
+            children.push_back(child);
+        }
+    }
+    return children;
+}
+
+std::vector<Repo> dependency_tree(Repo level_repo, std::vector<Repo> all_repos) {
+    std::vector<Repo> child_repos = find_children(level_repo, all_repos);
+    if (!child_repos.empty()) {
+        for (auto& child : child_repos) {
+            child.children = dependency_tree(child, all_repos);
+        }
+    }
+    return child_repos;
+}
+
 std::vector<Tree> get_dependencies(const std::string& config_file) {
     std::vector<Tree> trees = get_config(config_file);
     for (auto& tree : trees) {
-        std::sort(
-            tree.repos.begin(),
-            tree.repos.end(),
-            [](const Repo& a, const Repo& b) {
-                return a.name < b.name;
-            });
-        // TODO figure out algorithm to build repo dependency tree
+        std::vector<Repo> level_repos;
+        for (auto& repo : tree.repos) {
+            std::vector<Repo> parent_repos = find_parents(repo, tree.repos);
+            if (parent_repos.empty()) {
+                repo.children = dependency_tree(repo, tree.repos);
+                level_repos.push_back(repo);
+            }
+        }
+        tree.repos = level_repos;
     }
     return trees;
 }
