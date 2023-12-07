@@ -15,13 +15,13 @@ void sync_repository(
     asio::io_context& io_context,
     asio::thread_pool& pool) {
 
-    const std::string repo_path = root + "/" + repo.name;
-    fs::path repo_dir("./" + repo_path);
-    auto sync_action = [&]() {
+    auto sync_action = [root, repo, &io_context, &pool]() {
+        std::string repo_path = root + "/" + repo.name;
+        fs::path repo_dir(repo_path);
         if (fs::exists(repo_dir) && fs::is_directory(repo_dir)) {
-            std::cout << "updating repo: " + repo_path << std::endl;
+            std::cout << "updating repo: " + repo_dir.string() << std::endl;
         } else {
-            std::cout << "cloning repo:" + repo_path << std::endl;
+            std::cout << "cloning repo:" + repo_dir.string() << std::endl;
         }
         for (auto& child : repo.children) {
             sync_repository(repo_path, child, io_context, pool);
