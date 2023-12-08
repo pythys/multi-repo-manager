@@ -1,5 +1,6 @@
 #include <boost/asio.hpp>
 #include <filesystem>
+#include <future>
 #include <iostream>
 #include <vector>
 #include "config.hpp"
