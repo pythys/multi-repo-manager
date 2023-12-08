@@ -7,9 +7,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
 include_directories(${CMAKE_SOURCE_DIR}/src/lib)
 add_definitions(-DTEST_RESOURCES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/resources")
-set(TEST_SRCS
-  config_tests.cpp
-)
+set(TEST_SRCS config_tests.cpp)
 foreach(test_src ${TEST_SRCS})
   get_filename_component(test_name ${test_src} NAME_WE)
   add_executable(${test_name} ${test_src})
