@@ -17,8 +17,6 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   main build system for the project
 - [cpplint](https://github.com/cpplint/cpplint)
   linting tool for C++
-- [ctags](https://github.com/universal-ctags/ctags)
-  generating tags for development with emacs
 - [entr](https://github.com/eradman/entr)
   watching files and recompiling
 - [make](https://www.gnu.org/software/make)
