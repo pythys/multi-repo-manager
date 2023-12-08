@@ -33,9 +33,7 @@ void sync_repository(
         asio::post(pool, update_action);
     } else {
         asio::post(pool, clone_action);
-        if (!repo.children.empty()) {
-            clone_future.wait();
-        }
+        clone_future.wait();
     }
     for (auto& child : repo.children) {
         sync_repository(root, child, io_context, pool);
