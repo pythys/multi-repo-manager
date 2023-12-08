@@ -18,8 +18,12 @@ void sync_repository(
     auto update_action = [root, repo]() {
         std::cout << "updating repo: " + root + "/" + repo.name << std::endl;
     };
-    auto clone_action = [root, repo]() {
+
+    std::promise<void> clone_completed;
+    std::future<void> clone_future = clone_completed.get_future();
+    auto clone_action = [root, repo, &clone_completed]() {
         std::cout << "cloning repo:" + root + "/" + repo.name << std::endl;
+        clone_completed.set_value();
     };
 
     std::string repo_path = root + "/" + repo.name;
@@ -28,6 +32,7 @@ void sync_repository(
         asio::post(pool, update_action);
     } else {
         asio::post(pool, clone_action);
+        clone_future.wait();
     }
     for (auto& child : repo.children) {
         sync_repository(root, child, io_context, pool);
