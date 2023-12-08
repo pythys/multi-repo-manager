@@ -51,11 +51,14 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
 
-## build
+## development setup
 
 ```sh
 ./build.py clean
 ./build.py build
+./build.py test
+./build.py emacs
+./build.py lint
 ```
 
 To get help on available commands:
