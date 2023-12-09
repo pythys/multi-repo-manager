@@ -1,5 +1,5 @@
-#ifndef TREE_HPP
-#define TREE_HPP
+#ifndef SRC_LIB_TREE_HPP_
+#define SRC_LIB_TREE_HPP_
 
 #include <string>
 #include <vector>
@@ -25,4 +25,4 @@ struct Tree {
     std::vector<Repo> repos;
 };
 
-#endif
+#endif  // SRC_LIB_TREE_HPP_

@@ -1,8 +1,8 @@
-#include <boost/asio.hpp>
 #include <filesystem>
 #include <future>
 #include <iostream>
 #include <vector>
+#include <boost/asio.hpp>
 #include "config.hpp"
 #include "sync.hpp"
 #include "tree.hpp"
@@ -13,7 +13,7 @@ namespace asio = boost::asio;
 void sync_repository(
     const std::string& root,
     const Repo& repo,
-    asio::thread_pool& pool) {
+    asio::thread_pool* pool) {
 
     auto update_action = [root, repo]() {
         std::cout << "updating repo: " + root + "/" + repo.name << std::endl;
@@ -29,9 +29,9 @@ void sync_repository(
     std::string repo_path = root + "/" + repo.name;
     fs::path repo_dir(repo_path);
     if (fs::exists(repo_dir) && fs::is_directory(repo_dir)) {
-        asio::post(pool, update_action);
+        asio::post(*pool, update_action);
     } else {
-        asio::post(pool, clone_action);
+        asio::post(*pool, clone_action);
         clone_future.wait();
     }
     for (auto& child : repo.children) {
@@ -44,7 +44,7 @@ int run_sync(const std::string& config_file) {
     asio::thread_pool pool(10);
     for (const auto& tree : config) {
         for (const auto& repo : tree.repos) {
-            sync_repository(tree.root, repo, pool);
+            sync_repository(tree.root, repo, &pool);
         }
     }
     pool.join();

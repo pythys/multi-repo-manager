@@ -51,10 +51,16 @@ def watch():
         print("Stopped watching for changes.")
 
 def lint():
-    print("Linting src directory...")
-    subprocess.run(["cpplint", "--recursive", "src"])
-    print("Linting tests directory...")
-    subprocess.run(["cpplint", "--recursive", "tests"])
+    directories = ["src", "tests"]
+    for directory in directories:
+        print(f"Linting {directory} directory...")
+        subprocess.run([
+            "cpplint",
+            "--repository=.",
+            "--recursive",
+            "--filter=-legal/copyright,-build/c++11,-build/include_subdir",
+            directory
+        ])
 
 def emacs():
     print("Linking compile_commands.json...")

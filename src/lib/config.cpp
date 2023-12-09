@@ -1,7 +1,7 @@
-#include "config.hpp"
-#include <iostream>
 #include <yaml-cpp/yaml.h>
 #include <algorithm>
+#include <iostream>
+#include "config.hpp"
 
 RemoteType to_remote_type(const std::string& str) {
     if (str == "https") return RemoteType::HTTPS;
@@ -31,11 +31,10 @@ Repo to_repo(const YAML::Node& node) {
             node["remotes"].begin(),
             node["remotes"].end(),
             std::back_inserter(remotes),
-            to_remote
-        );
+            to_remote);
     } else {
-        std::cerr << "Warning: 'remotes' node is missing or not a sequence for repo "
-                  << node["name"].as<std::string>("unknown")
+        std::cerr << "Warning: 'remotes' node is missing or not a sequence "
+                  << "for repo " << node["name"].as<std::string>("unknown")
                   << std::endl;
     }
     return {
@@ -52,20 +51,25 @@ Tree to_tree(const YAML::Node& node) {
         node["repos"].begin(),
         node["repos"].end(),
         std::back_inserter(repos),
-        to_repo
-    );
+        to_repo);
     return {node["root"].as<std::string>(), repos};
 }
 
 bool is_direct_child(const Repo parent, const Repo child) {
     bool is_child_longer = child.name.size() > parent.name.size();
-    bool contains_parent = child.name.substr(0, parent.name.size()) == parent.name;
+    bool contains_parent =
+        child.name.substr(0, parent.name.size()) == parent.name;
     bool slash_separated = child.name[parent.name.size()] == '/';
-    bool only_one_slash = child.name.find('/', parent.name.size() + 1) == std::string::npos;
-    return is_child_longer && contains_parent && slash_separated && only_one_slash;
+    bool only_one_slash =
+        child.name.find('/', parent.name.size() + 1) == std::string::npos;
+    return is_child_longer && contains_parent &&
+           slash_separated && only_one_slash;
 }
 
-std::vector<Repo> find_parents(const Repo repo, const std::vector<Repo> all_repos) {
+std::vector<Repo> find_parents(
+    const Repo repo,
+    const std::vector<Repo> all_repos) {
+
     std::vector<Repo> parents;
     for (auto& parent : all_repos) {
         if (is_direct_child(parent, repo)) {
@@ -75,7 +79,10 @@ std::vector<Repo> find_parents(const Repo repo, const std::vector<Repo> all_repo
     return parents;
 }
 
-std::vector<Repo> find_children(const Repo repo, const std::vector<Repo> all_repos) {
+std::vector<Repo> find_children(
+    const Repo repo,
+    const std::vector<Repo> all_repos) {
+
     std::vector<Repo> children;
     for (auto& child : all_repos) {
         if (is_direct_child(repo, child)) {
@@ -85,7 +92,10 @@ std::vector<Repo> find_children(const Repo repo, const std::vector<Repo> all_rep
     return children;
 }
 
-std::vector<Repo> to_dependency_tree(Repo parent_repo, std::vector<Repo> all_repos) {
+std::vector<Repo> to_dependency_tree(
+    Repo parent_repo,
+    std::vector<Repo> all_repos) {
+
     std::vector<Repo> child_repos = find_children(parent_repo, all_repos);
     if (!child_repos.empty()) {
         for (auto& child : child_repos) {
@@ -104,8 +114,7 @@ std::vector<Tree> get_config(const std::string& config_file) {
                 config["trees"].begin(),
                 config["trees"].end(),
                 std::back_inserter(trees),
-                to_tree
-            );
+                to_tree);
         } else {
             std::cerr << "Error: 'trees' node is missing."
                       << std::endl;

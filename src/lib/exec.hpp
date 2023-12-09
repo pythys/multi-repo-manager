@@ -1,5 +1,5 @@
-#ifndef EXEC_HPP
-#define EXEC_HPP
+#ifndef SRC_LIB_EXEC_HPP_
+#define SRC_LIB_EXEC_HPP_
 
 #include <string>
 
@@ -9,4 +9,4 @@ int run_exec(
     const std::string &repo_type
 );
 
-#endif
+#endif  // SRC_LIB_EXEC_HPP_

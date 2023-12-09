@@ -1,8 +1,8 @@
-#ifndef FIND_HPP
-#define FIND_HPP
+#ifndef SRC_LIB_FIND_HPP_
+#define SRC_LIB_FIND_HPP_
 
 #include <string>
 
 int run_find(const std::string& path);
 
-#endif
+#endif  // SRC_LIB_FIND_HPP_
