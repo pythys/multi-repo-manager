@@ -3,8 +3,11 @@
 #include "exec.hpp"
 #include "find.hpp"
 #include "sync.hpp"
+#include <git2.h>
 
 int main(int argc, char **argv) {
+    git_libgit2_init();
+
     CLI::App app("mrm");
 
     CLI::App *sync = app.add_subcommand(
@@ -77,5 +80,6 @@ int main(int argc, char **argv) {
         return run_exec(custom_command, config_file, repo_type);
     }
 
+    git_libgit2_shutdown();
     return 0;
 }
