@@ -20,7 +20,6 @@ def clean():
     print("Cleaning artifacts...")
     subprocess.run(["rm", "-rf",
         ".cache",
-        "TAGS",
         "build",
         "compile_commands.json"
     ])
