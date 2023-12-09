@@ -13,7 +13,6 @@ def show_help():
     print("  test         Run all tests.")
     print("  watch        Watch file changes to rebuild.")
     print("  lint         Lint with cpplint.")
-    print("  emacs        Generate emacs artifacts")
     print("  package      Package the project.")
 
 def clean():
@@ -36,6 +35,8 @@ def build():
             "-DCMAKE_EXPORT_COMPILE_COMMANDS=YES"
         ])
         subprocess.run(["cmake", "--build", "build", "-j", str(os.cpu_count())])
+        print("Linking compile_commands.json...")
+        subprocess.run(["ln", "-sf", "build/compile_commands.json", "compile_commands.json"])
     else:
         raise EnvironmentError("VCPKG_ROOT environment variable is not set.")
 
@@ -59,7 +60,6 @@ def watch():
             "./build.py",
             "clean",
             "test",
-            "emacs",
             "lint"
         ]
         subprocess.run(" ".join(command), shell=True)
@@ -78,10 +78,6 @@ def lint():
             directory
         ])
 
-def emacs():
-    print("Linking compile_commands.json...")
-    subprocess.run(["ln", "-sf", "build/compile_commands.json", "compile_commands.json"])
-
 def package():
     print("Packaging project...")
     subprocess.run(["cpack"], cwd="build")
@@ -89,7 +85,6 @@ def package():
 task_dependencies = {
     'build': [],
     'test': ['build'],
-    'emacs': ['build'],
     'watch': [],
     'package': ['build'],
 }
