@@ -46,7 +46,7 @@ def test():
 def watch():
     print("Watching file changes...")
     try:
-        subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py test emacs lint"], shell=True)
+        subprocess.run(["find . -type f ! -path './build/*' | entr -d ./build.py clean test emacs lint"], shell=True)
     except KeyboardInterrupt:
         print("Stopped watching for changes.")
 
