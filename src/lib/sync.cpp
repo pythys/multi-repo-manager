@@ -13,7 +13,6 @@ namespace asio = boost::asio;
 void sync_repository(
     const std::string& root,
     const Repo& repo,
-    asio::io_context& io_context,
     asio::thread_pool& pool) {
 
     auto update_action = [root, repo]() {
@@ -36,17 +35,16 @@ void sync_repository(
         clone_future.wait();
     }
     for (auto& child : repo.children) {
-        sync_repository(root, child, io_context, pool);
+        sync_repository(root, child, pool);
     }
 }
 
 int run_sync(const std::string& config_file) {
     std::vector<Tree> config = get_dependencies(config_file);
-    asio::io_context io_context;
     asio::thread_pool pool(10);
     for (const auto& tree : config) {
         for (const auto& repo : tree.repos) {
-            sync_repository(tree.root, repo, io_context, pool);
+            sync_repository(tree.root, repo, pool);
         }
     }
     pool.join();
