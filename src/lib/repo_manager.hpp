@@ -3,7 +3,7 @@
 #include <string>
 
 class RepoManager {
-public:
+ public:
     virtual void copy(
         const std::string& source,
         const std::string& destination) = 0;
