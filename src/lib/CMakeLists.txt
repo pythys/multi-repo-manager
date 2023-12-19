@@ -7,6 +7,8 @@ target_sources(mrm_core PRIVATE
   config.cpp
   exec.cpp
   find.cpp
+  git_manager.cpp
+  repo_factory.cpp
   sync.cpp
 )
 target_link_libraries(mrm_core PRIVATE TBB::tbb TBB::tbbmalloc)

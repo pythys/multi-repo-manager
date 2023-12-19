@@ -6,6 +6,7 @@
 #include "config.hpp"
 #include "sync.hpp"
 #include "tree.hpp"
+#include "repo_factory.hpp"
 
 namespace fs = std::filesystem;
 namespace asio = boost::asio;
@@ -23,6 +24,10 @@ void sync_repository(
     std::future<void> clone_future = clone_completed.get_future();
     auto clone_action = [root, repo, &clone_completed]() {
         std::cout << "cloning repo:" + root + "/" + repo.name << std::endl;
+        auto repo_manager = createRepoManager(repo.type);
+        repo_manager->copy(
+            repo.remotes[0].url,
+            root + "/" + repo.name);
         clone_completed.set_value();
     };
 
