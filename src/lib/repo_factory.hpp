@@ -5,6 +5,6 @@
 #include "repo_manager.hpp"
 #include "tree.hpp"
 
-std::unique_ptr<RepoManager> createRepoManager(RepoType type);
+std::unique_ptr<RepoManager> create_repo_manager(RepoType type);
 
 #endif  // SRC_LIB_REPO_FACTORY_HPP_
