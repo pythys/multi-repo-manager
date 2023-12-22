@@ -21,6 +21,8 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   watching files and recompiling
 - [make](https://www.gnu.org/software/make)
   currently default generator of cmake
+- [ncurses](https://invisible-island.net/ncurses)
+  interactive text on terminal
 - [python](https://www.python.org)
   to run the build.py build script
 - [vcpkg](https://github.com/microsoft/vcpkg)
@@ -46,8 +48,6 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
 
 - [fmt](https://github.com/fmtlib/fmt)
   string formatting library
-- [PDCurses](https://github.com/wmcbrine/PDCurses)
-  multi-platform curses library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
 
@@ -57,8 +57,8 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
 ./build.py clean
 ./build.py build
 ./build.py test
-./build.py emacs
 ./build.py lint
+./build.py watch
 ```
 
 To get help on available commands:
