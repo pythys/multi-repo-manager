@@ -22,6 +22,9 @@ else()
         -std=c++20
     )
 endif()
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
 enable_testing()
 
 # sub-projects

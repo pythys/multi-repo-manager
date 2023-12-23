@@ -66,3 +66,9 @@ To get help on available commands:
 ``` sh
 ./build.py --help
 ```
+
+## debugging
+
+To start a debug session with gdb run the below command
+
+`gdb build/src/mrm`

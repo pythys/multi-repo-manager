@@ -6,6 +6,7 @@
 
 enum class RemoteType { HTTPS, SSH, GIT };
 enum class RepoType { GIT, SVN };
+enum class RepoStatus { PENDING, SYNCHING, SYNCHED };
 
 struct Remote {
     std::string name;
@@ -16,6 +17,7 @@ struct Remote {
 struct Repo {
     std::string name;
     RepoType type;
+    RepoStatus status;
     std::vector<Remote> remotes;
     std::vector<Repo> children;
 };

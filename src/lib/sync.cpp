@@ -14,25 +14,25 @@ namespace asio = boost::asio;
 
 void sync_repository(
     const std::string& root,
-    const Repo& repo,
+    Repo* repo,
     asio::thread_pool* pool) {
 
     auto update_action = [root, repo]() {
-        std::cout << "updating repo: " + root + "/" + repo.name << std::endl;
+        std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
     };
 
     std::promise<void> clone_completed;
     std::future<void> clone_future = clone_completed.get_future();
     auto clone_action = [root, repo, &clone_completed]() {
-        std::cout << "cloning repo:" + root + "/" + repo.name << std::endl;
-        auto repo_manager = create_repo_manager(repo.type);
+        std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
+        auto repo_manager = create_repo_manager(repo->type);
         repo_manager->copy(
-            repo.remotes[0].url,
-            root + "/" + repo.name);
+            repo->remotes[0].url,
+            root + "/" + repo->name);
         clone_completed.set_value();
     };
 
-    std::string repo_path = root + "/" + repo.name;
+    std::string repo_path = root + "/" + repo->name;
     fs::path repo_dir(repo_path);
     if (fs::exists(repo_dir) && fs::is_directory(repo_dir)) {
         asio::post(*pool, update_action);
@@ -40,8 +40,8 @@ void sync_repository(
         asio::post(*pool, clone_action);
         clone_future.wait();
     }
-    for (auto& child : repo.children) {
-        sync_repository(root, child, pool);
+    for (auto& child : repo->children) {
+        sync_repository(root, &child, pool);
     }
 }
 
@@ -58,7 +58,7 @@ int run_sync(const std::string& config_file) {
                 tree.repos.begin(),
                 tree.repos.end(),
                 [&pool, &tree](Repo& repo) {
-                    sync_repository(tree.root, repo, &pool);
+                    sync_repository(tree.root, &repo, &pool);
                 });
         });
     pool.join();
