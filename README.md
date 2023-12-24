@@ -21,8 +21,6 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   watching files and recompiling
 - [make](https://www.gnu.org/software/make)
   currently default generator of cmake
-- [ncurses](https://invisible-island.net/ncurses)
-  interactive text on terminal
 - [python](https://www.python.org)
   to run the build.py build script
 - [vcpkg](https://github.com/microsoft/vcpkg)
@@ -50,6 +48,10 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
   string formatting library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
+- [notcurses](https://github.com/dankamongmen/notcurses)
+  TUI library
+- [FTXUI](https://github.com/ArthurSonzogni/FTXUI)
+  TUI library
 
 ## development setup
 
