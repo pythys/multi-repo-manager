@@ -1,4 +1,5 @@
 find_package(Boost REQUIRED COMPONENTS system)
+find_package(ftxui CONFIG REQUIRED)
 find_package(TBB CONFIG REQUIRED)
 find_package(unofficial-libgit2 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
@@ -12,6 +13,7 @@ target_sources(mrm_core PRIVATE
   sync.cpp
 )
 target_link_libraries(mrm_core PRIVATE Boost::system)
+target_link_libraries(mrm_core PRIVATE ftxui::screen ftxui::dom)
 target_link_libraries(mrm_core PRIVATE TBB::tbb TBB::tbbmalloc)
 target_link_libraries(mrm_core PRIVATE unofficial::libgit2::libgit2)
 target_link_libraries(mrm_core PRIVATE yaml-cpp)

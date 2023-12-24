@@ -30,6 +30,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 
 - [boost](https://github.com/boostorg/boost) `vcpkg install boost`
 - [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
+- [ftxui](https://github.com/ArthurSonzogni/FTXUI) `vcpkg install ftxui`
 - [libgit2](https://github.com/libgit2/libgit2) `vcpkg install libgit2`
 - [tbb](https://github.com/oneapi-src/oneTBB) `vcpkg install tbb`
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
@@ -48,10 +49,6 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
   string formatting library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
-- [notcurses](https://github.com/dankamongmen/notcurses)
-  TUI library
-- [FTXUI](https://github.com/ArthurSonzogni/FTXUI)
-  TUI library
 
 ## development setup
 
