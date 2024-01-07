@@ -21,8 +21,6 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
   watching files and recompiling
 - [make](https://www.gnu.org/software/make)
   currently default generator of cmake
-- [python](https://www.python.org)
-  to run the build.py build script
 - [vcpkg](https://github.com/microsoft/vcpkg)
   installs other dependencies
 
@@ -53,17 +51,11 @@ to install all vcpkg packages in one shot (defined in vcpkg.json):
 ## development setup
 
 ```sh
-./build.py clean
-./build.py build
-./build.py test
-./build.py lint
-./build.py watch
-```
-
-To get help on available commands:
-
-``` sh
-./build.py --help
+make clean
+make build
+make test
+make lint
+make watch
 ```
 
 ## debugging
