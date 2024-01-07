@@ -58,6 +58,8 @@ make lint
 make watch
 ```
 
+To get help on tasks `make help`
+
 ## debugging
 
 To start a debug session with gdb run the below command
