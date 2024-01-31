@@ -30,14 +30,6 @@ void sync_repository(
             repo->remotes[0].url,
             root + "/" + repo->name);
         clone_completed.set_value();
-        if (remotes.size() > 1) {
-            for (int i = 1; i < remotes.size(); i++) {
-                repo_manager->add_remote(
-                    root + "/" + repo->name,
-                    remotes[i].name,
-                    remotes[i].url);
-            }
-        }
     };
 
     std::string repo_path = root + "/" + repo->name;
