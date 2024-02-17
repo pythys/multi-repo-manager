@@ -20,7 +20,7 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 - [entr](https://github.com/eradman/entr)
   watching files and recompiling
 - [make](https://www.gnu.org/software/make)
-  currently default generator of cmake
+  running make commands and as cmake generator
 - [vcpkg](https://github.com/microsoft/vcpkg)
   installs other dependencies
 
