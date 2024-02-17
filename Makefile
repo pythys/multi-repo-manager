@@ -1,7 +1,7 @@
 VCPKG_ROOT := $(shell echo $$VCPKG_ROOT)
 VCPKG_CMAKE := $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
 
-all: build
+all: help
 
 define display_help
 	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
