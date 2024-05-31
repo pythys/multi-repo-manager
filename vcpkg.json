@@ -2,26 +2,12 @@
   "name": "mrm",
   "version": "1.0.0",
   "dependencies": [
-    {
-      "name": "boost-asio"
-    },
-    {
-      "name": "boost-system"
-    },
-    {
-      "name": "cli11"
-    },
-    {
-      "name": "ftxui"
-    },
-    {
-      "name": "tbb"
-    },
-    {
-      "name": "libgit2"
-    },
-    {
-      "name": "yaml-cpp"
-    }
+    {"name": "boost-asio"},
+    {"name": "boost-system"},
+    {"name": "cli11"},
+    {"name": "ftxui"},
+    {"name": "tbb"},
+    {"name": "libgit2"},
+    {"name": "yaml-cpp"}
   ]
 }
