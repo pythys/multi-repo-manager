@@ -24,20 +24,18 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 - [vcpkg](https://github.com/microsoft/vcpkg)
   installs other dependencies
 
-### installed via vcpkg
-
-- [boost](https://github.com/boostorg/boost) `vcpkg install boost`
-- [cli11](https://github.com/CLIUtils/CLI11) `vcpkg install cli11`
-- [ftxui](https://github.com/ArthurSonzogni/FTXUI) `vcpkg install ftxui`
-- [libgit2](https://github.com/libgit2/libgit2) `vcpkg install libgit2`
-- [tbb](https://github.com/oneapi-src/oneTBB) `vcpkg install tbb`
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp) `vcpkg install yaml-cpp`
-
-to install all vcpkg packages in one shot (defined in vcpkg.json):
-
-`vcpkg install --feature-flags=manifests`
-
 ### automatically installed
+
+packages installed automatically with vcpkg:
+
+- [boost](https://github.com/boostorg/boost)
+- [cli11](https://github.com/CLIUtils/CLI11)
+- [ftxui](https://github.com/ArthurSonzogni/FTXUI)
+- [libgit2](https://github.com/libgit2/libgit2)
+- [tbb](https://github.com/oneapi-src/oneTBB)
+- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+
+packages installed automatically with cmake:
 
 - [googletest](https://github.com/google/googletest)
 
