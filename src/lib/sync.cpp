@@ -17,19 +17,22 @@ void sync_repository(
     Repo* repo,
     asio::thread_pool* pool) {
 
-    auto update_action = [root, repo]() {
+    auto repo_manager = create_repo_manager(repo->type);
+    std::promise<void> action_completed;
+    std::future<void> action_future = action_completed.get_future();
+
+    auto update_action = [root, repo, &repo_manager, &action_completed]() {
         std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
+        repo_manager->update(root + "/" + repo->name, repo->remotes[0].name);
+        std::cout << "done updating: " + root + "/" + repo->name << std::endl;
+        action_completed.set_value();
     };
 
-    std::promise<void> clone_completed;
-    std::future<void> clone_future = clone_completed.get_future();
-    auto clone_action = [root, repo, &clone_completed]() {
-        std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
-        auto repo_manager = create_repo_manager(repo->type);
-        repo_manager->copy(
-            repo->remotes[0].url,
-            root + "/" + repo->name);
-        clone_completed.set_value();
+    auto clone_action = [root, repo, &repo_manager, &action_completed]() {
+        std::cout << "cloning repo: " + root + "/" + repo->name << std::endl;
+        repo_manager->copy(repo->remotes[0].url, root + "/" + repo->name);
+        std::cout << "done cloning: " + root + "/" + repo->name << std::endl;
+        action_completed.set_value();
     };
 
     std::string repo_path = root + "/" + repo->name;
@@ -38,7 +41,7 @@ void sync_repository(
         asio::post(*pool, update_action);
     } else {
         asio::post(*pool, clone_action);
-        clone_future.wait();
+        action_future.wait();
     }
     for (auto& child : repo->children) {
         sync_repository(root, &child, pool);
