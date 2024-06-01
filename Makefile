@@ -1,6 +1,3 @@
-VCPKG_ROOT := $(shell echo $$VCPKG_ROOT)
-VCPKG_CMAKE := $(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
-
 all: help
 
 define display_help
@@ -19,13 +16,9 @@ clean: ## Clean generated artifacts
 .PHONY: build
 build: ## Compile and generate editor artifacts
 	@echo "Building project..."
-ifdef VCPKG_ROOT
-	cmake -B build -S . -D CMAKE_TOOLCHAIN_FILE=$(VCPKG_CMAKE) -DCMAKE_EXPORT_COMPILE_COMMANDS=YES
+	cmake -B build -S .
 	cmake --build build -j $(shell nproc)
 	ln -sf build/compile_commands.json compile_commands.json
-else
-	$(error VCPKG_ROOT environment variable is not set)
-endif
 
 .PHONY: test
 test: build ## Run all unit tests
