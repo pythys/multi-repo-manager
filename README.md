@@ -19,8 +19,12 @@ The following software is required for building and developing the project:
   linting tool for C++
 - [entr](https://github.com/eradman/entr)
   watching files and recompiling
+- [gdb](git://sourceware.org/git/binutils-gdb.git)
+  debugging the system
 - [make](https://www.gnu.org/software/make)
   running make commands and as cmake generator
+- [ninja](https://github.com/ninja-build/ninja)
+  alternative generator to make
 - [vcpkg](https://github.com/microsoft/vcpkg)
   installs other dependencies
 
@@ -31,6 +35,7 @@ make clean
 make build
 make test
 make lint
+# to repeat above cycle
 make watch
 ```
 
