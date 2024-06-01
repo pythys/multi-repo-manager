@@ -9,9 +9,6 @@ class GitManager : public RepoManager {
     void copy(
         const std::string& source,
         const std::string& destination) override;
-    void update(
-        const std::string& path,
-        const std::string remote_name) override;
 
     ~GitManager() override = default;
 };

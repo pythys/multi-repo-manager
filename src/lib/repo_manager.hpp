@@ -7,9 +7,6 @@ class RepoManager {
     virtual void copy(
         const std::string& source,
         const std::string& destination) = 0;
-    virtual void update(
-        const std::string& path,
-        const std::string remote_name) = 0;
     virtual ~RepoManager() = default;
 };
 
