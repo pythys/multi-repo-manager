@@ -57,10 +57,9 @@ void sync_repository(
     Repo* repo,
     asio::thread_pool* pool) {
 
-    auto repo_manager = create_repo_manager(repo->type);
-
-    auto update_action = [root, repo, &repo_manager]() {
+    auto update_action = [root, repo]() {
         std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
+        auto repo_manager = create_repo_manager(repo->type);
         auto remotes = repo_manager->get_remotes(root + "/" + repo->name);
         auto to_remove = find_remotes(
             repo->remotes,
@@ -80,8 +79,9 @@ void sync_repository(
 
     std::promise<void> clone_completed;
     std::future<void> clone_future = clone_completed.get_future();
-    auto clone_action = [root, repo, &repo_manager, &clone_completed]() {
+    auto clone_action = [root, repo, &clone_completed]() {
         std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
+        auto repo_manager = create_repo_manager(repo->type);
         repo_manager->copy(
             repo->remotes[0].url,
             root + "/" + repo->name);
