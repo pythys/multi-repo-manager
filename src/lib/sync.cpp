@@ -17,23 +17,31 @@ void sync_repository(
     Repo* repo,
     asio::thread_pool* pool) {
 
-    auto update_action = [root, repo]() {
+    auto repo_manager = create_repo_manager(repo->type);
+
+    auto update_action = [root, repo, &repo_manager]() {
         std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
+        auto remotes = repo_manager->get_remotes(root + "/" + repo->name);
+        // TODO(taher) add missing
+        // TODO(taher) remove extras
     };
 
     std::promise<void> clone_completed;
     std::future<void> clone_future = clone_completed.get_future();
-    auto clone_action = [root, repo, &clone_completed]() {
+    auto clone_action = [root, repo, &repo_manager, &clone_completed]() {
         std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
-        auto repo_manager = create_repo_manager(repo->type);
         repo_manager->copy(
             repo->remotes[0].url,
             root + "/" + repo->name);
+        for (size_t i = 1; i < repo->remotes.size(); i++) {
+            repo_manager->add_remote(
+                root + "/" + repo->name,
+                repo->remotes[i]);
+        }
         clone_completed.set_value();
     };
 
-    std::string repo_path = root + "/" + repo->name;
-    fs::path repo_dir(repo_path);
+    fs::path repo_dir(root + "/" + repo->name);
     if (fs::exists(repo_dir) && fs::is_directory(repo_dir)) {
         asio::post(*pool, update_action);
     } else {
