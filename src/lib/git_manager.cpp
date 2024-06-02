@@ -16,14 +16,22 @@ void GitManager::add_remote(
     const std::string& path,
     const Remote remote) {
 
-    std::cout << path + remote.name << std::endl;
+    git_repository* repo = nullptr;
+    git_repository_open(&repo, path.c_str());
+    git_remote* gremote = nullptr;
+    git_remote_create(&gremote, repo, remote.name.c_str(), remote.url.c_str());
+    git_remote_free(gremote);
+    git_repository_free(repo);
 }
 
 void GitManager::remove_remote(
     const std::string& path,
     const Remote remote) {
 
-    std::cout << path + remote.name << std::endl;
+    git_repository* repo = nullptr;
+    git_repository_open(&repo, path.c_str());
+    git_remote_delete(repo, remote.name.c_str());
+    git_repository_free(repo);
 }
 
 std::vector<Remote> GitManager::get_remotes(
