@@ -52,7 +52,6 @@ std::vector<Remote> GitManager::get_remotes(
         Remote remote = Remote();
         remote.name = gremotes.strings[i];
         remote.url = url;
-        remote.type = RemoteType::GIT;
         remotes.push_back(remote);
 
         git_remote_free(gremote);

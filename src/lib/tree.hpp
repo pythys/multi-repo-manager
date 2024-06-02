@@ -4,14 +4,12 @@
 #include <string>
 #include <vector>
 
-enum class RemoteType { HTTPS, SSH, GIT };
 enum class RepoType { GIT, SVN };
 enum class RepoStatus { PENDING, SYNCHING, SYNCHED };
 
 struct Remote {
     std::string name;
     std::string url;
-    RemoteType type;
 };
 
 struct Repo {

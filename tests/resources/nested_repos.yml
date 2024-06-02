@@ -6,22 +6,18 @@ trees:
     remotes:
     - name: parent
       url: https://github.com/ledger/ledger
-      type: https
   - name: parent/child1
     type: git
     remotes:
     - name: origin
       url: git://git.sv.gnu.org/emacs.git
-      type: https
   - name: parent/child2
     type: git
     remotes:
     - name: origin
       url: git@github.com:microsoft/qlib.git
-      type: ssh
   - name: parent/child1/grandchild1
     type: git
     remotes:
     - name: origin
       url: git://git.sv.gnu.org/emacs.git
-      type: https

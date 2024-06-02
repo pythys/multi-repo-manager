@@ -1,0 +1,15 @@
+trees:
+- root: first_root
+  repos:
+  - name: ledger
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/ledger/ledger
+- root: second_root
+  repos:
+  - name: qlib
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/microsoft/qlib.git

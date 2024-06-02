@@ -3,13 +3,6 @@
 #include <iostream>
 #include "config.hpp"
 
-RemoteType to_remote_type(const std::string& str) {
-    if (str == "https") return RemoteType::HTTPS;
-    if (str == "ssh") return RemoteType::SSH;
-    if (str == "git") return RemoteType::GIT;
-    throw std::runtime_error("Invalid RemoteType: " + str);
-}
-
 RepoType to_repo_type(const std::string& str) {
     if (str == "git") return RepoType::GIT;
     if (str == "svn") return RepoType::SVN;
@@ -19,8 +12,7 @@ RepoType to_repo_type(const std::string& str) {
 Remote to_remote(const YAML::Node& node) {
     return {
         node["name"].as<std::string>(),
-        node["url"].as<std::string>(),
-        to_remote_type(node["type"].as<std::string>())
+        node["url"].as<std::string>()
     };
 }
 
