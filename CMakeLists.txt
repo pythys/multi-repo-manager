@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.28)
 
 # vcpkg
 if(NOT DEFINED ENV{VCPKG_ROOT})
@@ -16,7 +16,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(TIDY_CHECKS "clang-tidy;--checks=-llvmlibc*")
 set(TIDY_FILTER ";--header-filter=${CMAKE_SOURCE_DIR}/(src|tests)/.*")
 set(CMAKE_CXX_CLANG_TIDY "${TIDY_CHECKS}${TIDY_FILTER}")
-set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "ac01f462-0f5f-432a-86aa-acef252918a6")
 if(MSVC)
     add_compile_options(/W4 /experimental:module)
 else()
