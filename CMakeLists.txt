@@ -35,8 +35,8 @@ endif()
 enable_testing()
 
 # sub-projects
-add_subdirectory(src)
-add_subdirectory(tests)
+add_subdirectory(src ${CMAKE_BINARY_DIR}/mrm)
+add_subdirectory(tests ${CMAKE_BINARY_DIR}/tests)
 
 # cpack
 set(CPACK_GENERATOR "TGZ;ZIP")
