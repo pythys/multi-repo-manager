@@ -116,9 +116,9 @@ int run_sync(const std::string& config_file) {
                 tree.repos.begin(),
                 tree.repos.end(),
                 [&pool, &tree](Repo& repo) {
-            sync_repository(tree.root, &repo, &pool);
+                    sync_repository(tree.root, &repo, &pool);
+                });
         });
-    });
     pool.join();
     return 0;
 }
