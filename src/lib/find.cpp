@@ -13,8 +13,5 @@ int run_find(const std::string& path) {
             std::cout << entry.path() << std::endl;
         }
     }
-    std::cout << "Running find with path: "
-              << path
-              << std::endl;
     return 0;
 }
