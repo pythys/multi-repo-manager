@@ -1,4 +1,4 @@
-#include <execution>
+#include <tbb/parallel_for_each.h>
 #include <filesystem>
 #include <future>
 #include <iostream>
@@ -108,19 +108,17 @@ void sync_repository(
 int run_sync(const std::string& config_file) {
     std::vector<Tree> config = get_dependencies(config_file);
     asio::thread_pool pool(10);
-    std::for_each(
-        std::execution::par,
+    tbb::parallel_for_each(
         config.begin(),
         config.end(),
         [&pool](Tree& tree) {
-            std::for_each(
-                std::execution::par,
+            tbb::parallel_for_each(
                 tree.repos.begin(),
                 tree.repos.end(),
                 [&pool, &tree](Repo& repo) {
-                    sync_repository(tree.root, &repo, &pool);
-                });
+            sync_repository(tree.root, &repo, &pool);
         });
+    });
     pool.join();
     return 0;
 }
