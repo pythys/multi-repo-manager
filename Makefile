@@ -38,3 +38,7 @@ package: build ## Package code to various formats
 watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
 	@find . -type f ! -path './build/*' | entr -d make clean test lint
+
+.PHONY: dockerize
+dockerize: ## Build docker image named "mrm"
+	@docker build --no-cache --tag mrm .
