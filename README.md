@@ -45,11 +45,11 @@ To get help on tasks `make help`
 
 To start a debug session with gdb run the below command
 
-`gdb build/src/mrm`
+`gdb build/mrm/mrm`
 
-## dependencies
+## libraries
 
-packages installed automatically with vcpkg:
+installed automatically with vcpkg:
 
 - [boost](https://github.com/boostorg/boost)
 - [cli11](https://github.com/CLIUtils/CLI11)
@@ -58,7 +58,7 @@ packages installed automatically with vcpkg:
 - [tbb](https://github.com/oneapi-src/oneTBB)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
 
-packages installed automatically with cmake:
+installed automatically with cmake:
 
 - [googletest](https://github.com/google/googletest)
 
@@ -68,4 +68,3 @@ packages installed automatically with cmake:
   string formatting library
 - [spdlog](https://github.com/gabime/spdlog)
   logging library
-
