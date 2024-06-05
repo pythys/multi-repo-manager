@@ -1,5 +1,5 @@
-#include "repo_factory.hpp"
 #include "git_manager.hpp"
+#include "repo_factory.hpp"
 
 std::unique_ptr<RepoManager> create_repo_manager(RepoType type) {
     switch (type) {

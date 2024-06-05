@@ -1,5 +1,5 @@
-#include <vector>
 #include <iostream>
+#include <vector>
 #include "git_manager.hpp"
 #include "git2.h"
 

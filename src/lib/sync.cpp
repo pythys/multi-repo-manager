@@ -5,9 +5,9 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include "config.hpp"
+#include "repo_factory.hpp"
 #include "sync.hpp"
 #include "tree.hpp"
-#include "repo_factory.hpp"
 
 namespace fs = std::filesystem;
 namespace asio = boost::asio;
