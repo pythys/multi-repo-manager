@@ -1,4 +1,4 @@
-FROM gcc:14.1.0
+FROM gcc
 
 ENV CMAKE_VERSION=3.29.4
 ENV VCPKG_ROOT=/usr/src/vcpkg
