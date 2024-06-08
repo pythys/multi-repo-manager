@@ -27,6 +27,7 @@ The following software is required for building and developing the project:
   alternative generator to make
 - [vcpkg](https://github.com/microsoft/vcpkg)
   installs other dependencies
+  $VCPKG_ROOT must be defined
 
 ## development setup
 
