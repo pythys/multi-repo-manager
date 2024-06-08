@@ -57,10 +57,19 @@ std::vector<Repo> find_repos(const std::string& path) {
     return repos;
 }
 
+std::string normalize_path(const std::string& path) {
+    fs::path p(path);
+    std::string normalized = p.lexically_normal().string();
+    return (normalized.compare(0, 2, "./") == 0)
+        ? normalized.substr(2)
+        : normalized;
+}
+
 int run_find(const std::string& path) {
     Tree tree;
     std::vector<Repo> repos = find_repos(path);
-    tree.root = path;
+    fs::path root_path = normalize_path(path);
+    tree.root = root_path;
     tree.repos = repos;
     std::vector<Tree> trees = {tree};
     std::cout << make_config(trees) << std::endl;
