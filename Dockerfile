@@ -20,6 +20,6 @@ RUN wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cm
 
 RUN git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
     cd $VCPKG_ROOT && \
-    ./bootstrap-vcpkg.sh
+    ./bootstrap-vcpkg.sh -disableMetrics
 
 RUN make clean build lint test
