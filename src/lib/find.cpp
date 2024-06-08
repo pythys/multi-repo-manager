@@ -6,6 +6,7 @@
 #include <vector>
 #include "config.hpp"
 #include "find.hpp"
+#include "repo_factory.hpp"
 #include "tree.hpp"
 
 namespace fs = std::filesystem;
@@ -43,9 +44,12 @@ std::vector<Repo> find_repos(const std::string& path) {
             if (repo_type_it != fs::directory_iterator{}) {
                 auto repo_type_str = repo_type_it->path().filename().string();
                 auto repo_type = repo_map.at(repo_type_str);
+                auto repo_manager = create_repo_manager(repo_type);
+                auto remotes = repo_manager->get_remotes(dirpath);
                 Repo repo;
                 repo.name = filename;
                 repo.type = repo_type;
+                repo.remotes = remotes;
                 repos.push_back(repo);
             }
         }
