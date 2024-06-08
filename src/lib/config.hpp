@@ -5,6 +5,10 @@
 #include <vector>
 #include "tree.hpp"
 
+void write_config(
+    const std::vector<Tree>& trees,
+    const std::string& config_file);
+std::string make_config(const std::vector<Tree>& trees);
 std::vector<Tree> get_config(const std::string& config_file);
 std::vector<Tree> get_dependencies(const std::string& config_file);
 

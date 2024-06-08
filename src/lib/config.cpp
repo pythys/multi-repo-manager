@@ -1,7 +1,17 @@
 #include <yaml-cpp/yaml.h>
 #include <algorithm>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include "config.hpp"
+
+std::string from_repo_type(RepoType type) {
+    switch (type) {
+        case RepoType::GIT: return "git";
+        case RepoType::SVN: return "svn";
+        default: throw std::runtime_error("Unknown RepoType");
+    }
+}
 
 RepoType to_repo_type(const std::string& str) {
     if (str == "git") return RepoType::GIT;
@@ -96,6 +106,49 @@ std::vector<Repo> to_dependency_tree(
         }
     }
     return child_repos;
+}
+
+std::string make_config(const std::vector<Tree>& trees) {
+    YAML::Emitter out;
+    out << YAML::BeginMap;
+    out << YAML::Key << "trees" << YAML::Value << YAML::BeginSeq;
+    for (const auto& tree : trees) {
+        out << YAML::BeginMap;
+        out << YAML::Key << "root" << YAML::Value << tree.root;
+        out << YAML::Key << "repos" << YAML::Value << YAML::BeginSeq;
+        for (const auto& repo : tree.repos) {
+            out << YAML::BeginMap;
+            out << YAML::Key << "name" << YAML::Value << repo.name;
+            out << YAML::Key
+                << "type"
+                << YAML::Value
+                << from_repo_type(repo.type);
+            out << YAML::Key << "remotes" << YAML::Value << YAML::BeginSeq;
+            for (const auto& remote : repo.remotes) {
+                out << YAML::BeginMap;
+                out << YAML::Key << "name" << YAML::Value << remote.name;
+                out << YAML::Key << "url" << YAML::Value << remote.url;
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+    }
+    out << YAML::EndSeq;
+    out << YAML::EndMap;
+
+    return out.c_str();
+}
+
+void write_config(
+    const std::vector<Tree>& trees,
+    const std::string& config_file) {
+    std::string config = make_config(trees);
+    std::ofstream file(config_file);
+    file << config;
+    file.close();
 }
 
 std::vector<Tree> get_config(const std::string& config_file) {

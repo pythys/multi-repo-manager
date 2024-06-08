@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "config.hpp"
 #include "find.hpp"
 #include "tree.hpp"
 
@@ -53,9 +54,11 @@ std::vector<Repo> find_repos(const std::string& path) {
 }
 
 int run_find(const std::string& path) {
+    Tree tree;
     std::vector<Repo> repos = find_repos(path);
-    for (const auto& repo : repos) {
-        std::cout << repo.name << std::endl;
-    }
+    tree.root = path;
+    tree.repos = repos;
+    std::vector<Tree> trees = {tree};
+    std::cout << make_config(trees) << std::endl;
     return 0;
 }
