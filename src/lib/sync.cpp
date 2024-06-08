@@ -85,7 +85,7 @@ void sync_repository(
         repo_manager->copy(
             repo->remotes[0].url,
             root + "/" + repo->name);
-        for (size_t i = 1; i < repo->remotes.size(); i++) {
+        for (size_t i = 0; i < repo->remotes.size(); i++) {
             repo_manager->add_remote(
                 root + "/" + repo->name,
                 repo->remotes[i]);
