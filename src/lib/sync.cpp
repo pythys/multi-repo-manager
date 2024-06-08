@@ -82,9 +82,20 @@ void sync_repository(
     auto clone_action = [root, repo, &clone_completed]() {
         std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
         auto repo_manager = create_repo_manager(repo->type);
-        repo_manager->copy(
-            repo->remotes[0].url,
-            root + "/" + repo->name);
+        auto it = std::find_if(
+            repo->remotes.begin(),
+            repo->remotes.end(),
+            [](const Remote& remote) {
+                return remote.name == "origin";
+            });
+        if (it != repo->remotes.end()) {
+            repo_manager->copy(it->url, root + "/" + repo->name);
+        } else {
+            std::cerr << "No remote found with name 'origin' for repo: "
+                      << repo->name
+                      << std::endl;
+            std::exit(1);
+        }
         for (size_t i = 0; i < repo->remotes.size(); i++) {
             repo_manager->add_remote(
                 root + "/" + repo->name,
