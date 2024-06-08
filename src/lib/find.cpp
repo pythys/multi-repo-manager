@@ -47,7 +47,7 @@ std::vector<Repo> find_repos(const std::string& path) {
                 auto repo_manager = create_repo_manager(repo_type);
                 auto remotes = repo_manager->get_remotes(dirpath);
                 Repo repo;
-                repo.name = filename;
+                repo.name = fs::relative(dirpath, root).string();
                 repo.type = repo_type;
                 repo.remotes = remotes;
                 repos.push_back(repo);
