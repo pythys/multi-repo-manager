@@ -30,15 +30,25 @@ lint: ## Lint source code with cpplint
 	@echo "Linting src and tests directories..."
 	@cpplint --repository=. --recursive --filter=-legal/copyright,-build/c++11,-build/include_subdir src tests
 
-.PHONY: package
-package: build ## Package code to various formats
-	@cd build && cpack
-
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
 	@find . -type f ! -path './build/*' | entr -d make clean test lint
 
+.PHONY: package
+package: build ## Package code to various formats
+	@cd build && cpack
+
 .PHONY: dockerize
 dockerize: ## Build docker image named "mrm"
 	@docker build --no-cache --tag mrm .
+
+.PHONY: install
+install: ## Install mrm
+	@echo "Installing mrm ..."
+	@cp build/mrm/mrm /usr/local/bin/mrm
+
+.PHONY: uninstall
+uninstall: ## Uninstall mrm
+	@echo "Uninstalling mrm ..."
+	@rm /usr/local/bin/mrm
