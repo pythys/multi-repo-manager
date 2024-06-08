@@ -14,7 +14,7 @@ The following software is required for building and developing the project:
 - [clang](https://clang.llvm.org/)
   needed for clangd and clang-tidy
 - [cmake](https://cmake.org)
-  main build system for the project
+  crossplatform builder
 - [cpplint](https://github.com/cpplint/cpplint)
   linting tool for C++
 - [entr](https://github.com/eradman/entr)
@@ -22,9 +22,9 @@ The following software is required for building and developing the project:
 - [gdb](git://sourceware.org/git/binutils-gdb.git)
   debugging the system
 - [make](https://www.gnu.org/software/make)
-  running make commands and as cmake generator
+  executing main commands
 - [ninja](https://github.com/ninja-build/ninja)
-  alternative generator to make
+  compiler generator
 - [vcpkg](https://github.com/microsoft/vcpkg)
   installs other dependencies
   $VCPKG_ROOT must be defined
@@ -34,8 +34,8 @@ The following software is required for building and developing the project:
 ```sh
 make clean
 make build
-make test
 make lint
+make test
 # to repeat above cycle
 make watch
 ```
