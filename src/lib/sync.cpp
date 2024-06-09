@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/asio.hpp>
 #include "config.hpp"
+#include "constants.hpp"
 #include "repo_factory.hpp"
 #include "sync.hpp"
 #include "tree.hpp"
@@ -118,7 +119,7 @@ void sync_repository(
 
 int run_sync(const std::string& config_file) {
     std::vector<Tree> config = get_dependencies(config_file);
-    asio::thread_pool pool(10);
+    asio::thread_pool pool(SYNC_POOL_SIZE);
     tbb::parallel_for_each(
         config.begin(),
         config.end(),
