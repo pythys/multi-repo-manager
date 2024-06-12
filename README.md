@@ -29,6 +29,8 @@ The following software is required for building and developing the project:
   installs other dependencies
   $VCPKG_ROOT must be defined
 
+`Dockerfile` can be used a reference for steps to build the project
+
 ## development setup
 
 ```sh
@@ -62,10 +64,3 @@ installed automatically with vcpkg:
 installed automatically with cmake:
 
 - [googletest](https://github.com/google/googletest)
-
-## potential libraries
-
-- [fmt](https://github.com/fmtlib/fmt)
-  string formatting library
-- [spdlog](https://github.com/gabime/spdlog)
-  logging library
