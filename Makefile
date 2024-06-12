@@ -40,7 +40,7 @@ package: build ## Package code to various formats
 	@cd build && cpack
 
 .PHONY: dockerize
-dockerize: ## Build docker image named "mrm"
+dockerize: ## Build docker image "mrm"
 	@docker build --no-cache --tag mrm .
 
 .PHONY: install
