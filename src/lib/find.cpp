@@ -54,6 +54,13 @@ std::vector<Repo> find_repos(const std::string& path) {
             }
         }
     }
+    std::sort(
+        repos.begin(),
+        repos.end(),
+        [](const Repo& a, const Repo& b) {
+            return a.name < b.name;
+        });
+
     return repos;
 }
 
