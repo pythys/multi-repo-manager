@@ -5,10 +5,14 @@
 #include <functional>
 #include "tree.hpp"
 
+enum class EventType {
+    ADD_TREE
+};
+
 class IObserver {
  public:
     virtual ~IObserver() = default;
-    virtual void update() = 0;
+    virtual void update(EventType event) = 0;
 };
 
 class IObservable {
@@ -16,11 +20,16 @@ class IObservable {
     virtual ~IObservable() = default;
     virtual void addObserver(IObserver* observer) = 0;
     virtual void removeObserver(IObserver* observer) = 0;
-    virtual void notifyObservers() = 0;
+    virtual void notifyObservers(EventType event) = 0;
 };
 
 class Store : public IObservable {
  public:
+    static Store& getInstance() {
+        static Store instance;
+        return instance;
+    }
+
     void addObserver(IObserver* observer) override {
         observers.push_back(observer);
     }
@@ -31,15 +40,15 @@ class Store : public IObservable {
             observers.end());
     }
 
-    void notifyObservers() override {
+    void notifyObservers(EventType event) override {
         for (auto observer : observers) {
-            observer->update();
+            observer->update(event);
         }
     }
 
     void addTree(const Tree& tree) {
         trees.push_back(tree);
-        notifyObservers();
+        notifyObservers(EventType::ADD_TREE);
     }
 
     const std::vector<Tree>& getTrees() const {
@@ -49,6 +58,9 @@ class Store : public IObservable {
  private:
     std::vector<Tree> trees;
     std::vector<IObserver*> observers;
+    Store() = default;
+    Store(const Store&) = delete;
+    Store& operator=(const Store&) = delete;
 };
 
 #endif  // SRC_LIB_STORE_HPP_
