@@ -33,16 +33,14 @@ std::vector<Repo> find_repos(const std::string& path) {
             it.disable_recursion_pending();
         } else {
             auto repo_type_it = std::find_if(
-                fs::directory_iterator(dirpath),
-                fs::directory_iterator{},
-                [repo_map](const auto& subentry) {
-                    auto subname = subentry.path().filename().string();
-                    return repo_map.find(subname) != repo_map.end();
+                repo_map.begin(),
+                repo_map.end(),
+                [&dirpath](const auto& pair) {
+                    return fs::exists(dirpath / pair.first);
                 });
 
-            if (repo_type_it != fs::directory_iterator{}) {
-                auto repo_type_str = repo_type_it->path().filename().string();
-                auto repo_type = repo_map.at(repo_type_str);
+            if (repo_type_it != repo_map.end()) {
+                auto repo_type = repo_type_it->second;
                 auto repo_manager = create_repo_manager(repo_type);
                 auto remotes = repo_manager->get_remotes(dirpath);
                 Repo repo;
