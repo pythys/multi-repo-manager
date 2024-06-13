@@ -39,12 +39,15 @@ void process_directory(
         if (!entry.is_directory()) {
             continue;
         }
+
         auto dirpath = entry.path();
         auto filename = dirpath.filename().string();
+
         if (repo_map.find(filename) != repo_map.end()) {
             repos->push_back(create_repo(dirpath, repo_map.at(filename), root));
             continue;
         }
+
         auto repo_type_it = std::find_if(
             fs::directory_iterator(dirpath),
             fs::directory_iterator{},
@@ -52,6 +55,7 @@ void process_directory(
                 auto subname = subentry.path().filename().string();
                 return repo_map.find(subname) != repo_map.end();
             });
+
         if (repo_type_it != fs::directory_iterator{}) {
             Repo repo = create_repo(
                 dirpath,
@@ -69,15 +73,19 @@ std::vector<Repo> find_repos(const std::string& path) {
         {".git", RepoType::GIT},
         {".svn", RepoType::SVN}
     };
+
     if (!fs::exists(root) || !fs::is_directory(root)) {
         return repos;
     }
+
     io_context io_context;
     thread_pool pool(std::thread::hardware_concurrency());
+
     for (const auto& entry : fs::recursive_directory_iterator(root)) {
         if (!entry.is_directory()) {
             continue;
         }
+
         post(pool, [&repos, entry, &repo_map, &root, &io_context]() {
             std::vector<Repo> sub_repos;
             process_directory(entry.path(), repo_map, root, &sub_repos);
@@ -86,13 +94,16 @@ std::vector<Repo> find_repos(const std::string& path) {
             });
         });
     }
+
     pool.join();
+
     std::sort(
         repos.begin(),
         repos.end(),
         [](const Repo& a, const Repo& b) {
             return a.name < b.name;
         });
+
     return repos;
 }
 
