@@ -1,8 +1,8 @@
 #ifndef SRC_LIB_TRACKER_HPP_
 #define SRC_LIB_TRACKER_HPP_
 
-#include <vector>
 #include <functional>
+#include <vector>
 #include "tree.hpp"
 
 enum class EventType {
