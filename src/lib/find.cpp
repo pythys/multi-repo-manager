@@ -4,67 +4,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <boost/asio.hpp>
 #include "config.hpp"
 #include "find.hpp"
 #include "repo_factory.hpp"
 #include "tree.hpp"
 
 namespace fs = std::filesystem;
-using boost::asio::io_context;
-using boost::asio::thread_pool;
-using boost::asio::post;
-
-Repo create_repo(
-    const fs::path& dirpath,
-    RepoType repo_type,
-    const fs::path& root) {
-
-    auto repo_manager = create_repo_manager(repo_type);
-    auto remotes = repo_manager->get_remotes(dirpath);
-    Repo repo;
-    repo.name = fs::relative(dirpath, root).string();
-    repo.type = repo_type;
-    repo.remotes = remotes;
-    return repo;
-}
-
-void process_directory(
-    const fs::path& dir,
-    const std::unordered_map<std::string, RepoType>& repo_map,
-    const fs::path& root,
-    std::vector<Repo>* repos) {
-
-    for (const auto& entry : fs::directory_iterator(dir)) {
-        if (!entry.is_directory()) {
-            continue;
-        }
-
-        auto dirpath = entry.path();
-        auto filename = dirpath.filename().string();
-
-        if (repo_map.find(filename) != repo_map.end()) {
-            repos->push_back(create_repo(dirpath, repo_map.at(filename), root));
-            continue;
-        }
-
-        auto repo_type_it = std::find_if(
-            fs::directory_iterator(dirpath),
-            fs::directory_iterator{},
-            [repo_map](const auto& subentry) {
-                auto subname = subentry.path().filename().string();
-                return repo_map.find(subname) != repo_map.end();
-            });
-
-        if (repo_type_it != fs::directory_iterator{}) {
-            Repo repo = create_repo(
-                dirpath,
-                repo_map.at(repo_type_it->path().filename().string()),
-                root);
-            repos->push_back(repo);
-        }
-    }
-}
 
 std::vector<Repo> find_repos(const std::string& path) {
     std::vector<Repo> repos;
@@ -73,30 +18,41 @@ std::vector<Repo> find_repos(const std::string& path) {
         {".git", RepoType::GIT},
         {".svn", RepoType::SVN}
     };
-
-    if (!fs::exists(root) || !fs::is_directory(root)) {
+    const bool valid_root = fs::exists(root) && fs::is_directory(root);
+    if (!valid_root) {
         return repos;
     }
-
-    io_context io_context;
-    thread_pool pool(std::thread::hardware_concurrency());
-
-    for (const auto& entry : fs::recursive_directory_iterator(root)) {
-        if (!entry.is_directory()) {
+    using walker = fs::recursive_directory_iterator;
+    for (auto it = walker(root); it != fs::end(it); ++it) {
+        if (!it->is_directory()) {
             continue;
         }
+        auto dirpath = it->path();
+        auto filename = dirpath.filename().string();
+        if (repo_map.find(filename) != repo_map.end()) {
+            it.disable_recursion_pending();
+        } else {
+            auto repo_type_it = std::find_if(
+                fs::directory_iterator(dirpath),
+                fs::directory_iterator{},
+                [repo_map](const auto& subentry) {
+                    auto subname = subentry.path().filename().string();
+                    return repo_map.find(subname) != repo_map.end();
+                });
 
-        post(pool, [&repos, entry, &repo_map, &root, &io_context]() {
-            std::vector<Repo> sub_repos;
-            process_directory(entry.path(), repo_map, root, &sub_repos);
-            post(io_context, [&repos, sub_repos]() {
-                repos.insert(repos.end(), sub_repos.begin(), sub_repos.end());
-            });
-        });
+            if (repo_type_it != fs::directory_iterator{}) {
+                auto repo_type_str = repo_type_it->path().filename().string();
+                auto repo_type = repo_map.at(repo_type_str);
+                auto repo_manager = create_repo_manager(repo_type);
+                auto remotes = repo_manager->get_remotes(dirpath);
+                Repo repo;
+                repo.name = fs::relative(dirpath, root).string();
+                repo.type = repo_type;
+                repo.remotes = remotes;
+                repos.push_back(repo);
+            }
+        }
     }
-
-    pool.join();
-
     std::sort(
         repos.begin(),
         repos.end(),
