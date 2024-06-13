@@ -3,14 +3,6 @@
 #include "git_manager.hpp"
 #include "git2.h"
 
-void GitManager::init() {
-    git_libgit2_init();
-}
-
-void GitManager::shutdown() {
-    git_libgit2_shutdown();
-}
-
 void GitManager::copy(
     const std::string& source,
     const std::string& destination) {

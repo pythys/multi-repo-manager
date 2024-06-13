@@ -7,8 +7,6 @@
 
 class GitManager : public RepoManager {
  public:
-    void init();
-    void shutdown();
     void copy(
         const std::string& source,
         const std::string& destination) override;
