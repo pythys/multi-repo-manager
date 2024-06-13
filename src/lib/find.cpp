@@ -31,13 +31,10 @@ Repo create_repo(
 
 void process_directory(
     const fs::path& dir,
+    const std::unordered_map<std::string, RepoType>& repo_map,
     const fs::path& root,
     std::vector<Repo>* repos) {
 
-    std::unordered_map<std::string, RepoType> repo_map = {
-        {".git", RepoType::GIT},
-        {".svn", RepoType::SVN}
-    };
     for (const auto& entry : fs::directory_iterator(dir)) {
         if (!entry.is_directory()) {
             continue;
@@ -66,8 +63,12 @@ void process_directory(
 }
 
 std::vector<Repo> find_repos(const std::string& path) {
-    fs::path root(path);
     std::vector<Repo> repos;
+    fs::path root(path);
+    std::unordered_map<std::string, RepoType> repo_map = {
+        {".git", RepoType::GIT},
+        {".svn", RepoType::SVN}
+    };
     if (!fs::exists(root) || !fs::is_directory(root)) {
         return repos;
     }
@@ -77,9 +78,9 @@ std::vector<Repo> find_repos(const std::string& path) {
         if (!entry.is_directory()) {
             continue;
         }
-        post(pool, [&repos, entry, &root, &io_context]() {
+        post(pool, [&repos, entry, &repo_map, &root, &io_context]() {
             std::vector<Repo> sub_repos;
-            process_directory(entry.path(), root, &sub_repos);
+            process_directory(entry.path(), repo_map, root, &sub_repos);
             post(io_context, [&repos, sub_repos]() {
                 repos.insert(repos.end(), sub_repos.begin(), sub_repos.end());
             });
