@@ -22,9 +22,8 @@ std::vector<Repo> find_repos(const std::string& path) {
     if (!valid_root) {
         return repos;
     }
-    for (auto it = fs::recursive_directory_iterator(root);
-         it != fs::end(it);
-         ++it) {
+    using walker = fs::recursive_directory_iterator;
+    for (auto it = walker(root); it != fs::end(it); ++it) {
         if (!it->is_directory()) {
             continue;
         }
