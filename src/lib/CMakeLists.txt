@@ -10,7 +10,6 @@ target_sources(mrm_core PRIVATE
   config.cpp
   exec.cpp
   find.cpp
-  git_manager.cpp
   repo_factory.cpp
   sync.cpp
 )
