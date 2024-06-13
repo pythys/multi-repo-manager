@@ -7,27 +7,17 @@ repositories in a sane way utilizing bulk transactions and yaml configurations
 
 The following software is required for building and developing the project:
 
-- [autoconf](https://www.gnu.org/software/autoconf/)
-  needed in various dependencies
 - [autoconf-archive](https://www.gnu.org/software/autoconf-archive/)
-  needed in installing boost with vcpkg
-- [clang](https://clang.llvm.org/)
-  needed for clangd and clang-tidy
+- [autoconf](https://www.gnu.org/software/autoconf/)
+- [clang](https://clang.llvm.org/) clangd & clang-tidy
 - [cmake](https://cmake.org)
-  crossplatform builder
 - [cpplint](https://github.com/cpplint/cpplint)
-  linting tool for C++
-- [entr](https://github.com/eradman/entr)
-  watching files and recompiling
+- [entr](https://github.com/eradman/entr) live reload
+- [gcc](https://gcc.gnu.org/git/?p=gcc.git)
 - [gdb](git://sourceware.org/git/binutils-gdb.git)
-  debugging the system
 - [make](https://www.gnu.org/software/make)
-  executing main commands
-- [ninja](https://github.com/ninja-build/ninja)
-  compiler generator
-- [vcpkg](https://github.com/microsoft/vcpkg)
-  installs other dependencies
-  $VCPKG_ROOT must be defined
+- [ninja](https://github.com/ninja-build/ninja) generator
+- [vcpkg](https://github.com/microsoft/vcpkg) $VCPKG_ROOT must be defined
 
 `Dockerfile` can be used a reference for steps to build the project
 
@@ -38,7 +28,7 @@ make clean
 make build
 make lint
 make test
-# to repeat above cycle
+# live reload
 make watch
 ```
 
@@ -52,7 +42,7 @@ To start a debug session with gdb run the below command
 
 ## libraries
 
-installed automatically with vcpkg:
+through vcpkg:
 
 - [boost](https://github.com/boostorg/boost)
 - [cli11](https://github.com/CLIUtils/CLI11)
@@ -61,6 +51,6 @@ installed automatically with vcpkg:
 - [tbb](https://github.com/oneapi-src/oneTBB)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
 
-installed automatically with cmake:
+through cmake:
 
 - [googletest](https://github.com/google/googletest)
