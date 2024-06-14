@@ -7,32 +7,32 @@
 #include <vector>
 #include "tree.hpp"
 
-class IObserver {
+class TreeObserver {
  public:
-    virtual ~IObserver() = default;
+    virtual ~TreeObserver() = default;
     virtual void update() = 0;
 };
 
-class IObservable {
+class TreeObservable {
  public:
-    virtual ~IObservable() = default;
-    virtual void add_observer(IObserver* observer) = 0;
-    virtual void remove_observer(IObserver* observer) = 0;
+    virtual ~TreeObservable() = default;
+    virtual void add_observer(TreeObserver* observer) = 0;
+    virtual void remove_observer(TreeObserver* observer) = 0;
     virtual void notify_observers() = 0;
 };
 
-class Tracker : public IObservable {
+class Tracker : public TreeObservable {
  public:
     static Tracker& get_instance() {
         static Tracker instance;
         return instance;
     }
 
-    void add_observer(IObserver* observer) override {
+    void add_observer(TreeObserver* observer) override {
         observers.push_back(observer);
     }
 
-    void remove_observer(IObserver* observer) override {
+    void remove_observer(TreeObserver* observer) override {
         observers.erase(
             std::remove(observers.begin(), observers.end(), observer),
             observers.end());
@@ -73,7 +73,7 @@ class Tracker : public IObservable {
 
  private:
     std::vector<Tree> trees;
-    std::vector<IObserver*> observers;
+    std::vector<TreeObserver*> observers;
 
     // Singleton Pattern
     Tracker() = default;
