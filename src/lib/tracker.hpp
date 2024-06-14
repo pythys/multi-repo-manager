@@ -55,39 +55,32 @@ class Tracker : public IObservable {
     }
 
     void set_status(std::string root, std::string name, RepoStatus status) {
-        std::for_each(trees.begin(), trees.end(), [&](Tree& tree) {
-            if (tree.root == root) {
-                std::for_each(
-                    tree.repos.begin(),
-                    tree.repos.end(),
-                    [&](Repo& repo) {
-                        if (repo.name == name) {
-                            repo.status = status;
-                        }
-                    });
-            }
-        });
+        Repo repo = get_repo(root, name);
+        repo.status = status;
         notify_observers(EventType::STATUS);
     }
 
     void add_message(std::string root, std::string name, std::string message) {
-        std::for_each(trees.begin(), trees.end(), [&](Tree& tree) {
-            if (tree.root == root) {
-                std::for_each(
-                    tree.repos.begin(),
-                    tree.repos.end(),
-                    [&](Repo& repo) {
-                        if (repo.name == name) {
-                            repo.messages.push_back(message);
-                        }
-                    });
-            }
-        });
+        Repo repo = get_repo(root, name);
+        repo.messages.push_back(message);
         notify_observers(EventType::MESSAGE);
     }
 
     const std::vector<Tree>& get_trees() const {
         return trees;
+    }
+
+    const Repo get_repo(std::string root, std::string name) {
+        for (auto tree : trees) {
+            if (tree.root == root) {
+                for (auto repo : tree.repos) {
+                    if (repo.name == name) {
+                        return repo;
+                    }
+                }
+            }
+        }
+        return Repo();
     }
 
  private:
