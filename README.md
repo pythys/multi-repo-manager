@@ -1,7 +1,7 @@
 # mrm
 
 MRM (multi-repo-manager) is a tool to help in managing a large number of
-repositories in a sane way utilizing bulk transactions and yaml configurations
+repositories in a sane way utilizing bulk operations and yaml configurations
 
 ## requirements
 
@@ -24,10 +24,7 @@ The following software is required for building and developing the project:
 ## development setup
 
 ```sh
-make clean
-make build
-make lint
-make test
+make clean build lint test
 # live reload
 make watch
 ```
