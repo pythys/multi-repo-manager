@@ -59,6 +59,7 @@ void sync_repository(
     Repo* repo,
     asio::thread_pool* pool) {
 
+    Tracker::get_instance().set_status(root, repo->name, RepoStatus::SYNCHING);
     auto update_action = [root, repo]() {
         std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
         auto repo_manager = create_repo_manager(repo->type);
@@ -69,6 +70,13 @@ void sync_repository(
             MatchType::TO_REMOVE);
         for (const auto& remote : to_remove) {
             repo_manager->remove_remote(root + "/" + repo->name, remote);
+            std::string message = "Removed from repo: "
+                + root
+                + "/"
+                + repo->name
+                + " remote: "
+                + remote.name;
+            Tracker::get_instance().add_message(root, repo->name, message);
         }
         auto to_add = find_remotes(
             repo->remotes,
@@ -76,7 +84,18 @@ void sync_repository(
             MatchType::TO_ADD);
         for (const auto& remote : to_add) {
             repo_manager->add_remote(root + "/" + repo->name, remote);
+            std::string message = "Added to repo: "
+                + root
+                + "/"
+                + repo->name
+                + " remote: "
+                + remote.name;
+            Tracker::get_instance().add_message(root, repo->name, message);
         }
+        Tracker::get_instance().set_status(
+            root,
+            repo->name,
+            RepoStatus::SYNCHED);
     };
 
     std::promise<void> clone_completed;
@@ -104,6 +123,10 @@ void sync_repository(
                 repo->remotes[i]);
         }
         clone_completed.set_value();
+        Tracker::get_instance().set_status(
+            root,
+            repo->name,
+            RepoStatus::SYNCHED);
     };
 
     fs::path repo_dir(root + "/" + repo->name);
