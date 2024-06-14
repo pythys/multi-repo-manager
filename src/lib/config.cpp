@@ -44,7 +44,8 @@ Repo to_repo(const YAML::Node& node) {
         to_repo_type(node["type"].as<std::string>()),
         RepoStatus::PENDING,
         remotes,
-        std::vector<Repo>()
+        std::vector<Repo>(),
+        std::vector<std::string>()
     };
 }
 

@@ -18,6 +18,7 @@ struct Repo {
     RepoStatus status;
     std::vector<Remote> remotes;
     std::vector<Repo> children;
+    std::vector<std::string> messages;
 };
 
 struct Tree {

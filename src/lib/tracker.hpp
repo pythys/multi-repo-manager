@@ -1,12 +1,15 @@
 #ifndef SRC_LIB_TRACKER_HPP_
 #define SRC_LIB_TRACKER_HPP_
 
-#include <functional>
+#include <algorithm>
+#include <string>
 #include <vector>
 #include "tree.hpp"
 
 enum class EventType {
-    POPULATE
+    POPULATE,
+    STATUS,
+    MESSAGE
 };
 
 class IObserver {
@@ -49,6 +52,38 @@ class Tracker : public IObservable {
     void populate(std::vector<Tree> initial) {
         this->trees = initial;
         notify_observers(EventType::POPULATE);
+    }
+
+    void set_status(std::string root, std::string name, RepoStatus status) {
+        std::for_each(trees.begin(), trees.end(), [&](Tree& tree) {
+            if (tree.root == root) {
+                std::for_each(
+                    tree.repos.begin(),
+                    tree.repos.end(),
+                    [&](Repo& repo) {
+                        if (repo.name == name) {
+                            repo.status = status;
+                        }
+                    });
+            }
+        });
+        notify_observers(EventType::STATUS);
+    }
+
+    void add_message(std::string root, std::string name, std::string message) {
+        std::for_each(trees.begin(), trees.end(), [&](Tree& tree) {
+            if (tree.root == root) {
+                std::for_each(
+                    tree.repos.begin(),
+                    tree.repos.end(),
+                    [&](Repo& repo) {
+                        if (repo.name == name) {
+                            repo.messages.push_back(message);
+                        }
+                    });
+            }
+        });
+        notify_observers(EventType::MESSAGE);
     }
 
     const std::vector<Tree>& get_trees() const {
