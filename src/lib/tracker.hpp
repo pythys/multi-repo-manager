@@ -40,7 +40,7 @@ class Tracker : public IObservable {
 
     void notify_observers() override {
         for (auto observer : observers) {
-            observer->update(event);
+            observer->update();
         }
     }
 
