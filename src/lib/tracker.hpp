@@ -71,18 +71,6 @@ class Tracker : public IObservable {
         return trees;
     }
 
-    Repo& get_repo(const std::string& root, const std::string& name) {
-        for (auto& tree : trees) {
-            if (tree.root == root) {
-                Repo* found = recursive_find(name, tree.repos);
-                if (found) {
-                    return *found;
-                }
-            }
-        }
-        throw std::runtime_error("Repo not found");
-    }
-
  private:
     std::vector<Tree> trees;
     std::vector<IObserver*> observers;
@@ -105,6 +93,18 @@ class Tracker : public IObservable {
             }
         }
         return nullptr;
+    }
+
+    Repo& get_repo(const std::string& root, const std::string& name) {
+        for (auto& tree : trees) {
+            if (tree.root == root) {
+                Repo* found = recursive_find(name, tree.repos);
+                if (found) {
+                    return *found;
+                }
+            }
+        }
+        throw std::runtime_error("Repo not found");
     }
 };
 
