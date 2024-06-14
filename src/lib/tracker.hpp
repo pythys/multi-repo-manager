@@ -7,16 +7,10 @@
 #include <vector>
 #include "tree.hpp"
 
-enum class EventType {
-    POPULATE,
-    STATUS,
-    MESSAGE
-};
-
 class IObserver {
  public:
     virtual ~IObserver() = default;
-    virtual void update(EventType event) = 0;
+    virtual void update() = 0;
 };
 
 class IObservable {
@@ -24,7 +18,7 @@ class IObservable {
     virtual ~IObservable() = default;
     virtual void add_observer(IObserver* observer) = 0;
     virtual void remove_observer(IObserver* observer) = 0;
-    virtual void notify_observers(EventType event) = 0;
+    virtual void notify_observers() = 0;
 };
 
 class Tracker : public IObservable {
@@ -44,7 +38,7 @@ class Tracker : public IObservable {
             observers.end());
     }
 
-    void notify_observers(EventType event) override {
+    void notify_observers() override {
         for (auto observer : observers) {
             observer->update(event);
         }
@@ -52,7 +46,7 @@ class Tracker : public IObservable {
 
     void populate(std::vector<Tree> initial) {
         this->trees = initial;
-        notify_observers(EventType::POPULATE);
+        notify_observers();
     }
 
     void set_status(
@@ -61,7 +55,7 @@ class Tracker : public IObservable {
         RepoStatus status) {
         Repo& repo = get_repo(root, name);
         repo.status = status;
-        notify_observers(EventType::STATUS);
+        notify_observers();
     }
 
     void add_message(
@@ -70,7 +64,7 @@ class Tracker : public IObservable {
         const std::string& message) {
         Repo& repo = get_repo(root, name);
         repo.messages.push_back(message);
-        notify_observers(EventType::MESSAGE);
+        notify_observers();
     }
 
     const std::vector<Tree>& get_trees() const {
