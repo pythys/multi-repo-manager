@@ -80,10 +80,9 @@ class Tracker : public IObservable {
     Repo& get_repo(const std::string& root, const std::string& name) {
         for (auto& tree : trees) {
             if (tree.root == root) {
-                for (auto& repo : tree.repos) {
-                    if (repo.name == name) {
-                        return repo;
-                    }
+                Repo* found = recursive_find(name, tree.repos);
+                if (found) {
+                    return *found;
                 }
             }
         }
@@ -98,6 +97,21 @@ class Tracker : public IObservable {
     Tracker() = default;
     Tracker(const Tracker&) = delete;
     Tracker& operator=(const Tracker&) = delete;
+
+    Repo* recursive_find(
+        const std::string& name,
+        const std::vector<Repo>& repos) {
+        for (auto& repo : repos) {
+            if (repo.name == name) {
+                return const_cast<Repo*>(&repo);
+            }
+            Repo* found = recursive_find(name, repo.children);
+            if (found) {
+                return found;
+            }
+        }
+        return nullptr;
+    }
 };
 
 #endif  // SRC_LIB_TRACKER_HPP_
