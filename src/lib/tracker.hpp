@@ -2,6 +2,7 @@
 #define SRC_LIB_TRACKER_HPP_
 
 #include <algorithm>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include "tree.hpp"
@@ -54,14 +55,20 @@ class Tracker : public IObservable {
         notify_observers(EventType::POPULATE);
     }
 
-    void set_status(std::string root, std::string name, RepoStatus status) {
-        Repo repo = get_repo(root, name);
+    void set_status(
+        const std::string& root,
+        const std::string& name,
+        RepoStatus status) {
+        Repo& repo = get_repo(root, name);
         repo.status = status;
         notify_observers(EventType::STATUS);
     }
 
-    void add_message(std::string root, std::string name, std::string message) {
-        Repo repo = get_repo(root, name);
+    void add_message(
+        const std::string& root,
+        const std::string& name,
+        const std::string& message) {
+        Repo& repo = get_repo(root, name);
         repo.messages.push_back(message);
         notify_observers(EventType::MESSAGE);
     }
@@ -70,22 +77,24 @@ class Tracker : public IObservable {
         return trees;
     }
 
-    const Repo get_repo(std::string root, std::string name) {
-        for (auto tree : trees) {
+    Repo& get_repo(const std::string& root, const std::string& name) {
+        for (auto& tree : trees) {
             if (tree.root == root) {
-                for (auto repo : tree.repos) {
+                for (auto& repo : tree.repos) {
                     if (repo.name == name) {
                         return repo;
                     }
                 }
             }
         }
-        return Repo();
+        throw std::runtime_error("Repo not found");
     }
 
  private:
     std::vector<Tree> trees;
     std::vector<IObserver*> observers;
+
+    // Singleton Pattern
     Tracker() = default;
     Tracker(const Tracker&) = delete;
     Tracker& operator=(const Tracker&) = delete;
