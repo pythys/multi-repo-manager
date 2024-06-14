@@ -8,6 +8,7 @@
 #include "constants.hpp"
 #include "repo_factory.hpp"
 #include "sync.hpp"
+#include "tracker.hpp"
 #include "tree.hpp"
 
 namespace fs = std::filesystem;
@@ -119,6 +120,7 @@ void sync_repository(
 
 int run_sync(const std::string& config_file) {
     std::vector<Tree> config = get_dependencies(config_file);
+    Tracker::get_instance().populate(config);
     asio::thread_pool pool(SYNC_POOL_SIZE);
     tbb::parallel_for_each(
         config.begin(),

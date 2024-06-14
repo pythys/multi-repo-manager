@@ -6,7 +6,7 @@
 #include "tree.hpp"
 
 enum class EventType {
-    ADD_TREE
+    POPULATE
 };
 
 class IObserver {
@@ -46,9 +46,9 @@ class Tracker : public IObservable {
         }
     }
 
-    void add_tree(const Tree& tree) {
-        trees.push_back(tree);
-        notify_observers(EventType::ADD_TREE);
+    void populate(std::vector<Tree> initial) {
+        this->trees = initial;
+        notify_observers(EventType::POPULATE);
     }
 
     const std::vector<Tree>& get_trees() const {
