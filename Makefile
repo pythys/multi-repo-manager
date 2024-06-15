@@ -1,9 +1,9 @@
-#CC ?= clang
-#CXX ?= clang++
-#GENERATOR ?= Ninja
+CC ?= clang
+CXX ?= clang++
 GENERATOR ?= "Unix Makefiles"
-CC ?= gcc
-CXX ?= g++
+#GENERATOR ?= Ninja
+#CC ?= gcc
+#CXX ?= g++
 
 all: help
 
