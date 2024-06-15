@@ -1,5 +1,7 @@
-COMPILER ?= clang # or "gcc"
-GENERATOR ?= "Unix Makefiles" # or "Ninja"
+# "clang", "gcc"
+COMPILER ?= clang
+#"Unix Makefiles", "Ninja"
+GENERATOR ?= "Unix Makefiles"
 
 ifeq ($(COMPILER),clang)
   CC = clang
