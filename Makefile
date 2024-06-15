@@ -1,12 +1,11 @@
+#CC ?= clang
+#CXX ?= clang++
+#GENERATOR ?= Ninja
+GENERATOR ?= "Unix Makefiles"
+CC ?= gcc
+CXX ?= g++
+
 all: help
-
-define display_help
-	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
-endef
-
-.PHONY: help
-help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | $(display_help)
 
 .PHONY: clean
 clean: ## Clean generated artifacts
@@ -16,7 +15,7 @@ clean: ## Clean generated artifacts
 .PHONY: build
 build: ## Compile and generate editor artifacts
 	@echo "Building project..."
-	cmake -B build -S .
+	CXX=$(CXX) CC=$(CC) cmake -G $(GENERATOR) -B build -S .
 	cmake --build build -j $(shell nproc)
 	ln -sf build/compile_commands.json compile_commands.json
 
@@ -56,3 +55,11 @@ install: ## Install mrm
 uninstall: ## Uninstall mrm
 	@echo "Uninstalling mrm ..."
 	@rm /usr/local/bin/mrm
+
+define display_help
+	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+endef
+
+.PHONY: help
+help: ## Show this help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | $(display_help)
