@@ -12,6 +12,7 @@ The following software is required for building and developing the project:
 - [clang](https://clang.llvm.org/) clangd & clang-tidy & scan-build
 - [cmake](https://cmake.org)
 - [cpplint](https://github.com/cpplint/cpplint)
+- [docker](https://docs.docker.com/engine/install/)
 - [entr](https://github.com/eradman/entr) live reload
 - [gcc](https://gcc.gnu.org/git/?p=gcc.git)
 - [gdb](git://sourceware.org/git/binutils-gdb.git)
