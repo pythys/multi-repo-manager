@@ -9,7 +9,7 @@ The following software is required for building and developing the project:
 
 - [autoconf-archive](https://www.gnu.org/software/autoconf-archive/)
 - [autoconf](https://www.gnu.org/software/autoconf/)
-- [clang](https://clang.llvm.org/) clangd & clang-tidy
+- [clang](https://clang.llvm.org/) clangd & clang-tidy & scan-build
 - [cmake](https://cmake.org)
 - [cpplint](https://github.com/cpplint/cpplint)
 - [entr](https://github.com/eradman/entr) live reload
