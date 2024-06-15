@@ -35,6 +35,10 @@ watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
 	@find . -type f ! -path './build/*' | entr -d make clean test lint
 
+.PHONY: scan
+scan: build ## Apply static analysis on code base
+	@scan-build -o build/scan-build-results cmake --build build
+
 .PHONY: package
 package: build ## Package code to various formats
 	@cd build && cpack
