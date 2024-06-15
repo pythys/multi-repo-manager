@@ -5,20 +5,25 @@ repositories in a sane way utilizing bulk operations and yaml configurations
 
 ## requirements
 
-The following software is required for building and developing the project:
+Standard requirements:
 
-- [autoconf-archive](https://www.gnu.org/software/autoconf-archive/)
-- [autoconf](https://www.gnu.org/software/autoconf/)
 - [clang](https://clang.llvm.org/) clangd & clang-tidy & scan-build
 - [cmake](https://cmake.org)
 - [cpplint](https://github.com/cpplint/cpplint)
 - [docker](https://docs.docker.com/engine/install/)
 - [entr](https://github.com/eradman/entr) live reload
-- [gcc](https://gcc.gnu.org/git/?p=gcc.git)
 - [gdb](git://sourceware.org/git/binutils-gdb.git)
 - [make](https://www.gnu.org/software/make)
-- [ninja](https://github.com/ninja-build/ninja) generator
 - [vcpkg](https://github.com/microsoft/vcpkg) $VCPKG_ROOT must be defined
+
+Optional requirements:
+
+- [gcc](https://gcc.gnu.org/git/?p=gcc.git)
+- [ninja](https://github.com/ninja-build/ninja) generator
+
+To use these optional packages:
+
+make COMPILER=gcc GENERATOR=Ninja build
 
 `Dockerfile` can be used a reference for steps to build the project
 

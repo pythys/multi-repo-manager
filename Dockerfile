@@ -1,4 +1,4 @@
-FROM gcc
+FROM buildpack-deps:bullseye-scm
 
 ENV CMAKE_VERSION=3.29.5
 ENV VCPKG_ROOT=/usr/src/vcpkg
@@ -6,16 +6,15 @@ ENV PATH=$PATH:$VCPKG_ROOT
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    autoconf-archive \
     clang \
-    clang-tidy \
-    cpplint \
-    entr \
-    gdb \
-    ninja-build \
+    make \
+    python3 \
+    python3-pip \
     zip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+RUN pip3 install cpplint
 
 RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \

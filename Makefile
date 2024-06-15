@@ -1,9 +1,16 @@
-CC ?= clang
-CXX ?= clang++
+COMPILER ?= clang
 GENERATOR ?= "Unix Makefiles"
 #GENERATOR ?= Ninja
-#CC ?= gcc
-#CXX ?= g++
+
+ifeq ($(COMPILER),clang)
+  CC = clang
+  CXX = clang++
+else ifeq ($(COMPILER),gcc)
+  CC = gcc
+  CXX = g++
+else
+  $(error Unknown compiler: $(COMPILER))
+endif
 
 all: help
 
