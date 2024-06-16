@@ -34,5 +34,5 @@ RUN git clone --depth 1 https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
 COPY . /usr/src/mrm
 
 RUN cd /usr/src/mrm && \
-    make clean build lint test && \
+    make clean build lint scan test && \
     cp ./build/mrm/mrm /usr/local/bin

@@ -32,7 +32,7 @@ After getting all requirements issue the commands:
 ## development setup
 
 ```sh
-make clean build lint test
+make clean build lint scan test
 # live reload
 make watch
 ```

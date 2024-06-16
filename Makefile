@@ -38,7 +38,7 @@ lint: ## Lint source code with cpplint
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
-	@find . -type f ! -path './build/*' | entr -d make clean test lint
+	@find . -type f ! -path './build/*' | entr -d make clean test lint scan
 
 .PHONY: scan
 scan: build ## Apply static analysis on code base
