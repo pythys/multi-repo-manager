@@ -78,5 +78,5 @@ help: ## Show this help
 	@echo ""
 	@echo "Options"
 	@echo "-------"
-	@echo "COMPILER: clang, gcc"
-	@echo "GENERATOR: \"Unix Makefiles\", Ninja"
+	@echo "COMPILER: \"clang\", \"gcc\""
+	@echo "GENERATOR: \"Unix Makefiles\", \"Ninja\""
