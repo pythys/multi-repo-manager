@@ -1,6 +1,4 @@
-# "clang", "gcc"
 COMPILER ?= clang
-#"Unix Makefiles", "Ninja"
 GENERATOR ?= "Unix Makefiles"
 
 ifeq ($(COMPILER),clang)
@@ -64,7 +62,7 @@ uninstall: ## Uninstall mrm
 	@echo "Uninstalling mrm ..."
 	@rm /usr/local/bin/mrm
 
-define display_help
+define target_help
 	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 endef
 
@@ -74,7 +72,7 @@ help: ## Show this help
 	@echo ""
 	@echo "Targets"
 	@echo "-------"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | $(display_help)
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | $(target_help)
 	@echo ""
 	@echo "Options"
 	@echo "-------"
