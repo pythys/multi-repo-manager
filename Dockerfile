@@ -6,12 +6,13 @@ ENV PATH=$PATH:$VCPKG_ROOT
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    build-essential \
     clang \
     clang-tidy \
     cpplint \
     curl \
     git \
-    make \
+    libgit2-dev \
     pkg-config \
     unzip \
     zip && \
