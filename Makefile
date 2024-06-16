@@ -70,4 +70,13 @@ endef
 
 .PHONY: help
 help: ## Show this help
+	@echo "Usage: make [target] [COMPILER=compiler] [GENERATOR=generator]"
+	@echo ""
+	@echo "Targets"
+	@echo "-------"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | $(display_help)
+	@echo ""
+	@echo "Options"
+	@echo "-------"
+	@echo "COMPILER: clang, gcc"
+	@echo "GENERATOR: \"Unix Makefiles\", Ninja"
