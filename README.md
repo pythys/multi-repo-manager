@@ -3,6 +3,17 @@
 MRM (multi-repo-manager) is a tool to help in managing a large number of
 repositories in a sane way utilizing bulk operations and yaml configurations
 
+## installation
+
+After getting all requirements issue the commands:
+
+`make build`
+`sudo make install`
+
+## usage
+
+**TODO** document this section thoroughly
+
 ## requirements
 
 - [clang](https://clang.llvm.org/)
@@ -36,7 +47,7 @@ To start a debug session with gdb run the below command
 
 ## libraries
 
-through vcpkg:
+Through vcpkg:
 
 - [boost](https://github.com/boostorg/boost)
 - [cli11](https://github.com/CLIUtils/CLI11)
@@ -45,6 +56,6 @@ through vcpkg:
 - [tbb](https://github.com/oneapi-src/oneTBB)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
 
-through cmake:
+Through cmake:
 
 - [googletest](https://github.com/google/googletest)
