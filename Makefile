@@ -1,6 +1,13 @@
 COMPILER ?= clang
 GENERATOR ?= "Unix Makefiles"
 
+all: help
+
+.PHONY: clean
+clean: ## Clean generated artifacts
+	@echo "Cleaning artifacts..."
+	@rm -rf .cache build compile_commands.json
+
 ifeq ($(COMPILER),clang)
   CC = clang
   CXX = clang++
@@ -10,13 +17,6 @@ else ifeq ($(COMPILER),gcc)
 else
   $(error Unknown compiler: $(COMPILER))
 endif
-
-all: help
-
-.PHONY: clean
-clean: ## Clean generated artifacts
-	@echo "Cleaning artifacts..."
-	@rm -rf .cache build compile_commands.json
 
 .PHONY: build
 build: ## Compile and generate editor artifacts
