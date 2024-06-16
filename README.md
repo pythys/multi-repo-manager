@@ -63,6 +63,7 @@ Through cmake:
 ## Roadmap
 
 - Implement SyncScreen to show progress of syncing
+- Find recurse only in .gitmodule and .gitignore (performance improvement)
 - Introduce usage documentation in this file
 - Introduce a documentation tool like Doxygen and expand docs
 - Dynamically link dependencies to allow packaging to deb, rpm, etc ...
