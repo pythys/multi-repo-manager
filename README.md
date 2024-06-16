@@ -62,6 +62,7 @@ Through cmake:
 
 ## Roadmap
 
-- Implement scan-sync screen
+- Implement SyncScreen to show progress of syncing
 - Introduce usage documentation in this file
-- Introduce a documentation tool like Doxygen and expland docs
+- Introduce a documentation tool like Doxygen and expand docs
+- Dynamically link dependencies to allow packaging to deb, rpm, etc ...
