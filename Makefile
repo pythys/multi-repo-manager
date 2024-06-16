@@ -35,14 +35,14 @@ lint: ## Lint source code with cpplint
 	@echo "Linting src and tests directories..."
 	@cpplint --repository=. --recursive --filter=-legal/copyright,-build/c++11,-build/include_subdir src tests
 
+.PHONY: scan
+scan: build ## Apply static analysis on code base
+	@scan-build -o build/scan-build-results cmake --build build
+
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
 	@find . -type f ! -path './build/*' | entr -d make clean test lint scan
-
-.PHONY: scan
-scan: build ## Apply static analysis on code base
-	@scan-build -o build/scan-build-results cmake --build build
 
 .PHONY: package
 package: build ## Package code to various formats
