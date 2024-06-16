@@ -36,4 +36,5 @@ COPY . /usr/src/mrm
 RUN cd /usr/src/mrm && \
     make clean build lint test && \
     cp ./build/mrm/mrm /usr/local/bin && \
-    rm -rf /usr/src/mrm
+    rm -rf /usr/src/mrm && \
+    rm -rf $VCPKG_ROOT
