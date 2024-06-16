@@ -59,3 +59,9 @@ Through vcpkg:
 Through cmake:
 
 - [googletest](https://github.com/google/googletest)
+
+## Roadmap
+
+- Implement scan-sync screen
+- Introduce usage documentation in this file
+- Introduce a documentation tool like Doxygen and expland docs
