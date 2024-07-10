@@ -1,20 +1,23 @@
 cmake_minimum_required(VERSION 3.28)
 
-# vcpkg
+# vcpkg toolchain
 if(NOT DEFINED ENV{VCPKG_ROOT})
     message(FATAL_ERROR "VCPKG_ROOT is not defined.")
 endif()
 set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
-set(VCPKG_INCLUDE "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include")
-include_directories(${VCPKG_INCLUDE})
 
 project(mrm VERSION 1.0)
+
+# vcpkg include
+set(VCPKG_INCLUDE "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include")
+include_directories(${VCPKG_INCLUDE})
 
 # compile options
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-if(NOT CMAKE_GENERATOR STREQUAL "Ninja")
+find_program(CLANG_TIDY_BIN NAMES clang-tidy)
+if(NOT CMAKE_GENERATOR STREQUAL "Ninja" AND CLANG_TIDY_BIN)
     set(TIDY_CHECKS "clang-tidy;--checks=-llvmlibc*")
     set(TIDY_FILTER ";--header-filter=${CMAKE_SOURCE_DIR}/(src|tests)/.*")
     set(CMAKE_CXX_CLANG_TIDY "${TIDY_CHECKS}${TIDY_FILTER}")
