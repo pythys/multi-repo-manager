@@ -3,6 +3,8 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string>
+#include <vector>
 #include "config.hpp"
 
 std::string from_repo_type(RepoType type) {

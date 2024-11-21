@@ -1,4 +1,6 @@
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 #include "config.hpp"
 
 std::vector<Tree> parse_config(const std::string& filename) {

@@ -33,7 +33,7 @@ test: build ## Run all unit tests
 .PHONY: lint
 lint: ## Lint source code with cpplint
 	@echo "Linting src and tests directories..."
-	@cpplint --repository=. --recursive --filter=-legal/copyright,-build/c++11,-build/include_subdir src tests
+	@cpplint --repository=. --recursive --config=.cpplintrc src tests
 
 .PHONY: scan
 scan: build ## Apply static analysis on code base

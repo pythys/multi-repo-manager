@@ -1,0 +1,1 @@
+filter=-legal/copyright,-build/c++11,-build/c++17,-build/include_subdir

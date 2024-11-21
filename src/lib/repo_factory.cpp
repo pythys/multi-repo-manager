@@ -1,3 +1,4 @@
+#include <memory>
 #include "git_manager.hpp"
 #include "repo_factory.hpp"
 
