@@ -1,6 +1,5 @@
 #include <tbb/parallel_for_each.h>
 #include <filesystem>
-#include <future>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -63,7 +62,7 @@ void sync_repository(
     asio::thread_pool* pool) {
 
     Tracker::get_instance().set_status(root, repo->name, RepoStatus::SYNCHING);
-    auto update_action = [root, repo]() {
+    auto update_action = [root, repo, pool]() {
         std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
         auto repo_manager = create_repo_manager(repo->type);
         auto remotes = repo_manager->get_remotes(root + "/" + repo->name);
@@ -99,11 +98,12 @@ void sync_repository(
             root,
             repo->name,
             RepoStatus::SYNCHED);
+        for (auto& child : repo->children) {
+            sync_repository(root, &child, pool);
+        }
     };
 
-    std::promise<void> clone_completed;
-    std::future<void> clone_future = clone_completed.get_future();
-    auto clone_action = [root, repo, &clone_completed]() {
+    auto clone_action = [root, repo, pool]() {
         std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
         auto repo_manager = create_repo_manager(repo->type);
         auto it = std::find_if(
@@ -125,22 +125,22 @@ void sync_repository(
                 root + "/" + repo->name,
                 repo->remotes[i]);
         }
-        clone_completed.set_value();
         Tracker::get_instance().set_status(
             root,
             repo->name,
             RepoStatus::SYNCHED);
+        for (auto& child : repo->children) {
+            sync_repository(root, &child, pool);
+        }
     };
 
     fs::path repo_dir(root + "/" + repo->name);
-    if (fs::exists(repo_dir) && fs::is_directory(repo_dir)) {
+    if (fs::exists(repo_dir) &&
+        fs::is_directory(repo_dir) &&
+        fs::directory_iterator(repo_dir) != fs::directory_iterator()) {
         asio::post(*pool, update_action);
     } else {
         asio::post(*pool, clone_action);
-        clone_future.wait();
-    }
-    for (auto& child : repo->children) {
-        sync_repository(root, &child, pool);
     }
 }
 
