@@ -22,8 +22,6 @@ class GitManager : public RepoManager {
                     username_from_url) == 0) {
                 return 0;
             }
-        }
-        if (allowed_types & GIT_CREDENTIAL_SSH_KEY) {
             const char* privatekey_path = "~/.ssh/id_rsa";
             const char* publickey_path = "~/.ssh/id_rsa.pub";
 
