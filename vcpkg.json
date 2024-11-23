@@ -6,7 +6,10 @@
     {"name": "boost-system"},
     {"name": "cli11"},
     {"name": "ftxui"},
-    {"name": "libgit2"},
+    {
+        "name": "libgit2",
+        "features": ["ssh"]
+    },
     {"name": "tbb"},
     {"name": "yaml-cpp"}
   ]

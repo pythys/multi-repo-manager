@@ -14,6 +14,13 @@ After getting all requirements issue the commands:
 
 **TODO** document this section thoroughly
 
+### Credentials
+
+If you have authenticated repos, then SSH installation is required along with
+adding the SSH keys as sampled in below command:
+
+`ssh-add ~/.ssh/id_rsa`
+
 ## requirements
 
 - [clang](https://clang.llvm.org/)
