@@ -50,7 +50,7 @@ package: build ## Package code to various formats
 
 .PHONY: dockerize
 dockerize: ## Build docker image "mrm"
-	@docker build --no-cache --tag mrm .
+	@docker build --platform=linux/amd64 --no-cache --tag mrm .
 
 .PHONY: install
 install: ## Install mrm

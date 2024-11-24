@@ -16,6 +16,6 @@ target_sources(mrm_core PRIVATE
 target_link_libraries(mrm_core PRIVATE Boost::system)
 target_link_libraries(mrm_core PRIVATE CLI11::CLI11)
 target_link_libraries(mrm_core PRIVATE TBB::tbb TBB::tbbmalloc)
-target_link_libraries(mrm_core PRIVATE ftxui::screen ftxui::dom)
+target_link_libraries(mrm_core PRIVATE ftxui::screen ftxui::dom ftxui::component)
 target_link_libraries(mrm_core PRIVATE unofficial::libgit2::libgit2)
 target_link_libraries(mrm_core PRIVATE yaml-cpp::yaml-cpp)
