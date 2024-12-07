@@ -43,7 +43,7 @@ int parse_cli(int argc, char **argv) {
 
     std::string custom_command;
     exec->add_option(
-        "--exec,-x",
+        "--command,-m",
         custom_command,
         "The custom command to run")
         ->required()->type_name("command");
