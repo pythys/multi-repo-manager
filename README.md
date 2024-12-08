@@ -28,7 +28,7 @@ git clone https://github.com/bootandy/dust
 git clone https://github.com/sharkdp/fd
 git clone https://github.com/junegunn/fzf
 cd ..
-mrm find myrepos > myrepos.yml
+mrm find myrepos --save myrepos.yml
 ```
 
 - sync repos from config file
