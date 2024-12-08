@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "cli.hpp"
@@ -44,6 +45,26 @@ int parse_cli(int argc, char **argv) {
         "Save to a file instead of stdout")
         ->type_name("file");
 
+    CLI::App *status = app.add_subcommand(
+        "status",
+        "Show the status of config repositories");
+
+    status->add_option(
+        "--config,-c",
+        config_file,
+        "Configuration file for the status command")
+        ->required()->type_name("file");
+
+    CLI::App *update = app.add_subcommand(
+        "update",
+        "Update config repositories");
+
+    update->add_option(
+        "--config,-c",
+        config_file,
+        "Configuration file for the update command")
+        ->required()->type_name("file");
+
     CLI::App *exec = app.add_subcommand(
         "exec",
         "Execute a custom command on repositories of a certain type");
@@ -76,6 +97,14 @@ int parse_cli(int argc, char **argv) {
 
     if (*find) {
         return run_find(find_path, save_path);
+    }
+
+    if (*status) {
+        std::cout << "status not yet implemented" << std::endl;
+    }
+
+    if (*update) {
+        std::cout << "update not yet implemented" << std::endl;
     }
 
     if (*exec) {
