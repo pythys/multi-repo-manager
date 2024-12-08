@@ -25,7 +25,7 @@ class SyncScreen : public TreeObserver {
             });
 
             auto screen = ScreenInteractive::FitComponent();
-            //screen.Loop(renderer);
+            // screen.Loop(renderer);
         }
 };
 

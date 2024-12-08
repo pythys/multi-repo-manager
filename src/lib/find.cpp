@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <unordered_map>
@@ -69,13 +70,21 @@ std::string normalize_path(const std::string& path) {
         : normalized;
 }
 
-int run_find(const std::string& path) {
+int run_find(const std::string& find_path, const std::string& save_path) {
     Tree tree;
-    std::vector<Repo> repos = find_repos(path);
-    fs::path root_path = normalize_path(path);
+    std::vector<Repo> repos = find_repos(find_path);
+    fs::path root_path = normalize_path(find_path);
     tree.root = root_path;
     tree.repos = repos;
     std::vector<Tree> trees = {tree};
-    std::cout << make_config(trees) << std::endl;
+    std::string config_output = make_config(trees);
+    if (!save_path.empty()) {
+        std::ofstream file(save_path);
+        file << config_output;
+        file.close();
+        std::cout << "Config saved to " << save_path << std::endl;
+    } else {
+        std::cout << config_output << std::endl;
+    }
     return 0;
 }

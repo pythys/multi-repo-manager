@@ -37,6 +37,13 @@ int parse_cli(int argc, char **argv) {
         "Path to search for existing repositories. Defaults to \".\"")
         ->type_name("dir");
 
+    std::string save_path;
+    find->add_option(
+        "--save,-s",
+        save_path,
+        "Save to a file instead of stdout")
+        ->type_name("file");
+
     CLI::App *exec = app.add_subcommand(
         "exec",
         "Execute a custom command on repositories of a certain type");
@@ -68,7 +75,7 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*find) {
-        return run_find(find_path);
+        return run_find(find_path, save_path);
     }
 
     if (*exec) {
