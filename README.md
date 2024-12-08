@@ -5,7 +5,13 @@ repositories in a sane way utilizing bulk operations and yaml configurations
 
 ## installation
 
-Install `cmake` and `make` and then:
+Install minimum requirements:
+
+- `cmake`
+- `make`
+- `vcpkg`
+
+Build and install
 
 `make build`
 `sudo make install`
@@ -35,7 +41,7 @@ mrm find myrepos > myrepos.yml
 `mrm sync --help`
 `mrm find --help`
 
-### Credentials
+### SSH Credentials
 
 If you have authenticated repos, then SSH installation is required along with
 adding the SSH keys as sampled in below command:
@@ -92,6 +98,5 @@ Through cmake:
 
 - Implement SyncScreen to show progress of syncing
 - Find recurse only in .gitmodule and .gitignore (performance improvement)
-- Introduce usage documentation in this file
 - Introduce a documentation tool like Doxygen and expand docs
 - Dynamically link dependencies to allow packaging to deb, rpm, etc ...
