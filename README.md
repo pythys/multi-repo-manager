@@ -32,6 +32,8 @@ mrm find myrepos > myrepos.yml
 - get help
 
 `mrm --help`
+`mrm sync --help`
+`mrm find --help`
 
 ### Credentials
 
