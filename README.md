@@ -5,14 +5,33 @@ repositories in a sane way utilizing bulk operations and yaml configurations
 
 ## installation
 
-After getting all requirements issue the commands:
+Install `cmake` and `make` and then:
 
 `make build`
 `sudo make install`
 
 ## usage
 
-**TODO** document this section thoroughly
+Example Usage:
+
+- create a config file
+
+```
+mkdir myrepos && cd myrepos
+git clone https://github.com/bootandy/dust
+git clone https://github.com/sharkdp/fd
+git clone https://github.com/junegunn/fzf
+cd ..
+mrm find myrepos > myrepos.yml
+```
+
+- sync repos from config file
+
+`mrm sync --config myrepos.yml myrepos`
+
+- get help
+
+`mrm --help`
 
 ### Credentials
 
@@ -21,7 +40,7 @@ adding the SSH keys as sampled in below command:
 
 `ssh-add ~/.ssh/id_rsa`
 
-## requirements
+## Development Requirements
 
 - [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
