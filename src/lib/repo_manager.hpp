@@ -22,6 +22,9 @@ class RepoManager {
     virtual std::vector<Remote> get_remotes(
         const std::string& path) = 0;
 
+    virtual std::string get_status(
+        const std::string& path) = 0;
+
     virtual ~RepoManager() = default;
 };
 

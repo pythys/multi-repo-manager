@@ -119,6 +119,10 @@ class GitManager : public RepoManager {
         return remotes;
     }
 
+    std::string get_status(const std::string& path) override {
+        return path;
+    }
+
     ~GitManager() override = default;
 };
 
