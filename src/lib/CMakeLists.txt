@@ -13,6 +13,7 @@ target_sources(mrm_core PRIVATE
   repo_factory.cpp
   status.cpp
   sync.cpp
+  update.cpp
 )
 target_link_libraries(mrm_core PRIVATE Boost::system)
 target_link_libraries(mrm_core PRIVATE CLI11::CLI11)

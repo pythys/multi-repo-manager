@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "cli.hpp"
@@ -6,6 +5,7 @@
 #include "find.hpp"
 #include "status.hpp"
 #include "sync.hpp"
+#include "update.hpp"
 
 int parse_cli(int argc, char **argv) {
     CLI::App app("mrm");
@@ -105,7 +105,7 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*update) {
-        std::cout << "update not yet implemented" << std::endl;
+        return run_update(config_file);
     }
 
     if (*exec) {
