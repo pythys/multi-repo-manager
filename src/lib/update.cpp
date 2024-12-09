@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include "update.hpp"
 
 int run_update(const std::string& config_file) {
     std::cout << "update not yet implemented" << std::endl;
