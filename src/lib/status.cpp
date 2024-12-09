@@ -14,7 +14,9 @@ int run_status(const std::string& config_file) {
             tree.repos.end(),
             [&tree](auto& repo) {
                 auto repo_manager = create_repo_manager(repo.type);
-                std::cout << repo_manager->get_status(tree.root + "/" + repo.name) << std::endl;
+                const auto status = repo_manager->get_status(
+                    tree.root + "/" + repo.name);
+                std::cout << status << std::endl;
             });
     });
     return 0;
