@@ -4,6 +4,7 @@
 #include "cli.hpp"
 #include "exec.hpp"
 #include "find.hpp"
+#include "status.hpp"
 #include "sync.hpp"
 
 int parse_cli(int argc, char **argv) {
@@ -100,7 +101,7 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*status) {
-        std::cout << "status not yet implemented" << std::endl;
+        return run_status(config_file);
     }
 
     if (*update) {

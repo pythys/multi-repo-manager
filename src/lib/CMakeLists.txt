@@ -11,6 +11,7 @@ target_sources(mrm_core PRIVATE
   exec.cpp
   find.cpp
   repo_factory.cpp
+  status.cpp
   sync.cpp
 )
 target_link_libraries(mrm_core PRIVATE Boost::system)
