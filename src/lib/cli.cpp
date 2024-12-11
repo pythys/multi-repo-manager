@@ -7,9 +7,11 @@
 #include "sync.hpp"
 #include "update.hpp"
 
-int parse_cli(int argc, char **argv) {
+int parse_cli(int argc, char **argv, bool is_terminal) {
+    if (!is_terminal) {
+        return 1;  // TODO(taher) implement non-interactive mode
+    }
     CLI::App app("mrm");
-
     CLI::App *sync = app.add_subcommand(
         "sync",
         "Sync local repositories with a configured list");
