@@ -98,7 +98,6 @@ Through cmake:
 
 - Implement exec command
 - Implement update command
-- Implement status command
 - Implement SyncScreen to show progress of syncing
 - Find recurse only in .gitmodule and .gitignore (performance improvement)
 - Introduce a documentation tool like Doxygen and expand docs
