@@ -2,6 +2,7 @@
 #define SRC_LIB_GIT_MANAGER_HPP_
 
 #include <string>
+#include <utility>
 #include <vector>
 #include "repo_manager.hpp"
 #include "git2.h"
@@ -119,8 +120,89 @@ class GitManager : public RepoManager {
         return remotes;
     }
 
-    std::string get_status(const std::string& path) override {
-        return path;
+    std::vector<std::string> get_status(const std::string& path) override {
+        std::vector<std::string> status_lines;
+
+        git_repository* repo = nullptr;
+        int repo_open_result = git_repository_open(&repo, path.c_str());
+        if (repo_open_result != 0) {
+            const git_error* err = git_error_last();
+            std::string error_message = "Failed to open repository: ";
+            error_message += err ? err->message : "unknown error";
+            status_lines.emplace_back(std::move(error_message));
+            return status_lines;
+        }
+
+        git_status_options status_opts;
+        git_status_options_init(&status_opts, GIT_STATUS_OPTIONS_VERSION);
+        status_opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
+        status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
+                            GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX;
+
+        git_status_list* status_list = nullptr;
+        int status_result = git_status_list_new(
+            &status_list,
+            repo,
+            &status_opts);
+        if (status_result != 0) {
+            const git_error* err = git_error_last();
+            std::string error_message = "Failed to retrieve status: ";
+            error_message += err ? err->message : "unknown error";
+            status_lines.emplace_back(std::move(error_message));
+            git_repository_free(repo);
+            return status_lines;
+        }
+
+        size_t entry_count = git_status_list_entrycount(status_list);
+
+        auto transform_status = [&status_lines](const git_status_entry* entry) {
+            if (entry->status & GIT_STATUS_INDEX_NEW) {
+                std::string msg = "New file staged: ";
+                msg += entry->head_to_index->new_file.path;
+                status_lines.emplace_back(std::move(msg));
+            }
+            if (entry->status & GIT_STATUS_INDEX_MODIFIED) {
+                std::string msg = "Modified file staged: ";
+                msg += entry->head_to_index->new_file.path;
+                status_lines.emplace_back(std::move(msg));
+            }
+            if (entry->status & GIT_STATUS_INDEX_DELETED) {
+                std::string msg = "Deleted file staged: ";
+                msg += entry->head_to_index->old_file.path;
+                status_lines.emplace_back(std::move(msg));
+            }
+            if (entry->status & GIT_STATUS_WT_NEW) {
+                std::string msg = "New file: ";
+                msg += entry->index_to_workdir->new_file.path;
+                status_lines.emplace_back(std::move(msg));
+            }
+            if (entry->status & GIT_STATUS_WT_MODIFIED) {
+                std::string msg = "Modified file: ";
+                msg += entry->index_to_workdir->new_file.path;
+                status_lines.emplace_back(std::move(msg));
+            }
+            if (entry->status & GIT_STATUS_WT_DELETED) {
+                std::string msg = "Deleted file: ";
+                msg += entry->index_to_workdir->old_file.path;
+                status_lines.emplace_back(std::move(msg));
+            }
+        };
+
+        for (size_t i = 0; i < entry_count; ++i) {
+            const git_status_entry* entry = git_status_byindex(status_list, i);
+            if (entry) {
+                transform_status(entry);
+            }
+        }
+
+        git_status_list_free(status_list);
+        git_repository_free(repo);
+
+        if (status_lines.empty()) {
+            status_lines.emplace_back("No changes detected");
+        }
+
+        return status_lines;
     }
 
     ~GitManager() override = default;
