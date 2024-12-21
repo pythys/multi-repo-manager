@@ -168,6 +168,7 @@ class GitManager : public RepoManager {
         git_reference_free(head_ref);
         git_repository_free(repo);
     }
+
     void add_remote(
         const std::string& path,
         const Remote remote) override {
