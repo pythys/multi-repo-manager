@@ -108,7 +108,7 @@ class GitManager : public RepoManager {
 
         git_reference_free(upstream_branch);
 
-        git_buf remote_name_buf = GIT_BUF_INIT_CONST(nullptr, 0);
+        git_buf remote_name_buf = GIT_BUF_INIT;
         error = git_branch_remote_name(&remote_name_buf, repo, branch_name);
         if (error != 0) {
             git_reference_free(head_ref);
