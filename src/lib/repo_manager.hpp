@@ -11,6 +11,9 @@ class RepoManager {
         const std::string& source,
         const std::string& destination) = 0;
 
+    virtual void update(
+        const std::string& path) = 0;
+
     virtual void add_remote(
         const std::string& path,
         const Remote remote) = 0;

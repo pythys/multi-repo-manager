@@ -70,6 +70,104 @@ class GitManager : public RepoManager {
         git_repository_free(repo);
     }
 
+    void update(const std::string& path) override {
+        git_repository* repo = nullptr;
+        int error = git_repository_open(&repo, path.c_str());
+        if (error != 0) {
+            const git_error* err = git_error_last();
+            throw std::runtime_error(
+                std::string("Failed to open repository: ") +
+                (err ? err->message : "unknown error"));
+        }
+
+        git_reference* head_ref = nullptr;
+        error = git_repository_head(&head_ref, repo);
+        if (error != 0) {
+            const git_error* err = git_error_last();
+            git_repository_free(repo);
+            throw std::runtime_error(
+                std::string("Failed to retrieve HEAD: ") +
+                (err ? err->message : "unknown error"));
+        }
+
+        const char* branch_name = nullptr;
+        error = git_branch_name(&branch_name, head_ref);
+        if (error != 0) {
+            git_reference_free(head_ref);
+            git_repository_free(repo);
+            throw std::runtime_error("Failed to determine branch name");
+        }
+
+        git_reference* upstream_branch = nullptr;
+        error = git_branch_upstream(&upstream_branch, head_ref);
+        if (error != 0) {
+            git_reference_free(head_ref);
+            git_repository_free(repo);
+            return;
+        }
+
+        git_reference_free(upstream_branch);
+
+        git_buf remote_name_buf = GIT_BUF_INIT_CONST(nullptr, 0);
+        error = git_branch_remote_name(&remote_name_buf, repo, branch_name);
+        if (error != 0) {
+            git_reference_free(head_ref);
+            git_repository_free(repo);
+            throw std::runtime_error("Failed to retrieve remote name");
+        }
+
+        const char* remote_name = remote_name_buf.ptr;
+
+        git_remote* remote = nullptr;
+        error = git_remote_lookup(&remote, repo, remote_name);
+        if (error != 0) {
+            git_buf_dispose(&remote_name_buf);
+            git_reference_free(head_ref);
+            git_repository_free(repo);
+            throw std::runtime_error("Failed to lookup remote");
+        }
+
+        git_fetch_options fetch_opts;
+        git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
+        git_remote_callbacks remote_callbacks;
+        git_remote_init_callbacks(
+            &remote_callbacks,
+            GIT_REMOTE_CALLBACKS_VERSION);
+        remote_callbacks.credentials = GitManager::credential_callback;
+        fetch_opts.callbacks = remote_callbacks;
+
+        error = git_remote_fetch(remote, nullptr, &fetch_opts, nullptr);
+        if (error != 0) {
+            const git_error* err = git_error_last();
+            git_remote_free(remote);
+            git_buf_dispose(&remote_name_buf);
+            git_reference_free(head_ref);
+            git_repository_free(repo);
+            throw std::runtime_error(
+                std::string("Failed to fetch from remote: ") +
+                (err ? err->message : "unknown error"));
+        }
+
+        git_remote_free(remote);
+
+        git_merge_options merge_opts;
+        git_merge_options_init(&merge_opts, GIT_MERGE_OPTIONS_VERSION);
+        git_checkout_options checkout_opts;
+        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
+        checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+
+        git_annotated_commit* remote_commit = nullptr;
+        error = git_annotated_commit_from_ref(&remote_commit, repo, head_ref);
+        if (error == 0) {
+            git_merge(repo, (const git_annotated_commit**)&remote_commit, 1,
+                      &merge_opts, &checkout_opts);
+            git_annotated_commit_free(remote_commit);
+        }
+
+        git_buf_dispose(&remote_name_buf);
+        git_reference_free(head_ref);
+        git_repository_free(repo);
+    }
     void add_remote(
         const std::string& path,
         const Remote remote) override {
