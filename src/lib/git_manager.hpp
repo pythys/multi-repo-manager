@@ -106,18 +106,19 @@ class GitManager : public RepoManager {
             return;
         }
 
-        git_reference_free(upstream_branch);
-
         git_buf remote_name_buf = GIT_BUF_INIT;
-        error = git_branch_remote_name(&remote_name_buf, repo, branch_name);
+        error = git_branch_remote_name(
+            &remote_name_buf,
+            repo,
+            git_reference_name(upstream_branch));
         if (error != 0) {
+            git_reference_free(upstream_branch);
             git_reference_free(head_ref);
             git_repository_free(repo);
             throw std::runtime_error("Failed to retrieve remote name");
         }
 
         const char* remote_name = remote_name_buf.ptr;
-
         git_remote* remote = nullptr;
         error = git_remote_lookup(&remote, repo, remote_name);
         if (error != 0) {
