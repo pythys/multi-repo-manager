@@ -44,7 +44,7 @@ scan: build ## Apply static analysis on code base
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
-	@find . -type f ! -path './build/*' | entr -d make clean test lint scan
+	@find . -type f ! -path './build/*' | entr -d make clean test lint
 
 .PHONY: package
 package: build ## Package code to various formats
