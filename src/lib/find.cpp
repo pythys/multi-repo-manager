@@ -80,6 +80,9 @@ int run_find(const std::string& find_path, const std::string& save_path) {
     std::string config_output = make_config(trees);
     if (!save_path.empty()) {
         std::ofstream file(save_path);
+        if (config_output.empty() || config_output.back() != '\n') {
+            config_output += '\n';
+        }
         file << config_output;
         file.close();
         std::cout << "Config saved to " << save_path << std::endl;
