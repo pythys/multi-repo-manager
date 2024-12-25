@@ -96,9 +96,11 @@ Through cmake:
 
 ## Roadmap
 
-- make all commands concurrent with a message queue, maximize performance.
-- Implement exec command.
-- Implement SyncScreen to show progress of syncing
-- Find recurse only in .gitmodule and .gitignore (performance improvement)
-- Introduce a documentation tool like Doxygen and expand docs
-- Dynamically link dependencies to allow packaging to deb, rpm, etc ...
+- Switch all commands to be parallel.
+- Implement the observer pattern with all parallel commands to buffer messages.
+- Implement the exec command.
+- Implement dynamic FTXUI interface for all commands.
+- Implement static interface when !is_terminal.
+- Limit recursion to .gitmodule and .gitignore for improved performance.
+- Introduce a documentation tool like Doxygen.
+- Dynamically link dependencies for packaging.
