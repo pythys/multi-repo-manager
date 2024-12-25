@@ -75,7 +75,7 @@ class Tracker : public TreeObservable {
     std::vector<Tree> trees;
     std::vector<TreeObserver*> observers;
 
-    // Singleton Pattern
+    // Singleton
     Tracker() = default;
     Tracker(const Tracker&) = delete;
     Tracker& operator=(const Tracker&) = delete;
