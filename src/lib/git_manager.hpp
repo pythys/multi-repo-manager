@@ -23,12 +23,15 @@ class GitResource {
     GitResource& operator=(const GitResource&) = delete;
 };
 
-using GitRepository = GitResource<git_repository, git_repository_free>;
-using GitRemote = GitResource<git_remote, git_remote_free>;
-using GitReference = GitResource<git_reference, git_reference_free>;
-using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 using GitAnnotatedCommit = GitResource<git_annotated_commit,
                                        git_annotated_commit_free>;
+using GitCommit = GitResource<git_commit, git_commit_free>;
+using GitIndex = GitResource<git_index, git_index_free>;
+using GitReference = GitResource<git_reference, git_reference_free>;
+using GitRemote = GitResource<git_remote, git_remote_free>;
+using GitRepository = GitResource<git_repository, git_repository_free>;
+using GitStatusList = GitResource<git_status_list, git_status_list_free>;
+using GitTree = GitResource<git_tree, git_tree_free>;
 
 class GitBuffer {
     git_buf buf_;
@@ -122,12 +125,17 @@ class GitManager : public RepoManager {
             git_repository_head(head_ref.get_address(), repo.get()),
             "Failed to retrieve HEAD");
 
+        GitReference upstream_ref;
+        check_error(
+            git_branch_upstream(upstream_ref.get_address(), head_ref.get()),
+            "Failed to retrieve upstream reference");
+
         GitBuffer remote_name_buf;
         check_error(
             git_branch_remote_name(
                 remote_name_buf.get(),
                 repo.get(),
-                git_reference_name(head_ref.get())),
+                git_reference_name(upstream_ref.get())),
             "Failed to retrieve remote name");
 
         GitRemote remote;
@@ -155,7 +163,7 @@ class GitManager : public RepoManager {
             git_annotated_commit_from_ref(
                 remote_commit.get_address(),
                 repo.get(),
-                head_ref.get()),
+                upstream_ref.get()),
             "Failed to create annotated commit");
 
         git_merge_options merge_opts;
@@ -168,11 +176,17 @@ class GitManager : public RepoManager {
         check_error(
             git_merge(
                 repo.get(),
-                reinterpret_cast<const git_annotated_commit **>(&remote_commit),
+                reinterpret_cast<const git_annotated_commit**>(&remote_commit),
                 1,
                 &merge_opts,
                 &checkout_opts),
             "Failed to merge changes");
+
+        if (git_repository_state(repo.get()) == GIT_REPOSITORY_STATE_MERGE) {
+            check_error(
+                git_repository_state_cleanup(repo.get()),
+                "Failed to clean up repository state after merge");
+        }
     }
 
     void add_remote(const std::string& path, Remote remote) override {
