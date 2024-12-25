@@ -105,3 +105,4 @@ Through cmake:
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce a documentation tool like Doxygen.
 - Dynamically link dependencies for packaging.
+- Provide a solution for shell completion.
