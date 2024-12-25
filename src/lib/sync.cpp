@@ -121,6 +121,9 @@ void sync_repository(
             std::exit(1);
         }
         for (size_t i = 0; i < repo->remotes.size(); i++) {
+            if (repo->remotes[i].name == "origin") {
+                continue;
+            }
             repo_manager->add_remote(
                 root + "/" + repo->name,
                 repo->remotes[i]);
