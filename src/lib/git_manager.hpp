@@ -1,14 +1,54 @@
 #ifndef SRC_LIB_GIT_MANAGER_HPP_
 #define SRC_LIB_GIT_MANAGER_HPP_
 
+#include <algorithm>
 #include <string>
-#include <utility>
 #include <vector>
 #include "repo_manager.hpp"
 #include "git2.h"
 
-class GitManager : public RepoManager {
+template <typename T, void (*FreeFunc)(T*)>
+class GitResource {
+    T* resource_;
  public:
+    explicit GitResource(T* resource = nullptr) : resource_(resource) {}
+    ~GitResource() { FreeFunc(resource_); }
+    T* get() const { return resource_; }
+    T** get_address() { return &resource_; }
+    void reset(T* resource = nullptr) {
+        FreeFunc(resource_);
+        resource_ = resource;
+    }
+    GitResource(const GitResource&) = delete;
+    GitResource& operator=(const GitResource&) = delete;
+};
+
+using GitRepository = GitResource<git_repository, git_repository_free>;
+using GitRemote = GitResource<git_remote, git_remote_free>;
+using GitReference = GitResource<git_reference, git_reference_free>;
+using GitStatusList = GitResource<git_status_list, git_status_list_free>;
+using GitAnnotatedCommit = GitResource<git_annotated_commit,
+                                       git_annotated_commit_free>;
+
+class GitBuffer {
+    git_buf buf_;
+ public:
+    GitBuffer() { git_buf_grow(&buf_, 0); }
+    ~GitBuffer() { git_buf_dispose(&buf_); }
+    git_buf* get() { return &buf_; }
+    const char* get_ptr() const { return buf_.ptr; }
+};
+
+class GitManager : public RepoManager {
+ private:
+    static void check_error(int error_code, const std::string& message) {
+        if (error_code != 0) {
+            const git_error* err = git_error_last();
+            throw std::runtime_error(message + ": " +
+                (err ? err->message : "unknown error"));
+        }
+    }
+
     static int credential_callback(
         git_credential** out,
         const char* url,
@@ -25,10 +65,8 @@ class GitManager : public RepoManager {
             }
             const char* privatekey_path = "~/.ssh/id_rsa";
             const char* publickey_path = "~/.ssh/id_rsa.pub";
-
             return git_credential_ssh_key_new(
-                out,
-                username_from_url,
+                out, username_from_url,
                 publickey_path,
                 privatekey_path,
                 nullptr);
@@ -36,202 +74,171 @@ class GitManager : public RepoManager {
         return GIT_PASSTHROUGH;
     }
 
-    void copy(
-        const std::string& source,
-        const std::string& destination) override {
-        git_repository* repo = nullptr;
+    static git_remote_callbacks create_remote_callbacks() {
+        git_remote_callbacks callbacks;
+        git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
+        callbacks.credentials = credential_callback;
+        return callbacks;
+    }
+
+ public:
+    GitManager() { }
+    ~GitManager() override { }
+
+    void copy(const std::string& source, const std::string& destination)
+        override {
+        GitRepository repo;
         git_clone_options clone_opts;
         git_clone_options_init(&clone_opts, GIT_CLONE_OPTIONS_VERSION);
         clone_opts.bare = 0;
+
         git_checkout_options checkout_opts;
         git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
         checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
         clone_opts.checkout_opts = checkout_opts;
+
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        git_remote_callbacks remote_callbacks;
-        git_remote_init_callbacks(
-            &remote_callbacks,
-            GIT_REMOTE_CALLBACKS_VERSION);
-        remote_callbacks.credentials = GitManager::credential_callback;
-        fetch_opts.callbacks = remote_callbacks;
+        fetch_opts.callbacks = create_remote_callbacks();
         clone_opts.fetch_opts = fetch_opts;
-        int error = git_clone(
-            &repo,
-            source.c_str(),
-            destination.c_str(),
-            &clone_opts);
-        if (error != 0) {
-            const git_error* err = git_error_last();
-            throw std::runtime_error(
-                std::string("git_clone failed: ") +
-                (err ? err->message : "unknown error"));
-        }
-        git_repository_free(repo);
+
+        check_error(
+            git_clone(
+                repo.get_address(),
+                source.c_str(),
+                destination.c_str(),
+                &clone_opts),
+            "Failed to clone repository");
     }
 
     void update(const std::string& path) override {
-        git_repository* repo = nullptr;
-        int error = git_repository_open(&repo, path.c_str());
-        if (error != 0) {
-            const git_error* err = git_error_last();
-            throw std::runtime_error(
-                std::string("Failed to open repository: ") +
-                (err ? err->message : "unknown error"));
-        }
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository");
 
-        git_reference* head_ref = nullptr;
-        error = git_repository_head(&head_ref, repo);
-        if (error != 0) {
-            const git_error* err = git_error_last();
-            git_repository_free(repo);
-            throw std::runtime_error(
-                std::string("Failed to retrieve HEAD: ") +
-                (err ? err->message : "unknown error"));
-        }
+        GitReference head_ref;
+        check_error(
+            git_repository_head(head_ref.get_address(), repo.get()),
+            "Failed to retrieve HEAD");
 
-        const char* branch_name = nullptr;
-        error = git_branch_name(&branch_name, head_ref);
-        if (error != 0) {
-            git_reference_free(head_ref);
-            git_repository_free(repo);
-            throw std::runtime_error("Failed to determine branch name");
-        }
+        GitBuffer remote_name_buf;
+        check_error(
+            git_branch_remote_name(
+                remote_name_buf.get(),
+                repo.get(),
+                git_reference_name(head_ref.get())),
+            "Failed to retrieve remote name");
 
-        git_reference* upstream_branch = nullptr;
-        error = git_branch_upstream(&upstream_branch, head_ref);
-        if (error != 0) {
-            git_reference_free(head_ref);
-            git_repository_free(repo);
-            return;
-        }
-
-        git_buf remote_name_buf = GIT_BUF_INIT;
-        error = git_branch_remote_name(
-            &remote_name_buf,
-            repo,
-            git_reference_name(upstream_branch));
-        if (error != 0) {
-            git_reference_free(upstream_branch);
-            git_reference_free(head_ref);
-            git_repository_free(repo);
-            throw std::runtime_error("Failed to retrieve remote name");
-        }
-
-        const char* remote_name = remote_name_buf.ptr;
-        git_remote* remote = nullptr;
-        error = git_remote_lookup(&remote, repo, remote_name);
-        if (error != 0) {
-            git_buf_dispose(&remote_name_buf);
-            git_reference_free(head_ref);
-            git_repository_free(repo);
-            throw std::runtime_error("Failed to lookup remote");
-        }
+        GitRemote remote;
+        check_error(
+            git_remote_lookup(
+                remote.get_address(),
+                repo.get(),
+                remote_name_buf.get_ptr()),
+            "Failed to lookup remote");
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        git_remote_callbacks remote_callbacks;
-        git_remote_init_callbacks(
-            &remote_callbacks,
-            GIT_REMOTE_CALLBACKS_VERSION);
-        remote_callbacks.credentials = GitManager::credential_callback;
-        fetch_opts.callbacks = remote_callbacks;
+        fetch_opts.callbacks = create_remote_callbacks();
 
-        error = git_remote_fetch(remote, nullptr, &fetch_opts, nullptr);
-        if (error != 0) {
-            const git_error* err = git_error_last();
-            git_remote_free(remote);
-            git_buf_dispose(&remote_name_buf);
-            git_reference_free(head_ref);
-            git_repository_free(repo);
-            throw std::runtime_error(
-                std::string("Failed to fetch from remote: ") +
-                (err ? err->message : "unknown error"));
-        }
+        check_error(
+            git_remote_fetch(
+                remote.get(),
+                nullptr,
+                &fetch_opts,
+                nullptr),
+            "Failed to fetch from remote");
 
-        git_remote_free(remote);
+        GitAnnotatedCommit remote_commit;
+        check_error(
+            git_annotated_commit_from_ref(
+                remote_commit.get_address(),
+                repo.get(),
+                head_ref.get()),
+            "Failed to create annotated commit");
 
         git_merge_options merge_opts;
         git_merge_options_init(&merge_opts, GIT_MERGE_OPTIONS_VERSION);
+
         git_checkout_options checkout_opts;
         git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
         checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
 
-        git_annotated_commit* remote_commit = nullptr;
-        error = git_annotated_commit_from_ref(&remote_commit, repo, head_ref);
-        if (error == 0) {
-            git_merge(repo, (const git_annotated_commit**)&remote_commit, 1,
-                      &merge_opts, &checkout_opts);
-            git_annotated_commit_free(remote_commit);
-        }
-
-        git_buf_dispose(&remote_name_buf);
-        git_reference_free(head_ref);
-        git_repository_free(repo);
+        check_error(
+            git_merge(
+                repo.get(),
+                reinterpret_cast<const git_annotated_commit **>(&remote_commit),
+                1,
+                &merge_opts,
+                &checkout_opts),
+            "Failed to merge changes");
     }
 
-    void add_remote(
-        const std::string& path,
-        const Remote remote) override {
-        git_repository* repo = nullptr;
-        git_repository_open(&repo, path.c_str());
-        git_remote* gremote = nullptr;
-        git_remote_create(
-            &gremote,
-            repo,
-            remote.name.c_str(),
-            remote.url.c_str());
-        git_remote_free(gremote);
-        git_repository_free(repo);
+    void add_remote(const std::string& path, Remote remote) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository");
+
+        GitRemote gremote;
+        check_error(
+            git_remote_create(
+                gremote.get_address(),
+                repo.get(),
+                remote.name.c_str(),
+                remote.url.c_str()),
+            "Failed to add remote");
     }
 
-    void remove_remote(
-        const std::string& path,
-        const Remote remote) override {
-        git_repository* repo = nullptr;
-        git_repository_open(&repo, path.c_str());
-        git_remote_delete(repo, remote.name.c_str());
-        git_repository_free(repo);
+    void remove_remote(const std::string& path, Remote remote) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository");
+
+        check_error(
+            git_remote_delete(repo.get(), remote.name.c_str()),
+            "Failed to remove remote");
     }
 
-    std::vector<Remote> get_remotes(
-        const std::string& path) override {
-        git_repository* repo = nullptr;
-        git_repository_open(&repo, path.c_str());
+    std::vector<Remote> get_remotes(const std::string& path) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository");
 
-        git_strarray gremotes = {nullptr, 0};
-        git_remote_list(&gremotes, repo);
+        git_strarray remote_names;
+        check_error(
+            git_remote_list(&remote_names, repo.get()),
+            "Failed to list remotes");
 
         std::vector<Remote> remotes;
-        for (size_t i = 0; i < gremotes.count; i++) {
-            git_remote* gremote = nullptr;
-            git_remote_lookup(&gremote, repo, gremotes.strings[i]);
-            const char* url = git_remote_url(gremote);
+        for (size_t i = 0; i < remote_names.count; ++i) {
+            const char* remote_name = remote_names.strings[i];
 
-            Remote remote;
-            remote.name = gremotes.strings[i];
-            remote.url = url;
-            remotes.push_back(remote);
+            GitRemote remote;
+            check_error(
+                git_remote_lookup(
+                    remote.get_address(),
+                    repo.get(),
+                    remote_name),
+                "Failed to lookup remote");
 
-            git_remote_free(gremote);
+            Remote r;
+            r.name = remote_name;
+            r.url = git_remote_url(remote.get());
+            remotes.push_back(r);
         }
-        git_strarray_dispose(&gremotes);
-        git_repository_free(repo);
+        git_strarray_dispose(&remote_names);
         return remotes;
     }
 
     std::vector<std::string> get_status(const std::string& path) override {
-        std::vector<std::string> status_lines;
-
-        git_repository* repo = nullptr;
-        int repo_open_result = git_repository_open(&repo, path.c_str());
-        if (repo_open_result != 0) {
-            const git_error* err = git_error_last();
-            std::string error_message = "Failed to open repository: ";
-            error_message += err ? err->message : "unknown error";
-            status_lines.emplace_back(std::move(error_message));
-            return status_lines;
-        }
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository");
 
         git_status_options status_opts;
         git_status_options_init(&status_opts, GIT_STATUS_OPTIONS_VERSION);
@@ -239,73 +246,60 @@ class GitManager : public RepoManager {
         status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
                             GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX;
 
-        git_status_list* status_list = nullptr;
-        int status_result = git_status_list_new(
-            &status_list,
-            repo,
-            &status_opts);
-        if (status_result != 0) {
-            const git_error* err = git_error_last();
-            std::string error_message = "Failed to retrieve status: ";
-            error_message += err ? err->message : "unknown error";
-            status_lines.emplace_back(std::move(error_message));
-            git_repository_free(repo);
-            return status_lines;
-        }
+        GitStatusList status_list;
+        check_error(
+            git_status_list_new(
+                status_list.get_address(),
+                repo.get(),
+                &status_opts),
+            "Failed to retrieve status");
 
-        size_t entry_count = git_status_list_entrycount(status_list);
+        size_t count = git_status_list_entrycount(status_list.get());
+        std::vector<std::string> status_lines;
+        for (size_t i = 0; i < count; ++i) {
+            const git_status_entry* entry =
+                git_status_byindex(status_list.get(), i);
+            if (!entry) {
+                continue;
+            }
 
-        auto transform_status = [&status_lines](const git_status_entry* entry) {
             if (entry->status & GIT_STATUS_INDEX_NEW) {
-                std::string msg = "New file staged: ";
-                msg += entry->head_to_index->new_file.path;
-                status_lines.emplace_back(std::move(msg));
+                status_lines.emplace_back(
+                    "New file staged: " +
+                    std::string(entry->head_to_index->new_file.path));
             }
             if (entry->status & GIT_STATUS_INDEX_MODIFIED) {
-                std::string msg = "Modified file staged: ";
-                msg += entry->head_to_index->new_file.path;
-                status_lines.emplace_back(std::move(msg));
+                status_lines.emplace_back(
+                    "Modified file staged: " +
+                    std::string(entry->head_to_index->new_file.path));
             }
             if (entry->status & GIT_STATUS_INDEX_DELETED) {
-                std::string msg = "Deleted file staged: ";
-                msg += entry->head_to_index->old_file.path;
-                status_lines.emplace_back(std::move(msg));
+                status_lines.emplace_back(
+                    "Deleted file staged: " +
+                    std::string(entry->head_to_index->old_file.path));
             }
             if (entry->status & GIT_STATUS_WT_NEW) {
-                std::string msg = "New file: ";
-                msg += entry->index_to_workdir->new_file.path;
-                status_lines.emplace_back(std::move(msg));
+                status_lines.emplace_back(
+                    "New file: " +
+                    std::string(entry->index_to_workdir->new_file.path));
             }
             if (entry->status & GIT_STATUS_WT_MODIFIED) {
-                std::string msg = "Modified file: ";
-                msg += entry->index_to_workdir->new_file.path;
-                status_lines.emplace_back(std::move(msg));
+                status_lines.emplace_back(
+                    "Modified file: " +
+                    std::string(entry->index_to_workdir->new_file.path));
             }
             if (entry->status & GIT_STATUS_WT_DELETED) {
-                std::string msg = "Deleted file: ";
-                msg += entry->index_to_workdir->old_file.path;
-                status_lines.emplace_back(std::move(msg));
-            }
-        };
-
-        for (size_t i = 0; i < entry_count; ++i) {
-            const git_status_entry* entry = git_status_byindex(status_list, i);
-            if (entry) {
-                transform_status(entry);
+                status_lines.emplace_back(
+                    "Deleted file: " +
+                    std::string(entry->index_to_workdir->old_file.path));
             }
         }
-
-        git_status_list_free(status_list);
-        git_repository_free(repo);
 
         if (status_lines.empty()) {
             status_lines.emplace_back("No changes detected");
         }
-
         return status_lines;
     }
-
-    ~GitManager() override = default;
 };
 
 #endif  // SRC_LIB_GIT_MANAGER_HPP_
