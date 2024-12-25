@@ -96,8 +96,8 @@ Through cmake:
 
 ## Roadmap
 
-- Implement exec command
-- Implement update command
+- make all commands concurrent with a message queue, maximize performance.
+- Implement exec command.
 - Implement SyncScreen to show progress of syncing
 - Find recurse only in .gitmodule and .gitignore (performance improvement)
 - Introduce a documentation tool like Doxygen and expand docs
