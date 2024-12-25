@@ -97,6 +97,7 @@ Through cmake:
 ## Roadmap
 
 - Switch all commands to be parallel.
+- Implement callback functions in git_manager to report on progress.
 - Implement the observer pattern with all parallel commands to buffer messages.
 - Implement the exec command.
 - Implement dynamic FTXUI interface for all commands.
