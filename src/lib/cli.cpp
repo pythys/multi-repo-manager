@@ -9,7 +9,7 @@
 
 int parse_cli(int argc, char **argv, bool is_terminal) {
     if (!is_terminal) {
-        return 1;  // TODO(taher) implement non-interactive mode
+        throw std::runtime_error("missing non-terminal cli implementation");
     }
     CLI::App app("mrm");
     CLI::App *sync = app.add_subcommand(
