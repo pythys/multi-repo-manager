@@ -33,7 +33,7 @@ using GitAnnotatedCommit = GitResource<git_annotated_commit,
 class GitBuffer {
     git_buf buf_;
  public:
-    GitBuffer() { git_buf_grow(&buf_, 0); }
+    GitBuffer() : buf_(GIT_BUF_INIT_CONST(NULL, 0)) {}
     ~GitBuffer() { git_buf_dispose(&buf_); }
     git_buf* get() { return &buf_; }
     const char* get_ptr() const { return buf_.ptr; }
