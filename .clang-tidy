@@ -1,0 +1,21 @@
+Checks: >
+  clang-analyzer-*,
+  modernize-*,
+  cppcoreguidelines-*,-cppcoreguidelines-pro-type-vararg,
+  performance-*,
+  readability-*,
+  bugprone-*,
+  cert-*,
+  misc-*
+
+WarningsAsErrors: >
+  clang-analyzer-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  performance-*,
+  readability-*,
+  bugprone-*
+
+HeaderFilterRegex: '${CMAKE_SOURCE_DIR}/(src|tests)/.*'
+
+FormatStyle: file
