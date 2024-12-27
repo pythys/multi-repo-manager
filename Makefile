@@ -37,6 +37,12 @@ lint: ## Lint source code with cpplint
 	@echo "Linting src and tests directories..."
 	@cpplint --repository=. --recursive --config=.cpplintrc src tests
 
+.PHONY: scan
+scan: ## Scan source code with clang-tidy
+	@for code in $$(find src tests -type f \( -iname "*.hpp" -or -iname "*.cpp" \)); do \
+		clang-tidy -p build "$$code"; \
+	done
+
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
