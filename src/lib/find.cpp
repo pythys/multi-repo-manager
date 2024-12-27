@@ -56,23 +56,25 @@ auto find_repos(const std::string& path) -> std::vector<Repo> {
     }
     std::ranges::sort(
         repos,
-        [](const Repo& a, const Repo& b) {
-            return a.name < b.name;
+        [](const Repo& prev, const Repo& next) {
+            return prev.name < next.name;
         });
 
     return repos;
 }
-}  // namespace
 
-std::string normalize_path(const std::string& path) {
-    fs::path p(path);
-    std::string normalized = p.lexically_normal().string();
-    return (normalized.compare(0, 2, "./") == 0)
+auto normalize_path(const std::string& path) -> std::string {
+    const fs::path fsp(path);
+    const std::string normalized = fsp.lexically_normal().string();
+    return normalized.starts_with("./")
         ? normalized.substr(2)
         : normalized;
 }
+}  // namespace
 
-int run_find(const std::string& find_path, const std::string& save_path) {
+auto run_find(
+    const std::string& find_path,
+    const std::string& save_path) -> int {
     Tree tree;
     std::vector<Repo> repos = find_repos(find_path);
     fs::path root_path = normalize_path(find_path);
