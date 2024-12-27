@@ -50,6 +50,7 @@ adding the SSH keys as sampled in below command:
 
 ## Development Requirements
 
+- [clang-tidy](https://clang.llvm.org/)
 - [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
 - [cpplint](https://github.com/cpplint/cpplint)
@@ -96,6 +97,7 @@ Through cmake:
 
 ## Roadmap
 
+- Resolve all clang-tidy issues
 - Switch all commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
 - Implement the observer pattern with all parallel commands to buffer messages.
