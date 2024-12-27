@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "cli.hpp"
@@ -7,7 +8,7 @@
 #include "sync.hpp"
 #include "update.hpp"
 
-int parse_cli(int argc, char **argv, bool is_terminal) {
+auto parse_cli(int argc, char **argv, bool is_terminal) -> int {
     if (!is_terminal) {
         throw std::runtime_error("missing non-terminal cli implementation");
     }

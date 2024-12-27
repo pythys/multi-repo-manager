@@ -16,8 +16,6 @@ WarningsAsErrors: >
   readability-*,
   bugprone-*
 
-HeaderFilterRegex: '${CMAKE_SOURCE_DIR}/(src|tests)/.*'
-
 FormatStyle: file
 
 ExtraArgs: ['-std=c++20']
