@@ -12,9 +12,10 @@
 
 namespace fs = std::filesystem;
 
-std::vector<Repo> find_repos(const std::string& path) {
+namespace {
+auto find_repos(const std::string& path) -> std::vector<Repo> {
     std::vector<Repo> repos;
-    fs::path root(path);
+    const fs::path root(path);
     std::unordered_map<std::string, RepoType> repo_map = {
         {".git", RepoType::GIT},
         {".svn", RepoType::SVN}
@@ -24,7 +25,9 @@ std::vector<Repo> find_repos(const std::string& path) {
         return repos;
     }
     using walker = fs::recursive_directory_iterator;
-    for (auto it = walker(root); it != fs::end(it); ++it) {
+    for (auto it = walker(root);
+         it != fs::end(it);  // NOLINT(misc-include-cleaner)
+         ++it) {
         if (!it->is_directory()) {
             continue;
         }
@@ -33,9 +36,8 @@ std::vector<Repo> find_repos(const std::string& path) {
         if (repo_map.find(filename) != repo_map.end()) {
             it.disable_recursion_pending();
         } else {
-            auto repo_type_it = std::find_if(
-                repo_map.begin(),
-                repo_map.end(),
+            auto repo_type_it = std::ranges::find_if(
+                repo_map,
                 [&dirpath](const auto& pair) {
                     return fs::exists(dirpath / pair.first);
                 });
@@ -52,15 +54,15 @@ std::vector<Repo> find_repos(const std::string& path) {
             }
         }
     }
-    std::sort(
-        repos.begin(),
-        repos.end(),
+    std::ranges::sort(
+        repos,
         [](const Repo& a, const Repo& b) {
             return a.name < b.name;
         });
 
     return repos;
 }
+}  // namespace
 
 std::string normalize_path(const std::string& path) {
     fs::path p(path);
