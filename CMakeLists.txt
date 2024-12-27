@@ -28,7 +28,6 @@ else()
         -Wconversion
         -Wpedantic
         -Werror
-        -std=c++20
     )
 endif()
 if(NOT CMAKE_BUILD_TYPE)

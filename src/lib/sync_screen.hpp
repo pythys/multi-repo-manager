@@ -1,7 +1,6 @@
 #ifndef SRC_LIB_SYNC_SCREEN_HPP_
 #define SRC_LIB_SYNC_SCREEN_HPP_
 
-#include <iostream>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include "tracker.hpp"
@@ -9,10 +8,10 @@
 class SyncScreen : public TreeObserver {
  public:
     SyncScreen() = default;
-        void update() {
+        void update() override {
             render();
         }
-        void render() {
+        static void render() {
             using ftxui::Renderer;
             using ftxui::Component;
             using ftxui::ScreenInteractive;
