@@ -73,14 +73,14 @@ auto normalize_path(const std::string& path) -> std::string {
 }  // namespace
 
 auto run_find(
-    const std::string& find_path,
+    const std::string& find_path,  // NOLINT: easily-swappable-parameters
     const std::string& save_path) -> int {
     Tree tree;
-    std::vector<Repo> repos = find_repos(find_path);
-    fs::path root_path = normalize_path(find_path);
+    const std::vector<Repo> repos = find_repos(find_path);
+    const fs::path root_path = normalize_path(find_path);
     tree.root = root_path;
     tree.repos = repos;
-    std::vector<Tree> trees = {tree};
+    const std::vector<Tree> trees = {tree};
     std::string config_output = make_config(trees);
     if (!save_path.empty()) {
         std::ofstream file(save_path);
@@ -89,9 +89,9 @@ auto run_find(
         }
         file << config_output;
         file.close();
-        std::cout << "Config saved to " << save_path << std::endl;
+        std::cout << "Config saved to " << save_path << "\n";
     } else {
-        std::cout << config_output << std::endl;
+        std::cout << config_output << "\n";
     }
     return 0;
 }
