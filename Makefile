@@ -39,9 +39,7 @@ lint: ## Lint source code with cpplint
 
 .PHONY: scan
 scan: ## Scan source code with clang-tidy
-	@for code in $$(find src tests -type f \( -iname "*.hpp" -or -iname "*.cpp" \)); do \
-		clang-tidy -p build "$$code"; \
-	done
+	@clang-tidy -p build $(wildcard src/**/*.cpp src/**/*.hpp)
 
 .PHONY: watch
 watch: ## Cycle of clean test lint
