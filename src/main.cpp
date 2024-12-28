@@ -14,8 +14,8 @@
 #include "git_guard.hpp"
 
 int main(int argc, char **argv) {
-    GitGuard git_guard;
-    bool is_terminal = ISATTY(FILENO(stdout));
-    int result = parse_cli(argc, argv, is_terminal);
+    const GitGuard git_guard;
+    const bool is_terminal = ISATTY(FILENO(stdout));
+    const int result = parse_cli(argc, argv, is_terminal);
     return result;
 }

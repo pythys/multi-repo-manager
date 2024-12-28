@@ -6,16 +6,16 @@ Checks: >
   readability-*,
   bugprone-*,
   cert-*,
-  misc-*
+  misc-*,-misc-include-cleaner
 
 WarningsAsErrors: >
   clang-analyzer-*,
-  modernize-*,
+  modernize-*,-modernize-use-trailing-return-type,
   cppcoreguidelines-*,
   performance-*,
   readability-*,
   bugprone-*
 
+HeaderFilterRegex: 'src/.*'
 FormatStyle: file
-
 ExtraArgs: ['-std=c++20']

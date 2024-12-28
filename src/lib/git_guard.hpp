@@ -12,6 +12,10 @@ class GitGuard {
     ~GitGuard() {
         git_libgit2_shutdown();
     }
+    GitGuard(const GitGuard&) = delete;
+    GitGuard& operator=(const GitGuard&) = delete;
+    GitGuard(GitGuard&&) = delete;
+    GitGuard& operator=(GitGuard&&) = delete;
 };
 
 #endif  // SRC_LIB_GIT_GUARD_HPP_
