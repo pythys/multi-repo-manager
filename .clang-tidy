@@ -14,8 +14,10 @@ WarningsAsErrors: >
   cppcoreguidelines-*,
   performance-*,
   readability-*,
-  bugprone-*
+  bugprone-*,
+  cert-*,
+  misc-*
 
 HeaderFilterRegex: 'src/lib/.*'
 FormatStyle: file
-ExtraArgs: ['-std=c++20', '-nostdinc']
+ExtraArgs: ['-std=c++20']
