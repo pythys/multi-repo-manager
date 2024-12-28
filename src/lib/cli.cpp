@@ -1,4 +1,3 @@
-#include <stdexcept>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "cli.hpp"

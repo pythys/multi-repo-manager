@@ -1,5 +1,4 @@
 #include <memory>
-#include <stdexcept>
 #include "git_manager.hpp"
 #include "repo_factory.hpp"
 #include "repo_manager.hpp"
