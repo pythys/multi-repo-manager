@@ -12,7 +12,6 @@
 
 namespace fs = std::filesystem;
 
-namespace {
 std::vector<Repo> find_repos(const std::string& path) {
     std::vector<Repo> repos;
     const fs::path root(path);
@@ -26,7 +25,7 @@ std::vector<Repo> find_repos(const std::string& path) {
     }
     using walker = fs::recursive_directory_iterator;
     for (auto it = walker(root);
-         it != fs::end(it);  // NOLINT(misc-include-cleaner)
+         it != fs::end(it);
          ++it) {
         if (!it->is_directory()) {
             continue;
@@ -70,10 +69,9 @@ std::string normalize_path(const std::string& path) {
         ? normalized.substr(2)
         : normalized;
 }
-}  // namespace
 
 int run_find(
-    const std::string& find_path,  // NOLINT: easily-swappable-parameters
+    const std::string& find_path,
     const std::string& save_path) {
     Tree tree;
     const std::vector<Repo> repos = find_repos(find_path);
