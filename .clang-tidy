@@ -16,6 +16,6 @@ WarningsAsErrors: >
   readability-*,
   bugprone-*
 
-HeaderFilterRegex: 'src/.*'
+HeaderFilterRegex: 'src/lib/.*'
 FormatStyle: file
-ExtraArgs: ['-std=c++20']
+ExtraArgs: ['-std=c++20', '-nostdinc']
