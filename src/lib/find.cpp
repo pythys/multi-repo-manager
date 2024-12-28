@@ -13,7 +13,7 @@
 namespace fs = std::filesystem;
 
 namespace {
-auto find_repos(const std::string& path) -> std::vector<Repo> {
+std::vector<Repo> find_repos(const std::string& path) {
     std::vector<Repo> repos;
     const fs::path root(path);
     std::unordered_map<std::string, RepoType> repo_map = {
@@ -63,7 +63,7 @@ auto find_repos(const std::string& path) -> std::vector<Repo> {
     return repos;
 }
 
-auto normalize_path(const std::string& path) -> std::string {
+std::string normalize_path(const std::string& path) {
     const fs::path fsp(path);
     const std::string normalized = fsp.lexically_normal().string();
     return normalized.starts_with("./")
@@ -72,9 +72,9 @@ auto normalize_path(const std::string& path) -> std::string {
 }
 }  // namespace
 
-auto run_find(
+int run_find(
     const std::string& find_path,  // NOLINT: easily-swappable-parameters
-    const std::string& save_path) -> int {
+    const std::string& save_path) {
     Tree tree;
     const std::vector<Repo> repos = find_repos(find_path);
     const fs::path root_path = normalize_path(find_path);

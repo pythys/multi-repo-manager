@@ -5,7 +5,7 @@
 #include "repo_manager.hpp"
 #include "tree.hpp"
 
-auto create_repo_manager(RepoType type) -> std::unique_ptr<RepoManager> {
+std::unique_ptr<RepoManager> create_repo_manager(RepoType type) {
     switch (type) {
         case RepoType::GIT:
             return std::make_unique<GitManager>();
