@@ -1,6 +1,6 @@
 FROM debian
 
-ENV CMAKE_VERSION=3.30.0
+ENV CMAKE_VERSION=3.31.3
 ENV VCPKG_ROOT=/usr/src/vcpkg
 ENV PATH=$PATH:$VCPKG_ROOT
 
@@ -34,5 +34,5 @@ RUN git clone --depth 1 https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
 COPY . /usr/src/mrm
 
 RUN cd /usr/src/mrm && \
-    make clean build lint test && \
+    make clean test lint && \
     cp ./build/mrm/mrm /usr/local/bin
