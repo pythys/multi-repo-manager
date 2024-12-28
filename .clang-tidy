@@ -1,6 +1,6 @@
 Checks: >
   clang-analyzer-*,
-  modernize-*,
+  modernize-*,-modernize-use-trailing-return-type,
   cppcoreguidelines-*,-cppcoreguidelines-pro-type-vararg,
   performance-*,
   readability-*,
@@ -10,7 +10,7 @@ Checks: >
 
 WarningsAsErrors: >
   clang-analyzer-*,
-  modernize-*,-modernize-use-trailing-return-type,
+  modernize-*,
   cppcoreguidelines-*,
   performance-*,
   readability-*,
