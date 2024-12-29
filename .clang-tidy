@@ -1,7 +1,7 @@
 Checks: >
   clang-analyzer-*,
   modernize-*,-modernize-use-trailing-return-type,
-  cppcoreguidelines-*,-cppcoreguidelines-pro-type-vararg,
+  cppcoreguidelines-*,-cppcoreguidelines-special-member-functions,
   performance-*,
   readability-*,
   bugprone-*,
