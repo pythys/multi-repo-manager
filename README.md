@@ -100,7 +100,7 @@ Through cmake:
 - Resolve all clang-tidy issues
 - Switch all commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
-- Implement the observer pattern with all parallel commands to buffer messages.
+- Implement all progress reporting through messages sent to observer.
 - Implement the exec command.
 - Implement dynamic FTXUI interface for all commands.
 - Implement static interface when !is_terminal.
