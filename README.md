@@ -67,12 +67,18 @@ adding the SSH keys as sampled in below command:
 ## development setup
 
 ```sh
-make clean build lint scan test
+make clean build lint test
 # live reload
 make watch
 ```
 
 To get help on tasks `make help`
+
+## static analysis
+
+``` sh
+make scan
+```
 
 ## debugging
 
