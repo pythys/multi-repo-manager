@@ -1,5 +1,6 @@
 COMPILER ?= clang
 GENERATOR ?= "Unix Makefiles"
+SCANMATCH = src/**/*.cpp src/**/*.hpp
 
 all: help
 
@@ -39,7 +40,7 @@ lint: ## Lint source code with cpplint
 
 .PHONY: scan
 scan: ## Scan source code with clang-tidy
-	@clang-tidy -p build $(wildcard src/**/*.cpp src/**/*.hpp)
+	@clang-tidy -p build $(wildcard $(SCANMATCH))
 
 .PHONY: watch
 watch: ## Cycle of clean test lint
@@ -80,3 +81,4 @@ help: ## Show this help
 	@echo "-------"
 	@echo "COMPILER: \"clang\", \"gcc\""
 	@echo "GENERATOR: \"Unix Makefiles\", \"Ninja\""
+	@echo "SCANMATCH: glob-pattern-here e.g. src/**/*.cpp"
