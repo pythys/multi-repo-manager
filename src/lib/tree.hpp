@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 
-enum class RepoType { GIT, SVN };
+enum class RepoType { GIT, SVN, HG };
 enum class RepoStatus { PENDING, SYNCHING, SYNCHED };
 
 struct Remote {

@@ -9,7 +9,9 @@ std::unique_ptr<RepoManager> create_repo_manager(RepoType type) {
         case RepoType::GIT:
             return std::make_unique<GitManager>();
         case RepoType::SVN:
-            throw std::runtime_error("SVN is not supported yet");
+            throw std::runtime_error("Subversion is not supported yet");
+        case RepoType::HG:
+            throw std::runtime_error("Mercurial is not supported yet");
         default:
             return nullptr;
     }
