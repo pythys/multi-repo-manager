@@ -58,6 +58,7 @@ adding the SSH keys as sampled in below command:
 - [entr](https://github.com/eradman/entr) live reload
 - [gcc](https://gcc.gnu.org/git/?p=gcc.git)
 - [gdb](git://sourceware.org/git/binutils-gdb.git)
+- [lldb](https://lldb.llvm.org)
 - [make](https://www.gnu.org/software/make)
 - [ninja](https://github.com/ninja-build/ninja)
 - [vcpkg](https://github.com/microsoft/vcpkg) $VCPKG_ROOT must be defined
@@ -82,9 +83,8 @@ make scan
 
 ## debugging
 
-To start a debug session with gdb run the below command
-
-`gdb build/mrm/mrm`
+- Using gdb: `gdb build/mrm/mrm`
+- Using lldb: `lldb build/mrm/mrm`
 
 ## libraries
 
