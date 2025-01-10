@@ -1,5 +1,5 @@
 COMPILER ?= clang
-GENERATOR ?= "Unix Makefiles"
+GENERATOR ?= "Ninja"
 SCANMATCH = src/**/*.cpp src/**/*.hpp
 
 all: help
