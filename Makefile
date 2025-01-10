@@ -80,5 +80,5 @@ help: ## Show this help
 	@echo "Options"
 	@echo "-------"
 	@echo "COMPILER: \"clang\", \"gcc\""
-	@echo "GENERATOR: \"Unix Makefiles\", \"Ninja\""
+	@echo "GENERATOR: \"Ninja\", \"Unix Makefiles\""
 	@echo "SCANMATCH: glob-pattern-here e.g. src/**/*.cpp"
