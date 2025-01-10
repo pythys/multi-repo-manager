@@ -103,7 +103,6 @@ Through cmake:
 
 ## Roadmap
 
-- Resolve all clang-tidy issues
 - Switch all commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
 - Implement all progress reporting through messages sent to observer.
@@ -115,3 +114,4 @@ Through cmake:
 - Dynamically link dependencies for packaging.
 - Provide a solution for shell completion. A
   [candidate](https://github.com/adaszko/complgen)
+- Resolve all clang-tidy issues
