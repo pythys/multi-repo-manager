@@ -40,7 +40,9 @@ std::vector<Repo> find_repos(const std::string& path) {
                 [&dirpath](const auto& pair) {
                     const auto file_exists = fs::exists(dirpath / pair.first);
                     const auto is_dir = fs::is_directory(dirpath / pair.first);
-                    return file_exists && is_dir;
+                    const auto not_empty = fs::directory_iterator(dirpath) !=
+                        fs::end(fs::directory_iterator(dirpath));
+                    return file_exists && is_dir && not_empty;
                 });
 
             if (repo_type_it != repo_map.end()) {
