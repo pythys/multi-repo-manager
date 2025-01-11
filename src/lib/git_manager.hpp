@@ -111,24 +111,24 @@ class GitManager : public RepoManager {
                 source.c_str(),
                 destination.c_str(),
                 &clone_opts),
-            "Failed to clone repository");
+            "Failed to clone repository in" + destination);
     }
 
     void update(const std::string& path) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository");
+            "Failed to open repository in " + path);
 
         GitReference head_ref;
         check_error(
             git_repository_head(head_ref.get_address(), repo.get()),
-            "Failed to retrieve HEAD");
+            "Failed to retrieve HEAD in " + path);
 
         GitReference upstream_ref;
         check_error(
             git_branch_upstream(upstream_ref.get_address(), head_ref.get()),
-            "Failed to retrieve upstream reference");
+            "Failed to retrieve upstream reference in " + path);
 
         GitBuffer remote_name_buf;
         check_error(
@@ -136,7 +136,7 @@ class GitManager : public RepoManager {
                 remote_name_buf.get(),
                 repo.get(),
                 git_reference_name(upstream_ref.get())),
-            "Failed to retrieve remote name");
+            "Failed to retrieve remote name in " + path);
 
         GitRemote remote;
         check_error(
@@ -144,7 +144,7 @@ class GitManager : public RepoManager {
                 remote.get_address(),
                 repo.get(),
                 remote_name_buf.get_ptr()),
-            "Failed to lookup remote");
+            "Failed to lookup remote in "+ path);
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
@@ -156,7 +156,7 @@ class GitManager : public RepoManager {
                 nullptr,
                 &fetch_opts,
                 nullptr),
-            "Failed to fetch from remote");
+            "Failed to fetch from remote in " + path);
 
         GitAnnotatedCommit remote_commit;
         check_error(
@@ -164,7 +164,7 @@ class GitManager : public RepoManager {
                 remote_commit.get_address(),
                 repo.get(),
                 upstream_ref.get()),
-            "Failed to create annotated commit");
+            "Failed to create annotated commit in " + path);
 
         git_merge_options merge_opts;
         git_merge_options_init(&merge_opts, GIT_MERGE_OPTIONS_VERSION);
@@ -180,12 +180,12 @@ class GitManager : public RepoManager {
                 1,
                 &merge_opts,
                 &checkout_opts),
-            "Failed to merge changes");
+            "Failed to merge changes in " + path);
 
         if (git_repository_state(repo.get()) == GIT_REPOSITORY_STATE_MERGE) {
             check_error(
                 git_repository_state_cleanup(repo.get()),
-                "Failed to clean up repository state after merge");
+                "Failed to clean up repository state after merge in " + path);
         }
     }
 
@@ -193,7 +193,7 @@ class GitManager : public RepoManager {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository");
+            "Failed to open repository in " + path);
 
         GitRemote gremote;
         check_error(
@@ -202,30 +202,30 @@ class GitManager : public RepoManager {
                 repo.get(),
                 remote.name.c_str(),
                 remote.url.c_str()),
-            "Failed to add remote");
+            "Failed to add remote in " + path);
     }
 
     void remove_remote(const std::string& path, Remote remote) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository");
+            "Failed to open repository in " + path);
 
         check_error(
             git_remote_delete(repo.get(), remote.name.c_str()),
-            "Failed to remove remote");
+            "Failed to remove remote in " + path);
     }
 
     std::vector<Remote> get_remotes(const std::string& path) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository");
+            "Failed to open repository in " + path);
 
         git_strarray remote_names;
         check_error(
             git_remote_list(&remote_names, repo.get()),
-            "Failed to list remotes");
+            "Failed to list remotes in " + path);
 
         std::vector<Remote> remotes;
         for (size_t i = 0; i < remote_names.count; ++i) {
@@ -237,7 +237,7 @@ class GitManager : public RepoManager {
                     remote.get_address(),
                     repo.get(),
                     remote_name),
-                "Failed to lookup remote");
+                "Failed to lookup remote in " + path);
 
             Remote r;
             r.name = remote_name;
@@ -252,7 +252,7 @@ class GitManager : public RepoManager {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository");
+            "Failed to open repository in " + path);
 
         git_status_options status_opts;
         git_status_options_init(&status_opts, GIT_STATUS_OPTIONS_VERSION);
@@ -266,7 +266,7 @@ class GitManager : public RepoManager {
                 status_list.get_address(),
                 repo.get(),
                 &status_opts),
-            "Failed to retrieve status");
+            "Failed to retrieve status in " + path);
 
         size_t count = git_status_list_entrycount(status_list.get());
         std::vector<std::string> status_lines;

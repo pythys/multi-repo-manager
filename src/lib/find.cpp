@@ -38,7 +38,9 @@ std::vector<Repo> find_repos(const std::string& path) {
             auto repo_type_it = std::ranges::find_if(
                 repo_map,
                 [&dirpath](const auto& pair) {
-                    return fs::exists(dirpath / pair.first);
+                    const auto file_exists = fs::exists(dirpath / pair.first);
+                    const auto is_dir = fs::is_directory(dirpath / pair.first);
+                    return file_exists && is_dir;
                 });
 
             if (repo_type_it != repo_map.end()) {
