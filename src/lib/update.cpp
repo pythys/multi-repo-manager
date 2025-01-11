@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <vector>
 #include <boost/asio.hpp>
@@ -16,7 +17,9 @@ int run_update(const std::string& config_file) {
             auto updater = [repo, tree] {
                 auto repo_manager = create_repo_manager(repo.type);
                 auto repo_path = tree.root + "/" + repo.name;
+                std::cout << "Updating " << repo_path << std::endl;
                 repo_manager->update(repo_path);
+                std::cout << "Finished updating " << repo_path << std::endl;
             };
             asio::post(pool, updater);
         }
