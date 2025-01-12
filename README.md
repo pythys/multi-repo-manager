@@ -111,6 +111,7 @@ Through cmake:
 
 ## Roadmap
 
+- Graceful handling of errors per repo (continue)
 - Switch all commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
 - Implement all progress reporting through messages sent to observer.
