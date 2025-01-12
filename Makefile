@@ -71,7 +71,7 @@ endef
 
 .PHONY: help
 help: ## Show this help
-	@echo "Usage: make [target...] [options...]"
+	@echo "Usage: make [target...] [option...]"
 	@echo ""
 	@echo "Targets"
 	@echo "-------"
