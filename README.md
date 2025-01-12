@@ -85,9 +85,9 @@ make build COMPILER=clang GENERATOR="Unix Makefiles"
 
 ## static analysis
 
-all files:    `make scan`
-single file:  `make scan SCANMATCH=src/main.cpp`
-pattern:      `make scan SCANMATCH=src/**/*.cpp`
+- all files:    `make scan`
+- single file:  `make scan SCANMATCH=src/main.cpp`
+- pattern:      `make scan SCANMATCH=src/**/*.cpp`
 
 ## debugging
 
