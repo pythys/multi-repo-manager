@@ -7,16 +7,16 @@
 #include "repo_manager.hpp"
 #include "git2.h"
 
-template <typename T, void (*FreeFunc)(T*)>
+template <typename T, void (*free_resource)(T*)>
 class GitResource {
     T* resource_;
  public:
     explicit GitResource(T* resource = nullptr) : resource_(resource) {}
-    ~GitResource() { FreeFunc(resource_); }
+    ~GitResource() { free_resource(resource_); }
     T* get() const { return resource_; }
     T** get_address() { return &resource_; }
     void reset(T* resource = nullptr) {
-        FreeFunc(resource_);
+        free_resource(resource_);
         resource_ = resource;
     }
     GitResource(const GitResource&) = delete;
