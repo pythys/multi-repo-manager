@@ -75,11 +75,19 @@ make watch
 
 To get help on tasks `make help`
 
-## static analysis
+## compile options
 
 ``` sh
-make scan
+make build COMPILER=gcc GENERATOR=Ninja
+make build COMPILER=clang GENERATOR="Unix Makefiles"
+# etc ...
 ```
+
+## static analysis
+
+all files:    `make scan`
+single file:  `make scan SCANMATCH=src/main.cpp`
+pattern:      `make scan SCANMATCH=src/**/*.cpp`
 
 ## debugging
 
