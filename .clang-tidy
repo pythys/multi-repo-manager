@@ -1,12 +1,17 @@
 Checks: >
   clang-analyzer-*,
-  modernize-*,-modernize-use-trailing-return-type,
-  cppcoreguidelines-*,-cppcoreguidelines-special-member-functions,
+  modernize-*,
+    -modernize-use-trailing-return-type,
+  cppcoreguidelines-*,
+    -cppcoreguidelines-special-member-functions,
   performance-*,
   readability-*,
   bugprone-*,
+    -bugprone-easily-swappable-parameters,
   cert-*,
-  misc-*,-misc-include-cleaner
+  misc-*,
+    -misc-include-cleaner,
+    -misc-use-internal-linkage
 
 WarningsAsErrors: >
   clang-analyzer-*,
