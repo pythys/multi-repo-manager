@@ -66,7 +66,7 @@ uninstall: ## Uninstall mrm
 	@rm /usr/local/bin/mrm
 
 define target_help
-	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 endef
 
 .PHONY: help
@@ -79,6 +79,6 @@ help: ## Show this help
 	@echo ""
 	@echo "Options"
 	@echo "-------"
-	@echo "COMPILER: \"clang\", \"gcc\""
-	@echo "GENERATOR: \"Ninja\", \"Unix Makefiles\""
-	@echo "SCANMATCH: glob-pattern-here e.g. src/**/*.cpp"
+	@echo "COMPILER:            \"clang\", \"gcc\""
+	@echo "GENERATOR:           \"Ninja\", \"Unix Makefiles\""
+	@echo "SCANMATCH:           glob-pattern-here e.g. src/**/*.cpp"
