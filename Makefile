@@ -79,6 +79,14 @@ uninstall: ## Uninstall mrm
 	@echo "Uninstalling mrm ..."
 	@rm /usr/local/bin/mrm
 
+.PHONY: completion
+completion: ## Generate shell completion scripts
+	$(call check_bin, complgen)
+	@echo "Generating completion scripts..."
+	@mkdir build/completions
+	@complgen aot mrm.usage --bash-script build/completions/mrm-completions.sh
+	@complgen aot mrm.usage --zsh-script build/completions/_mrm
+
 define target_help
 	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 endef

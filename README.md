@@ -53,6 +53,7 @@ adding the SSH keys as sampled in below command:
 - [clang-tidy](https://clang.llvm.org/)
 - [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
+- [complgen](https://github.com/adaszko/complgen)
 - [cpplint](https://github.com/cpplint/cpplint)
 - [docker](https://docs.docker.com/engine/install/)
 - [entr](https://github.com/eradman/entr) live reload
