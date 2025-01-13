@@ -4,6 +4,13 @@ SCANMATCH = src/**/*.cpp src/**/*.hpp
 
 all: help
 
+define check_bin
+    @if ! command -v $(1) > /dev/null; then \
+        echo "Command '$(1)' is missing. Please install it to proceed."; \
+        exit 1; \
+    fi
+endef
+
 .PHONY: clean
 clean: ## Clean generated artifacts
 	@echo "Cleaning artifacts..."
@@ -21,6 +28,7 @@ endif
 
 .PHONY: build
 build: ## Compile and generate editor artifacts
+	$(call check_bin, cmake)
 	@echo "Building project..."
 	@CXX=$(CXX) CC=$(CC) cmake -G $(GENERATOR) -B build -S .
 	@cmake --build build -j $(shell nproc)
@@ -30,29 +38,35 @@ build: ## Compile and generate editor artifacts
 
 .PHONY: test
 test: build ## Run all unit tests
+	$(call check_bin, ctest)
 	@echo "Running tests..."
 	@cd build && ctest
 
 .PHONY: lint
 lint: ## Lint source code with cpplint
+	$(call check_bin, cpplint)
 	@echo "Linting src and tests directories..."
 	@cpplint --repository=. --recursive --config=.cpplintrc src tests
 
 .PHONY: scan
 scan: ## Scan source code with clang-tidy
+	$(call check_bin, clang-tidy)
 	@clang-tidy -p build $(wildcard $(SCANMATCH))
 
 .PHONY: watch
 watch: ## Cycle of clean test lint
+	$(call check_bin, entr)
 	@echo "Watching file changes..."
 	@find . -type f ! -path './build/*' | entr -d make clean test lint
 
 .PHONY: package
 package: build ## Package code to various formats
+	$(call check_bin, cpack)
 	@cd build && cpack
 
 .PHONY: dockerize
 dockerize: ## Build docker image "mrm"
+	$(call check_bin, docker)
 	@docker build --platform=linux/amd64 --no-cache --tag mrm .
 
 .PHONY: install
