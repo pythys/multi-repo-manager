@@ -1,1 +1,5 @@
-mrm sync | find | status | update | exec;
+mrm sync;
+mrm find;
+mrm status;
+mrm update;
+mrm exec;
