@@ -3,7 +3,7 @@
 MRM (multi-repo-manager) is a tool to help in managing a large number of
 repositories in a sane way utilizing bulk operations and yaml configurations
 
-## installation
+## source install
 
 Install minimum requirements:
 
@@ -37,9 +37,10 @@ mrm find myrepos --save myrepos.yml
 
 - get help
 
-`mrm --help`
-`mrm sync --help`
-`mrm find --help`
+`mrm --help` or `mrm -h`
+`mrm <command> --help` e.g.:
+  - `mrm sync --help`
+  - `mrm find -h`
 
 ### SSH Credentials
 
@@ -78,7 +79,7 @@ To get help on tasks `make help`
 
 ## compile options
 
-``` sh
+```sh
 make build COMPILER=gcc GENERATOR=Ninja
 make build COMPILER=clang GENERATOR="Unix Makefiles"
 # etc ...
