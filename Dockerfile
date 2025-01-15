@@ -1,4 +1,4 @@
-FROM debian
+FROM debian:bookworm
 
 ENV CMAKE_VERSION=3.31.3
 ENV VCPKG_ROOT=/usr/src/vcpkg
