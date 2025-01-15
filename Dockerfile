@@ -13,6 +13,7 @@ RUN apt-get update && \
     curl \
     git \
     libgit2-dev \
+    ninja-build \
     pkg-config \
     unzip \
     zip && \
