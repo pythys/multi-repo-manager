@@ -123,6 +123,7 @@ Through cmake:
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce a documentation tool like Doxygen.
 - Dynamically link dependencies for packaging.
+- Implement a working dockerized copy.
 - Provide a solution for shell completion. A
   [candidate](https://github.com/adaszko/complgen)
 - Resolve all clang-tidy issues
