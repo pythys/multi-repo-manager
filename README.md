@@ -31,6 +31,10 @@ To alias the above command
 
 `alias mrm='docker run --platform linux/amd64 -it --rm -v $PWD:/opt/repos mrm'`
 
+To build docker partially (skip base rebuild):
+
+`docker build --target builder -t mrm .`
+
 ### troubleshooting
 
 On macos you might get a crash due to [illegal
