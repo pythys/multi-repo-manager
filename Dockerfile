@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:bookworm AS base
 
 ENV CMAKE_VERSION=3.31.3
 ENV VCPKG_ROOT=/usr/src/vcpkg
@@ -8,15 +8,12 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     build-essential \
     clang \
-    clang-tidy \
     curl \
     git \
-    libgit2-dev \
     ninja-build \
     pkg-config \
     python3 \
     python3-pip \
-    unzip \
     zip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
@@ -31,12 +28,14 @@ RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
 
 RUN git clone --depth 1 https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
     cd $VCPKG_ROOT && \
-    ./bootstrap-vcpkg.sh -disableMetrics
+    ./bootstrap-vcpkg.sh -disableMetrics && \
+    pip install --break-system-packages cpplint
+
+FROM base AS builder
 
 COPY . /usr/src/mrm
 
-RUN pip install --break-system-packages cpplint && \
-    cd /usr/src/mrm && \
+RUN cd /usr/src/mrm && \
     make clean test lint && \
     make install && \
     mkdir -p /opt/repos
