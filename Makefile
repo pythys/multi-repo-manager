@@ -59,16 +59,6 @@ watch: ## Cycle of clean test lint
 	@echo "Watching file changes..."
 	@find . -type f ! -path './build/*' | entr -d make clean test lint
 
-.PHONY: package
-package: build ## Package code to various formats
-	$(call check_bin, cpack)
-	@cd build && cpack
-
-.PHONY: dockerize
-dockerize: ## Build docker image "mrm"
-	$(call check_bin, docker)
-	@docker build --platform=linux/amd64 --no-cache --tag mrm .
-
 .PHONY: install
 install: ## Install mrm
 	@echo "Installing mrm ..."
@@ -86,6 +76,16 @@ completion: ## Generate shell completion scripts
 	@mkdir -p build/completions
 	@complgen aot mrm.usage --bash-script build/completions/mrm-completions.sh
 	@complgen aot mrm.usage --zsh-script build/completions/_mrm
+
+.PHONY: package
+package: build ## Package code to various formats
+	$(call check_bin, cpack)
+	@cd build && cpack
+
+.PHONY: dockerize
+dockerize: ## Build docker image "mrm"
+	$(call check_bin, docker)
+	@docker build --platform=linux/amd64 --no-cache --tag mrm .
 
 define target_help
 	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
