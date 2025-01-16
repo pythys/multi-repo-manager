@@ -9,12 +9,13 @@ RUN apt-get update && \
     build-essential \
     clang \
     clang-tidy \
-    cpplint \
     curl \
     git \
     libgit2-dev \
     ninja-build \
     pkg-config \
+    python3 \
+    python3-pip \
     unzip \
     zip && \
     apt-get clean && \
@@ -34,6 +35,7 @@ RUN git clone --depth 1 https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
 
 COPY . /usr/src/mrm
 
-RUN cd /usr/src/mrm && \
+RUN pip install --break-system-packages cpplint && \
+    cd /usr/src/mrm && \
     make clean test lint && \
     cp ./build/mrm/mrm /usr/local/bin
