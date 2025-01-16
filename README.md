@@ -16,6 +16,31 @@ Build and install
 `make build`
 `sudo make install`
 
+## docker install
+
+Warning: dockerizing the project might take a long time depending on hardware,
+OS and docker settings.
+
+`make dockerize`
+
+Once completed an image called "mrm" will be available on the machine. To use:
+
+`docker run --platform linux/amd64 -it --rm -v $PWD:/opt/repos mrm --help`
+
+To alias the above command
+
+`alias mrm='docker run --platform linux/amd64 -it --rm -v $PWD:/opt/repos mrm'`
+
+### troubleshooting
+
+On macos you might get a crash due to [illegal
+instruction](https://github.com/docker/for-mac/issues/7255) in ca-certificates.
+To solve this problem:
+
+Docker Desktop -> Settings -> General -> Virtual Machine Options ->
+  - Uncheck "Use Rosetta for x86_64/amd64 emulation on Apple Silicon"
+  - Optionally, Select Docker VMM as Virtual Machine Manager
+
 ## usage
 
 Example Usage:
@@ -123,7 +148,6 @@ Through cmake:
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce a documentation tool like Doxygen.
 - Dynamically link dependencies for packaging.
-- Implement a working dockerized copy.
 - Provide a solution for shell completion. A
   [candidate](https://github.com/adaszko/complgen)
 - Resolve all clang-tidy issues

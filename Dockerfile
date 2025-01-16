@@ -38,4 +38,9 @@ COPY . /usr/src/mrm
 RUN pip install --break-system-packages cpplint && \
     cd /usr/src/mrm && \
     make clean test lint && \
-    cp ./build/mrm/mrm /usr/local/bin
+    make install && \
+    mkdir -p /opt/repos
+
+WORKDIR /opt/repos
+
+ENTRYPOINT ["/usr/local/bin/mrm"]
