@@ -142,6 +142,7 @@ Through cmake:
 
 ## Roadmap
 
+- Unify all commands (except find) under a generic interface.
 - Graceful handling of errors per repo (continue)
 - Switch all commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
