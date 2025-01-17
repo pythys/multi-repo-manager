@@ -24,9 +24,7 @@ std::vector<Repo> find_repos(const std::string& path) {
         return repos;
     }
     using walker = fs::recursive_directory_iterator;
-    for (auto it = walker(root);
-         it != fs::end(it);
-         ++it) {
+    for (auto it = walker(root); it != fs::end(it); ++it) {
         if (!it->is_directory()) {
             continue;
         }
@@ -75,8 +73,7 @@ std::string normalize_path(const std::string& path) {
 }
 
 int run_find(
-    const std::string& find_path,
-    const std::string& save_path) {
+    const std::string& find_path, const std::string& save_path) {
     Tree tree;
     const std::vector<Repo> repos = find_repos(find_path);
     const fs::path root_path = normalize_path(find_path);
