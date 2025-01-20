@@ -137,10 +137,9 @@ void sync_repository(
         }
     };
 
-    fs::path repo_dir(root + "/" + repo->name);
-    if (fs::exists(repo_dir) &&
-        fs::is_directory(repo_dir) &&
-        fs::directory_iterator(repo_dir) != fs::directory_iterator()) {
+    auto repo_manager = create_repo_manager(repo->type);
+    auto is_repo = repo_manager->is_repo(root+ "/" + repo->name);
+    if (is_repo) {
         asio::post(*pool, update_action);
     } else {
         asio::post(*pool, clone_action);

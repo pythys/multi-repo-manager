@@ -7,6 +7,8 @@
 
 class RepoManager {
  public:
+    virtual bool is_repo(const std::string& path) = 0;
+
     virtual void copy(
         const std::string& source,
         const std::string& destination) = 0;

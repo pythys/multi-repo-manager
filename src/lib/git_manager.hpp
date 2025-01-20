@@ -2,6 +2,7 @@
 #define SRC_LIB_GIT_MANAGER_HPP_
 
 #include <algorithm>
+#include <filesystem>
 #include <string>
 #include <vector>
 #include "repo_manager.hpp"
@@ -87,6 +88,19 @@ class GitManager : public RepoManager {
  public:
     GitManager() { }
     ~GitManager() override { }
+
+    bool is_repo(const std::string& path) override {
+        const bool path_exists = std::filesystem::exists(path);
+        if (!path_exists) {
+            return false;
+        } else {
+            GitRepository repo;
+            const int error_code = git_repository_open(
+                repo.get_address(),
+                path.c_str());
+            return error_code == 0;
+        }
+    }
 
     void copy(const std::string& source, const std::string& destination)
         override {
