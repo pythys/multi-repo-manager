@@ -18,7 +18,7 @@ namespace asio = boost::asio;
 
 enum class MatchType { TO_REMOVE, TO_ADD };
 std::vector<Remote> find_remotes(
-    const std::vector<Remote>& tree_remotes,
+    const std::vector<Remote>& conf_remotes,
     const std::vector<Remote>& repo_remotes,
     MatchType match_type) {
 
@@ -31,17 +31,17 @@ std::vector<Remote> find_remotes(
     if (match_type == MatchType::TO_REMOVE) {
         for (const auto& repo_remote : repo_remotes) {
             auto it = std::find_if(
-                tree_remotes.begin(),
-                tree_remotes.end(),
+                conf_remotes.begin(),
+                conf_remotes.end(),
                 [&](const Remote& tree_remote) {
                     return compare_by_name(tree_remote, repo_remote);
                 });
-            if (it == tree_remotes.end()) {
+            if (it == conf_remotes.end()) {
                 result.push_back(repo_remote);
             }
         }
     } else if (match_type == MatchType::TO_ADD) {
-        for (const auto& tree_remote : tree_remotes) {
+        for (const auto& tree_remote : conf_remotes) {
             auto it = std::find_if(
                 repo_remotes.begin(),
                 repo_remotes.end(),
