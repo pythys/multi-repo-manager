@@ -10,7 +10,7 @@
 namespace asio = boost::asio;
 
 int run_update(const std::string& config_file) {
-    std::vector<Tree> config = get_dependencies(config_file);
+    std::vector<Tree> config = get_config(config_file);
     asio::thread_pool pool(SYNC_POOL_SIZE);
     for (auto& tree : config) {
         for (auto& repo : tree.repos) {

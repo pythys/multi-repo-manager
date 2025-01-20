@@ -140,7 +140,7 @@ Through cmake:
 
 - [googletest](https://github.com/google/googletest)
 
-## Roadmap
+## roadmap
 
 - Unify all commands (except find) under a generic interface.
 - Graceful handling of errors per repo (continue)
