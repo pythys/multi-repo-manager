@@ -1,6 +1,7 @@
 COMPILER ?= clang
 GENERATOR ?= "Ninja"
 SCANMATCH = src/**/*.cpp src/**/*.hpp
+TESTTYPE ?=
 
 all: help
 
@@ -40,7 +41,7 @@ build: ## Compile and generate editor artifacts
 test: build ## Run all tests
 	$(call check_bin, ctest)
 	@echo "Running tests..."
-	@cd build && ctest
+	@cd build && ctest $(if $(TESTTYPE),-L $(TESTTYPE))
 
 .PHONY: lint
 lint: ## Lint source code with cpplint
@@ -103,4 +104,5 @@ help: ## Show this help
 	@echo "-------"
 	@echo "COMPILER:            \"clang\", \"gcc\""
 	@echo "GENERATOR:           \"Ninja\", \"Unix Makefiles\""
-	@echo "SCANMATCH:           glob-pattern-here e.g. src/**/*.cpp"
+	@echo "SCANMATCH:           glob-pattern-here (e.g. src/**/*.cpp)"
+	@echo "TESTTYPE:            \"unit\", \"integration\" (empty for all)"

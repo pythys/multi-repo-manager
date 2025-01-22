@@ -115,6 +115,12 @@ make build COMPILER=clang GENERATOR="Unix Makefiles"
 # etc ...
 ```
 
+## test options
+
+- all tests: `make test`
+- unit tests: `make TESTTYPE=unit test`
+- integration tests: `make TESTTYPE=integration test`
+
 ## static analysis
 
 - all files:    `make scan`
