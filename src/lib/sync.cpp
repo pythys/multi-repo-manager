@@ -138,7 +138,7 @@ void sync_repository(
     };
 
     auto repo_manager = create_repo_manager(repo->type);
-    auto is_repo = repo_manager->is_repo(root+ "/" + repo->name);
+    auto is_repo = repo_manager->is_repo(root + "/" + repo->name);
     if (is_repo) {
         asio::post(*pool, update_action);
     } else {
