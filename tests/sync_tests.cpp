@@ -20,3 +20,13 @@ TEST(SyncTests, NestedSync) {
     EXPECT_EQ("parent/child1/grandchild1", repos[2].name);
     EXPECT_EQ("parent/child2", repos[3].name);
 }
+
+TEST(SyncTests, MultipleTrees) {
+    sync("multi_tree.yml");
+    std::vector<Repo> first = find_repos("first_root");
+    std::vector<Repo> second = find_repos("second_root");
+    EXPECT_EQ(1, first.size());
+    EXPECT_EQ(2, second.size());
+    EXPECT_EQ(first[0].name, "dust");
+    EXPECT_EQ(second[1].name, "st");
+}
