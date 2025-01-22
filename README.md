@@ -37,7 +37,7 @@ To build docker partially (skip base rebuild):
 
 ### troubleshooting
 
-On macos you might get a crash due to [illegal
+On macos you might get a docker build crash due to [illegal
 instruction](https://github.com/docker/for-mac/issues/7255) in ca-certificates.
 To solve this problem:
 
