@@ -1,23 +1,23 @@
 trees:
-- root: nested-sample
+- root: nested
   repos:
   - name: parent
     type: git
     remotes:
-    - name: parent
-      url: https://github.com/ledger/ledger
+    - name: origin
+      url: https://github.com/bootandy/dust
   - name: parent/child1
     type: git
     remotes:
     - name: origin
-      url: git://git.sv.gnu.org/emacs.git
+      url: https://github.com/sharkdp/fd
   - name: parent/child2
     type: git
     remotes:
     - name: origin
-      url: git@github.com:microsoft/qlib.git
+      url: https://github.com/junegunn/fzf
   - name: parent/child1/grandchild1
     type: git
     remotes:
     - name: origin
-      url: git://git.sv.gnu.org/emacs.git
+      url: https://github.com/siduck/st

@@ -56,6 +56,7 @@ mkdir myrepos && cd myrepos
 git clone https://github.com/bootandy/dust
 git clone https://github.com/sharkdp/fd
 git clone https://github.com/junegunn/fzf
+git clone https://github.com/siduck/st
 cd ..
 mrm find myrepos --save myrepos.yml
 ```
