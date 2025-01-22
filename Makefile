@@ -37,7 +37,7 @@ build: ## Compile and generate editor artifacts
 	@ln -sf ../../compile_commands.json build/mrm/lib/compile_commands.json
 
 .PHONY: test
-test: build ## Run all unit tests
+test: build ## Run all tests
 	$(call check_bin, ctest)
 	@echo "Running tests..."
 	@cd build && ctest
