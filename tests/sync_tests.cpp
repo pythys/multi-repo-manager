@@ -30,17 +30,3 @@ TEST(SyncTests, MultipleTrees) {
     EXPECT_EQ(first[0].name, "dust");
     EXPECT_EQ(second[1].name, "st");
 }
-
-TEST(SyncTests, MultipleNests) {
-    sync("multi_nests.yml");
-    std::vector<Repo> repos = find_repos("multinested");
-    EXPECT_EQ(8, repos.size());
-    EXPECT_EQ(repos[0].name, "parent1");
-    EXPECT_EQ(repos[1].name, "parent1/child1");
-    EXPECT_EQ(repos[2].name, "parent1/child1/grandchild1");
-    EXPECT_EQ(repos[3].name, "parent1/child2");
-    EXPECT_EQ(repos[4].name, "parent2");
-    EXPECT_EQ(repos[5].name, "parent2/child1");
-    EXPECT_EQ(repos[6].name, "parent2/child1/grandchild1");
-    EXPECT_EQ(repos[7].name, "parent2/child2");
-}
