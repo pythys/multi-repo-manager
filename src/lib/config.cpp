@@ -61,15 +61,29 @@ Tree to_tree(const YAML::Node& node) {
     return {node["root"].as<std::string>(), repos};
 }
 
-bool is_direct_child(const Repo parent, const Repo child) {
-    bool is_child_longer = child.name.size() > parent.name.size();
-    bool contains_parent =
-        child.name.substr(0, parent.name.size()) == parent.name;
-    bool slash_separated = child.name[parent.name.size()] == '/';
-    bool only_one_slash =
-        child.name.find('/', parent.name.size() + 1) == std::string::npos;
-    return is_child_longer && contains_parent &&
-           slash_separated && only_one_slash;
+bool is_direct_child(
+    const Repo parent,
+    const Repo child,
+    const std::vector<Repo>& all_repos) {
+    bool child_is_longer = child.name.size() > parent.name.size();
+    bool child_contains_parent = child.name.find(parent.name + "/") == 0;
+    bool intermediate_exists = std::any_of(
+        all_repos.begin(), all_repos.end(),
+        [&](const Repo& middle) {
+            bool middle_is_longer =
+                middle.name.size() > parent.name.size();
+            bool middle_is_shorter =
+                middle.name.size() < child.name.size();
+            bool middle_contains_parent =
+                middle.name.find(parent.name + "/") == 0;
+            bool child_contains_middle =
+                child.name.find(middle.name + "/") == 0;
+            return middle_is_longer &&
+                middle_is_shorter &&
+                middle_contains_parent &&
+                child_contains_middle;
+        });
+    return child_is_longer && child_contains_parent && !intermediate_exists;
 }
 
 std::vector<Repo> find_parents(
@@ -78,7 +92,7 @@ std::vector<Repo> find_parents(
 
     std::vector<Repo> parents;
     for (auto& parent : all_repos) {
-        if (is_direct_child(parent, repo)) {
+        if (is_direct_child(parent, repo, all_repos)) {
             parents.push_back(parent);
         }
     }
@@ -91,7 +105,7 @@ std::vector<Repo> find_children(
 
     std::vector<Repo> children;
     for (auto& child : all_repos) {
-        if (is_direct_child(repo, child)) {
+        if (is_direct_child(repo, child, all_repos)) {
             children.push_back(child);
         }
     }
