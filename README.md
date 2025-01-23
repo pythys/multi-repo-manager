@@ -149,17 +149,15 @@ Through cmake:
 
 ## roadmap
 
-- Unify all commands (except find) under a generic interface.
 - Graceful handling of errors per repo (continue)
-- Switch all commands to be parallel.
+- Switch most commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
 - Implement all progress reporting through messages sent to observer.
 - Implement the exec command.
 - Implement dynamic FTXUI interface for all commands.
-- Implement static interface when !is_terminal.
+- Implement static interface when !is_terminal for all commands.
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce a documentation tool like Doxygen.
 - Dynamically link dependencies for packaging.
-- Provide a solution for shell completion. A
-  [candidate](https://github.com/adaszko/complgen)
-- Resolve all clang-tidy issues
+- Finalize [complgen](https://github.com/adaszko/complgen) implementation.
+- Resolve clang-tidy scan issues
