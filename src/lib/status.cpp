@@ -7,7 +7,7 @@
 #include "tree.hpp"
 
 int run_status(const std::string& config_file) {
-    const std::vector<Tree> config = get_dependencies(config_file);
+    const std::vector<Tree> config = get_config(config_file);
     for (const auto& tree : config) {
         std::cout << "\n";
         for (const auto& repo : tree.repos) {
