@@ -16,7 +16,7 @@ trees:
     remotes:
     - name: origin
       url: https://github.com/junegunn/fzf
-  - name: parent/child1/grandchild1
+  - name: parent/child1/not_a_repo/grandchild1
     type: git
     remotes:
     - name: origin

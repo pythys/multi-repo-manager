@@ -17,7 +17,7 @@ TEST(SyncTests, NestedSync) {
     EXPECT_EQ(4, repos.size());
     EXPECT_EQ("parent", repos[0].name);
     EXPECT_EQ("parent/child1", repos[1].name);
-    EXPECT_EQ("parent/child1/grandchild1", repos[2].name);
+    EXPECT_EQ("parent/child1/not_a_repo/grandchild1", repos[2].name);
     EXPECT_EQ("parent/child2", repos[3].name);
 }
 
