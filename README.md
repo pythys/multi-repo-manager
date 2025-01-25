@@ -162,6 +162,6 @@ All libraries fetched using vcpkg.
 - Implement static interface when !is_terminal for all commands.
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce a documentation tool like Doxygen.
-- Dynamically link dependencies for packaging.
+- Introduce dynamic and static packaging of software using cpack.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
 - Resolve clang-tidy scan issues
