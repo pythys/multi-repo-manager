@@ -16,7 +16,8 @@ RUN apt-get update && \
     python3-pip \
     zip && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
+    pip install --break-system-packages cpplint
 
 RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
@@ -28,8 +29,7 @@ RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
 
 RUN git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
     cd $VCPKG_ROOT && \
-    ./bootstrap-vcpkg.sh -disableMetrics && \
-    pip install --break-system-packages cpplint
+    ./bootstrap-vcpkg.sh -disableMetrics
 
 FROM base AS builder
 
