@@ -6,6 +6,7 @@
     {"name": "boost-system"},
     {"name": "cli11"},
     {"name": "ftxui"},
+    {"name": "gtest"},
     {
       "name": "libgit2",
       "features": ["ssh"]

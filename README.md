@@ -136,18 +136,15 @@ make build COMPILER=clang GENERATOR="Unix Makefiles"
 
 ## libraries
 
-Through vcpkg:
+All libraries fetched using vcpkg.
 
 - [boost](https://github.com/boostorg/boost)
 - [cli11](https://github.com/CLIUtils/CLI11)
 - [ftxui](https://github.com/ArthurSonzogni/FTXUI)
+- [googletest](https://github.com/google/googletest)
 - [libgit2](https://github.com/libgit2/libgit2)
 - [tbb](https://github.com/oneapi-src/oneTBB)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
-
-Through cmake:
-
-- [googletest](https://github.com/google/googletest)
 
 ## roadmap
 
