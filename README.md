@@ -151,7 +151,6 @@ Through cmake:
 
 - Graceful handling of errors per repo (continue)
 - Switch most commands to be parallel.
-- Fix the update function in git_manager to accommodate fast-forward
 - Implement callback functions in git_manager to report on progress.
 - Implement all progress reporting through messages sent to observer.
 - Implement the exec command.
