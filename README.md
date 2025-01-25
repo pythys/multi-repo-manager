@@ -163,5 +163,5 @@ All libraries fetched using vcpkg.
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce a documentation tool like Doxygen.
 - Dynamically link dependencies for packaging.
-- Finalize [complgen](https://github.com/adaszko/complgen) implementation.
+- Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
 - Resolve clang-tidy scan issues
