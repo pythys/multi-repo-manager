@@ -7,11 +7,11 @@ repositories in a sane way utilizing bulk operations and yaml configurations
 
 Minimum Requirements:
 
+- [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
 - [make](https://www.gnu.org/software/make)
-- [vcpkg](https://github.com/microsoft/vcpkg)
 - [ninja](https://github.com/ninja-build/ninja)
-- [clang](https://clang.llvm.org/)
+- [vcpkg](https://github.com/microsoft/vcpkg)
 
 Build and install
 
@@ -20,8 +20,13 @@ Build and install
 
 ## docker install
 
-Warning: dockerizing the project might take a long time depending on hardware,
-OS and docker settings.
+Warning: dockering the project might take a very long time, extending up to an
+hour depending on the following factors:
+
+- hardware capabilities
+- operating system
+- docker settings
+- bandwidth
 
 `make dockerize`
 
@@ -83,18 +88,18 @@ adding the SSH keys as sampled in below command:
 
 ## Development Requirements
 
-- [clang-tidy](https://clang.llvm.org/)
-- [clang](https://clang.llvm.org/)
-- [cmake](https://cmake.org)
-- [complgen](https://github.com/adaszko/complgen)
-- [cpplint](https://github.com/cpplint/cpplint)
-- [docker](https://docs.docker.com/engine/install/)
-- [entr](https://github.com/eradman/entr) live reload
-- [gcc](https://gcc.gnu.org/git/?p=gcc.git)
-- [gdb](git://sourceware.org/git/binutils-gdb.git)
-- [lldb](https://lldb.llvm.org)
-- [make](https://www.gnu.org/software/make)
-- [ninja](https://github.com/ninja-build/ninja)
+- [clang-tidy](https://clang.llvm.org/) static analysis
+- [clang](https://clang.llvm.org/) compiler
+- [cmake](https://cmake.org) builder
+- [complgen](https://github.com/adaszko/complgen) shell completion
+- [cpplint](https://github.com/cpplint/cpplint) linter
+- [docker](https://docs.docker.com/engine/install/) make dockerize
+- [entr](https://github.com/eradman/entr) watching files
+- [gcc](https://gcc.gnu.org/git/?p=gcc.git) compiler
+- [gdb](git://sourceware.org/git/binutils-gdb.git) debugger
+- [lldb](https://lldb.llvm.org) debugger
+- [make](https://www.gnu.org/software/make) builder & generator
+- [ninja](https://github.com/ninja-build/ninja) generator
 - [vcpkg](https://github.com/microsoft/vcpkg) $VCPKG_ROOT must be defined
 
 `Dockerfile` can be used a reference for steps to build the project
