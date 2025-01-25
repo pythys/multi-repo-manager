@@ -172,7 +172,7 @@ class GitManager : public RepoManager {
                 remote.get_address(),
                 repo.get(),
                 remote_name_buf.get_ptr()),
-            "Failed to lookup remote in "+ path,
+            "Failed to lookup remote in " + path,
             repo.get());
 
         git_fetch_options fetch_opts;
@@ -197,28 +197,96 @@ class GitManager : public RepoManager {
             "Failed to create annotated commit in " + path,
             repo.get());
 
-        git_merge_options merge_opts;
-        git_merge_options_init(&merge_opts, GIT_MERGE_OPTIONS_VERSION);
-
-        git_checkout_options checkout_opts;
-        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
-        checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
-
+        GitCommit head_commit;
         check_error(
-            git_merge(
+            git_commit_lookup(
+                head_commit.get_address(),
                 repo.get(),
-                reinterpret_cast<const git_annotated_commit**>(&remote_commit),
-                1,
-                &merge_opts,
-                &checkout_opts),
-            "Failed to merge changes in " + path,
+                git_reference_target(head_ref.get())),
+            "Failed to lookup HEAD commit in " + path,
             repo.get());
 
-        if (git_repository_state(repo.get()) == GIT_REPOSITORY_STATE_MERGE) {
+        GitCommit upstream_commit;
+        check_error(
+            git_commit_lookup(
+                upstream_commit.get_address(),
+                repo.get(),
+                git_reference_target(upstream_ref.get())),
+            "Failed to lookup upstream commit in " + path,
+            repo.get());
+
+        git_merge_analysis_t analysis;
+        git_merge_preference_t preference;
+        check_error(
+            git_merge_analysis(
+                &analysis,
+                &preference,
+                repo.get(),
+                reinterpret_cast<
+                    const git_annotated_commit**
+                >(&remote_commit), 1),
+            "Failed to analyze merge in " + path,
+            repo.get());
+
+        if (analysis & GIT_MERGE_ANALYSIS_FASTFORWARD) {
+            GitTree tree;
             check_error(
-                git_repository_state_cleanup(repo.get()),
-                "Failed to clean up repository state after merge in " + path,
+                git_commit_tree(tree.get_address(), upstream_commit.get()),
+                "Failed to get commit tree for fast-forward merge in " + path,
                 repo.get());
+
+            git_checkout_options checkout_opts;
+            git_checkout_options_init(
+                &checkout_opts,
+                GIT_CHECKOUT_OPTIONS_VERSION);
+            checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+
+            check_error(
+                git_checkout_tree(
+                    repo.get(),
+                    reinterpret_cast<
+                        const git_object*
+                    >(tree.get()), &checkout_opts),
+                "Failed to checkout tree for fast-forward merge in " + path,
+                repo.get());
+
+            check_error(
+                git_reset(
+                    repo.get(),
+                    reinterpret_cast<const git_object*>(upstream_commit.get()),
+                    GIT_RESET_HARD,
+                    &checkout_opts),
+                "Failed to perform fast-forward reset in " + path,
+                repo.get());
+        } else if (analysis & GIT_MERGE_ANALYSIS_NORMAL) {
+            git_merge_options merge_opts;
+            git_merge_options_init(&merge_opts, GIT_MERGE_OPTIONS_VERSION);
+
+            git_checkout_options checkout_opts;
+            git_checkout_options_init(
+                &checkout_opts,
+                GIT_CHECKOUT_OPTIONS_VERSION);
+            checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+
+            check_error(
+                git_merge(
+                    repo.get(),
+                    reinterpret_cast<
+                        const git_annotated_commit**
+                    >(&remote_commit),
+                    1,
+                    &merge_opts,
+                    &checkout_opts),
+                "Failed to merge changes in " + path,
+                repo.get());
+
+            auto repo_state = git_repository_state(repo.get());
+            if (repo_state == GIT_REPOSITORY_STATE_MERGE) {
+                check_error(
+                    git_repository_state_cleanup(repo.get()),
+                    "Failed to clean up repository after merge in " + path,
+                    repo.get());
+            }
         }
     }
 
