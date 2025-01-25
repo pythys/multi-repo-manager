@@ -26,7 +26,7 @@ RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     ./${CMAKE_FILE} --skip-license --prefix=/usr/local && \
     rm ${CMAKE_FILE}
 
-RUN git clone --depth 1 https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
+RUN git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
     cd $VCPKG_ROOT && \
     ./bootstrap-vcpkg.sh -disableMetrics && \
     pip install --break-system-packages cpplint
