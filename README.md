@@ -5,11 +5,13 @@ repositories in a sane way utilizing bulk operations and yaml configurations
 
 ## source install
 
-Install minimum requirements:
+Minimum Requirements:
 
-- `cmake`
-- `make`
-- `vcpkg`
+- [cmake](https://cmake.org)
+- [make](https://www.gnu.org/software/make)
+- [vcpkg](https://github.com/microsoft/vcpkg)
+- [ninja](https://github.com/ninja-build/ninja)
+- [clang](https://clang.llvm.org/)
 
 Build and install
 
