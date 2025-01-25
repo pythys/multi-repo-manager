@@ -7,10 +7,17 @@
     {"name": "cli11"},
     {"name": "ftxui"},
     {
-        "name": "libgit2",
-        "features": ["ssh"]
+      "name": "libgit2",
+      "features": ["ssh"]
     },
     {"name": "tbb"},
     {"name": "yaml-cpp"}
+  ],
+  "builtin-baseline": "4eeb300260f6c8773f6c0827cb9409b9181e120e",
+  "overrides": [
+    {
+      "name": "libgit2",
+      "version": "1.8.0"
+    }
   ]
 }
