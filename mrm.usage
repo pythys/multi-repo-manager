@@ -1,5 +1,8 @@
-mrm sync -c <PATH>;
-mrm find <PATH> -s <PATH>;
-mrm status -c <PATH>;
-mrm update -c <PATH>;
-mrm exec;
+mrm (-h || --help);
+mrm sync (-c || --config) <PATH>;
+mrm find <PATH> (-s || --save) <PATH>;
+mrm status (-c || --config) <PATH>;
+mrm update (-c || --config) <PATH>;
+mrm exec (-c || --config) <PATH> (-t || --type) <REPOTYPE> (-m || --command) "custom command";
+
+<REPOTYPE> ::= git | svn | hg;
