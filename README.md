@@ -25,7 +25,7 @@ hour depending on the following factors:
 
 - hardware capabilities
 - operating system
-- docker settings
+- docker settings (virtual machine options)
 - bandwidth
 
 `make dockerize`
