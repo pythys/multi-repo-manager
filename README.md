@@ -20,8 +20,8 @@ Build and install
 
 ## docker install
 
-Warning: dockering the project might take a very long time, extending up to an
-hour depending on the following factors:
+Warning: dockerizing the project might take a long time, extending up to an hour
+depending on the following factors:
 
 - hardware capabilities
 - operating system
