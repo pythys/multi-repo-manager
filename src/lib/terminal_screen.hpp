@@ -1,13 +1,13 @@
-#ifndef SRC_LIB_SYNC_SCREEN_HPP_
-#define SRC_LIB_SYNC_SCREEN_HPP_
+#ifndef SRC_LIB_TERMINAL_SCREEN_HPP_
+#define SRC_LIB_TERMINAL_SCREEN_HPP_
 
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include "tracker.hpp"
 
-class SyncScreen : public TreeObserver {
+class TerminalScreen : public TreeObserver {
  public:
-    SyncScreen() = default;
+    TerminalScreen() = default;
         void update() override {
             render();
         }
@@ -20,7 +20,7 @@ class SyncScreen : public TreeObserver {
             using ftxui::bold;
 
             auto renderer = Renderer([] {
-                return text("Hello, SyncScreen!") | center | bold;
+                return text("Hello, TerminalScreen!") | center | bold;
             });
 
             auto screen = ScreenInteractive::FitComponent();
@@ -28,4 +28,4 @@ class SyncScreen : public TreeObserver {
         }
 };
 
-#endif  // SRC_LIB_SYNC_SCREEN_HPP_
+#endif  // SRC_LIB_TERMINAL_SCREEN_HPP_
