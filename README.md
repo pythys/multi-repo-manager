@@ -157,6 +157,7 @@ All libraries fetched using vcpkg.
 - Switch most commands to be parallel.
 - Implement callback functions in git_manager to report on progress.
 - Implement all progress reporting through messages sent to observer.
+- Implement the remotesync command.
 - Implement the exec command.
 - Implement dynamic FTXUI interface for all commands.
 - Implement static interface when !is_terminal for all commands.

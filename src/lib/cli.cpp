@@ -12,17 +12,16 @@ int parse_cli(int argc, char **argv, bool is_terminal) {
         throw std::runtime_error("missing non-terminal cli implementation");
     }
     CLI::App app("mrm");
+    std::string config_file;
+
     CLI::App *sync = app.add_subcommand(
         "sync",
         "Sync local repositories with a configured list");
-
-    std::string config_file;
     sync->add_option(
         "--config,-c",
         config_file,
         "Configuration file")
         ->required()->type_name("file");
-
     std::string sync_path = ".";
     sync->add_option(
         "workdir",
@@ -33,14 +32,12 @@ int parse_cli(int argc, char **argv, bool is_terminal) {
     CLI::App *find = app.add_subcommand(
         "find",
         "Generate a configuration from existing repositories");
-
     std::string find_path = ".";
     find->add_option(
         "path",
         find_path,
         "Path to search for existing repositories. Defaults to \".\"")
         ->type_name("dir");
-
     std::string save_path;
     find->add_option(
         "--save,-s",
@@ -51,7 +48,6 @@ int parse_cli(int argc, char **argv, bool is_terminal) {
     CLI::App *status = app.add_subcommand(
         "status",
         "Show the status of config repositories");
-
     status->add_option(
         "--config,-c",
         config_file,
@@ -61,31 +57,36 @@ int parse_cli(int argc, char **argv, bool is_terminal) {
     CLI::App *update = app.add_subcommand(
         "update",
         "Update config repositories");
-
     update->add_option(
         "--config,-c",
         config_file,
         "Configuration file for the update command")
         ->required()->type_name("file");
 
+    CLI::App *remotesync = app.add_subcommand(
+        "remotesync",
+        "Sync remotes with origin");
+    remotesync->add_option(
+        "--config,-c",
+        config_file,
+        "Configuration file")
+        ->required()->type_name("file");
+
     CLI::App *exec = app.add_subcommand(
         "exec",
         "Execute a custom command on repositories of a certain type");
-
     std::string custom_command;
     exec->add_option(
         "--command,-m",
         custom_command,
         "The custom command to run")
         ->required()->type_name("command");
-
     std::string repo_type = "all";
     exec->add_option(
         "--type,-t",
         repo_type,
         "Type of repositories to target. Defaults to 'all'")
         ->type_name("type");
-
     exec->add_option(
         "--config,-c",
         config_file,
@@ -108,6 +109,10 @@ int parse_cli(int argc, char **argv, bool is_terminal) {
 
     if (*update) {
         return run_update(config_file);
+    }
+
+    if (*remotesync) {
+        return 0;
     }
 
     if (*exec) {
