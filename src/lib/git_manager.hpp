@@ -215,6 +215,7 @@ class GitManager : public RepoManager {
             "Failed to lookup upstream commit in " + path,
             repo.get());
 
+        const git_annotated_commit* remote_commit_ptr = remote_commit.get();
         git_merge_analysis_t analysis;
         git_merge_preference_t preference;
         check_error(
@@ -222,9 +223,8 @@ class GitManager : public RepoManager {
                 &analysis,
                 &preference,
                 repo.get(),
-                reinterpret_cast<
-                    const git_annotated_commit**
-                >(&remote_commit), 1),
+                &remote_commit_ptr,
+                1),
             "Failed to analyze merge in " + path,
             repo.get());
 
@@ -271,9 +271,7 @@ class GitManager : public RepoManager {
             check_error(
                 git_merge(
                     repo.get(),
-                    reinterpret_cast<
-                        const git_annotated_commit**
-                    >(&remote_commit),
+                    &remote_commit_ptr,
                     1,
                     &merge_opts,
                     &checkout_opts),
