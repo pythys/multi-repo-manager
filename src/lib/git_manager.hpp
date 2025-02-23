@@ -24,15 +24,10 @@ class GitResource {
     GitResource& operator=(const GitResource&) = delete;
 };
 
-using GitAnnotatedCommit = GitResource<git_annotated_commit,
-                                       git_annotated_commit_free>;
-using GitCommit = GitResource<git_commit, git_commit_free>;
-using GitIndex = GitResource<git_index, git_index_free>;
 using GitReference = GitResource<git_reference, git_reference_free>;
 using GitRemote = GitResource<git_remote, git_remote_free>;
 using GitRepository = GitResource<git_repository, git_repository_free>;
 using GitStatusList = GitResource<git_status_list, git_status_list_free>;
-using GitTree = GitResource<git_tree, git_tree_free>;
 
 class GitBuffer {
     git_buf buf_;
