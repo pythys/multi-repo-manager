@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "cli.hpp"
@@ -9,7 +10,7 @@
 
 int parse_cli(int argc, char **argv, bool is_terminal) {
     if (!is_terminal) {
-        throw std::runtime_error("missing non-terminal cli implementation");
+        std::cout << "Running in non-terminal mode\n";
     }
     CLI::App app("mrm");
     std::string config_file;
