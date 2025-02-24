@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <git2/checkout.h>
 #include <string>
 #include <vector>
 #include "repo_manager.hpp"
@@ -24,6 +25,7 @@ class GitResource {
     GitResource& operator=(const GitResource&) = delete;
 };
 
+using GitObject = GitResource<git_object, git_object_free>;
 using GitReference = GitResource<git_reference, git_reference_free>;
 using GitRemote = GitResource<git_remote, git_remote_free>;
 using GitRepository = GitResource<git_repository, git_repository_free>;
@@ -202,11 +204,23 @@ class GitManager : public RepoManager {
             "Failed to fast-forward update in " + path,
             repo.get());
 
+        GitObject target_obj;
+        char oid_str[GIT_OID_HEXSZ + 1];
+        git_oid_tostr(oid_str, sizeof(oid_str), target_oid);
+        check_error(
+            git_revparse_single(target_obj.get_address(), repo.get(), oid_str),
+            "Failed to lookup target commit in " + path,
+            repo.get());
+        check_error(
+            git_reset(repo.get(), target_obj.get(), GIT_RESET_MIXED, nullptr),
+            "Failed to reset index in " + path,
+            repo.get());
+
         git_checkout_options checkout_opts;
         git_checkout_options_init(
             &checkout_opts,
             GIT_CHECKOUT_OPTIONS_VERSION);
-        checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
+        checkout_opts.checkout_strategy = GIT_CHECKOUT_FORCE;
         check_error(
             git_checkout_head(repo.get(), &checkout_opts),
             "Failed to update working directory in " + path,
