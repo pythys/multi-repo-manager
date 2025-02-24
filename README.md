@@ -165,4 +165,8 @@ All libraries fetched using vcpkg.
 - Introduce a documentation tool like Doxygen.
 - Introduce dynamic and static packaging of software using cpack.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
+  - linux bash: /etc/bash_completion.d
+  - linux zsh: /usr/share/zsh/site-functions/
+  - macos bash: $(brew --prefix)/etc/bash_completion.d
+  - macos zsh: $(brew --prefix)/share/zsh/site-functions
 - Resolve clang-tidy scan issues
