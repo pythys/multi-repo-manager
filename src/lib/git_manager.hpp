@@ -3,7 +3,6 @@
 
 #include <algorithm>
 #include <filesystem>
-#include <git2/checkout.h>
 #include <string>
 #include <vector>
 #include "repo_manager.hpp"
