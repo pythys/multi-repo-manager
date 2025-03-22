@@ -219,7 +219,8 @@ class GitManager : public RepoManager {
         git_checkout_options_init(
             &checkout_opts,
             GIT_CHECKOUT_OPTIONS_VERSION);
-        checkout_opts.checkout_strategy = GIT_CHECKOUT_FORCE;
+        checkout_opts.checkout_strategy = GIT_CHECKOUT_FORCE |
+            GIT_CHECKOUT_REMOVE_UNTRACKED;
         check_error(
             git_checkout_head(repo.get(), &checkout_opts),
             "Failed to update working directory in " + path,
