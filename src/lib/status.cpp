@@ -13,10 +13,18 @@ int run_status(const std::string& config_file) {
         for (const auto& repo : tree.repos) {
             auto repo_manager = create_repo_manager(repo.type);
             auto repo_path = tree.root + "/" + repo.name;
-            const auto statuses = repo_manager->get_status(repo_path);
             std::cout << "Status for " << repo_path << ":\n";
-            for (const auto& status : statuses) {
-                std::cout << status << "\n";
+            try {
+                const auto statuses = repo_manager->get_status(repo_path);
+                for (const auto& status : statuses) {
+                    std::cout << status << "\n";
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error getting status for "
+                          << repo_path
+                          << ": "
+                          << e.what()
+                          << "\n";
             }
             std::cout << "\n";
         }

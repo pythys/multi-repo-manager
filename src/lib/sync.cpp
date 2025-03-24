@@ -160,7 +160,17 @@ int run_sync(const std::string& config_file) {
                 tree.repos.begin(),
                 tree.repos.end(),
                 [&pool, &tree](Repo& repo) {
-                    sync_repository(tree.root, &repo, &pool);
+                    try {
+                        sync_repository(tree.root, &repo, &pool);
+                    } catch (const std::exception& e) {
+                        auto repo_path = tree.root + "/" + repo.name;
+                        std::cerr << "Error syncing "
+                                  << repo_path
+                                  << ": "
+                                  << e.what()
+                                  << "\n";
+                        return;
+                    }
                 });
         });
     pool.join();

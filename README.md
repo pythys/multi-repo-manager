@@ -153,7 +153,6 @@ All libraries fetched using vcpkg.
 
 ## roadmap
 
-- Graceful handling of errors per repo (continue)
 - Auto delete incomplete clones
 - Switch most commands to be parallel.
 - Implement callback functions in git_manager to report on progress.

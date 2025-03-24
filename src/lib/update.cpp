@@ -18,7 +18,16 @@ int run_update(const std::string& config_file) {
                 auto repo_manager = create_repo_manager(repo.type);
                 auto repo_path = tree.root + "/" + repo.name;
                 std::cout << "Updating " << repo_path << std::endl;
-                repo_manager->update(repo_path);
+                try {
+                    repo_manager->update(repo_path);
+                } catch (const std::exception& e) {
+                    std::cerr << "Error updating "
+                              << repo_path
+                              << ": "
+                              << e.what()
+                              << "\n";
+                    return;
+                }
                 std::cout << "Finished updating " << repo_path << std::endl;
             };
             asio::post(pool, updater);
