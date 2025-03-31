@@ -70,6 +70,11 @@ uninstall: ## Uninstall mrm
 	@echo "Uninstalling mrm ..."
 	@rm /usr/local/bin/mrm
 
+.PHONY: docs
+docs: ## Generate doxygen documentation
+	$(call check_bin, doxygen)
+	@doxygen
+
 .PHONY: completion
 completion: ## Generate shell completion scripts
 	$(call check_bin, complgen)

@@ -1,0 +1,9 @@
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "Multi Repo Manager"
+PROJECT_NUMBER         = "1.0.0"
+PROJECT_BRIEF          = "Manage all your repos with one tool"
+OUTPUT_DIRECTORY       = build/docs
+CREATE_SUBDIRS         = YES
+CREATE_SUBDIRS_LEVEL   = 8
+INPUT                  = docs/ README.md
+USE_MDFILE_AS_MAINPAGE = README.md
