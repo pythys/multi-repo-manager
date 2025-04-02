@@ -1,13 +1,14 @@
 # roadmap
 
+- Dynamic FTXUI interface for all commands.
 - Auto delete incomplete clones
+- Sync command to provide --delete-untracked
 - Switch most commands to be parallel.
-- Implement callback functions in git_manager to report on progress.
-- Implement all progress reporting through messages sent to observer.
-- Implement the remotesync command.
-- Implement the exec command.
-- Implement dynamic FTXUI interface for all commands.
-- Implement static interface when !is_terminal for all commands.
+- callback functions in git_manager to report on progress.
+- Progress reporting through messages sent to observer.
+- remotesync command.
+- exec command.
+- Static interface when !is_terminal for all commands.
 - Limit recursion to .gitmodule and .gitignore for improved performance.
 - Introduce dynamic and static packaging of software using cpack.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
