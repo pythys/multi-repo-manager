@@ -8,6 +8,7 @@
 - [complgen](https://github.com/adaszko/complgen) shell completion
 - [cpplint](https://github.com/cpplint/cpplint) linter
 - [docker](https://docs.docker.com/engine/install/) make dockerize
+- [doxygen](https://github.com/doxygen/doxygen) documentation generator
 - [entr](https://github.com/eradman/entr) watching files
 - [gcc](https://gcc.gnu.org/git/?p=gcc.git) compiler
 - [gdb](git://sourceware.org/git/binutils-gdb.git) debugger
