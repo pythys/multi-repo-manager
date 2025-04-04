@@ -17,3 +17,4 @@
   - macos bash: $(brew --prefix)/etc/bash_completion.d
   - macos zsh: $(brew --prefix)/share/zsh/site-functions
 - Resolve clang-tidy scan issues
+- Replace vcpkg with conan?
