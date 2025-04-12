@@ -28,6 +28,7 @@ using GitObject = GitResource<git_object, git_object_free>;
 using GitReference = GitResource<git_reference, git_reference_free>;
 using GitRemote = GitResource<git_remote, git_remote_free>;
 using GitRepository = GitResource<git_repository, git_repository_free>;
+using GitSignature = GitResource<git_signature, git_signature_free>;
 using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 
 class GitBuffer {
@@ -171,6 +172,22 @@ class GitManager : public RepoManager {
             "Failed to lookup remote in " + path,
             repo.get());
 
+        GitSignature stash_signature;
+        check_error(
+            git_signature_now(
+                stash_signature.get_address(),
+                "mrm",
+                "mrm@mrm.com"),
+            "Failed to create signature",
+            repo.get());
+        git_oid stash_oid;
+        int stash_code = git_stash_save(
+            &stash_oid,
+            repo.get(),
+            stash_signature.get(),
+            "mrm pre-update stash",
+            GIT_STASH_DEFAULT | GIT_STASH_INCLUDE_UNTRACKED);
+
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
         fetch_opts.callbacks = create_remote_callbacks();
@@ -225,6 +242,13 @@ class GitManager : public RepoManager {
             git_checkout_head(repo.get(), &checkout_opts),
             "Failed to update working directory in " + path,
             repo.get());
+
+        if (stash_code != GIT_ENOTFOUND) {
+            check_error(
+                git_stash_pop(repo.get(), 0, nullptr),
+                "Failed to pop stash in " + path,
+                repo.get());
+        }
     }
 
     void add_remote(const std::string& path, Remote remote) override {

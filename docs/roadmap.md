@@ -6,7 +6,6 @@
 - Switch most commands to be parallel.
 - callback functions in git_manager to report on progress.
 - Progress reporting through messages sent to observer.
-- update command to stash and pop
 - remotesync command.
 - exec command.
 - Static interface when !is_terminal for all commands.
