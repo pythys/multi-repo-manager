@@ -3,7 +3,7 @@
 - Dynamic FTXUI interface for all commands.
 - Auto delete incomplete clones
 - Sync command to provide --delete-untracked
-- Make a more dynamic ssh key fallback (e.g. libssh)
+- Make a more dynamic ssh key fallback (e.g. libssh2)
 - Switch most commands to be parallel.
 - callback functions in git_manager to report on progress.
 - Progress reporting through messages sent to observer.
