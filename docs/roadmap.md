@@ -5,17 +5,18 @@
 - Sync command to provide --delete-untracked
 - Make a more dynamic ssh key fallback (e.g. libssh2)
 - Switch most commands to be parallel.
-- callback functions in git_manager to report on progress.
+- Callback functions in git_manager to report on progress.
 - Progress reporting through messages sent to observer.
-- remotesync command.
-- exec command.
+- Implement remotesync command.
+- Implement exec command.
+- Introduce branch tracking
 - Static interface when !is_terminal for all commands.
-- Limit recursion to .gitmodule and .gitignore for improved performance.
+- Flag recursion to .gitmodule and .gitignore for improved performance.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
-  - linux bash: /etc/bash_completion.d
-  - linux zsh: /usr/share/zsh/site-functions/
-  - macos bash: $(brew --prefix)/etc/bash_completion.d
-  - macos zsh: $(brew --prefix)/share/zsh/site-functions
+  - Linux bash: /etc/bash_completion.d
+  - Linux zsh: /usr/share/zsh/site-functions/
+  - Macos bash: $(brew --prefix)/etc/bash_completion.d
+  - Macos zsh: $(brew --prefix)/share/zsh/site-functions
 - Resolve clang-tidy scan issues
 - Replace vcpkg with conan?
 - Introduce dynamic and static packaging of software using cpack.
