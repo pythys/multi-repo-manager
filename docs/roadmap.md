@@ -1,4 +1,4 @@
-# roadmap
+# Roadmap
 
 - Dynamic FTXUI interface for all commands.
 - Auto delete incomplete clones
