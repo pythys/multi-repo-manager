@@ -11,7 +11,6 @@
 - exec command.
 - Static interface when !is_terminal for all commands.
 - Limit recursion to .gitmodule and .gitignore for improved performance.
-- Introduce dynamic and static packaging of software using cpack.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
   - linux bash: /etc/bash_completion.d
   - linux zsh: /usr/share/zsh/site-functions/
@@ -19,3 +18,5 @@
   - macos zsh: $(brew --prefix)/share/zsh/site-functions
 - Resolve clang-tidy scan issues
 - Replace vcpkg with conan?
+- Introduce dynamic and static packaging of software using cpack.
+- Publish to Windows, MacOS and Linux distros.
