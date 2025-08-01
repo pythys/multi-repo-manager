@@ -73,8 +73,8 @@ class GitManager : public RepoManager {
                     username_from_url) == 0) {
                 return 0;
             }
-            const char* privatekey_path = "~/.ssh/id_rsa";
-            const char* publickey_path = "~/.ssh/id_rsa.pub";
+            const char* privatekey_path = "~/.ssh/id_ed25519";
+            const char* publickey_path = "~/.ssh/id_ed25519.pub";
             return git_credential_ssh_key_new(
                 out, username_from_url,
                 publickey_path,
