@@ -30,4 +30,4 @@ mrm find myrepos --save myrepos.yml
 If you have authenticated repos, then SSH installation is required along with
 adding the SSH keys as sampled in below command:
 
-`ssh-add ~/.ssh/id_rsa`
+`ssh-add ~/.ssh/id_ed25519`
