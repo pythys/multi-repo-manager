@@ -73,19 +73,19 @@ bool is_direct_child(
     const Repo parent,
     const Repo child,
     const std::vector<Repo>& all_repos) {
-    bool child_is_longer = child.name.size() > parent.name.size();
-    bool child_contains_parent = child.name.find(parent.name + "/") == 0;
-    bool intermediate_exists = std::any_of(
-        all_repos.begin(), all_repos.end(),
+    const bool child_is_longer = child.name.size() > parent.name.size();
+    const bool child_contains_parent = child.name.starts_with(parent.name + "/");
+    const bool intermediate_exists = std::ranges::any_of(
+        all_repos,
         [&](const Repo& middle) {
             bool middle_is_longer =
                 middle.name.size() > parent.name.size();
             bool middle_is_shorter =
                 middle.name.size() < child.name.size();
             bool middle_contains_parent =
-                middle.name.find(parent.name + "/") == 0;
+                middle.name.starts_with(parent.name + "/");
             bool child_contains_middle =
-                child.name.find(middle.name + "/") == 0;
+                child.name.starts_with(middle.name + "/");
             return middle_is_longer &&
                 middle_is_shorter &&
                 middle_contains_parent &&
@@ -95,11 +95,11 @@ bool is_direct_child(
 }
 
 std::vector<Repo> find_parents(
-    const Repo repo,
-    const std::vector<Repo> all_repos) {
+    const Repo& repo,
+    const std::vector<Repo>& all_repos) {
 
     std::vector<Repo> parents;
-    for (auto& parent : all_repos) {
+    for (const auto& parent : all_repos) {
         if (is_direct_child(parent, repo, all_repos)) {
             parents.push_back(parent);
         }
@@ -108,11 +108,11 @@ std::vector<Repo> find_parents(
 }
 
 std::vector<Repo> find_children(
-    const Repo repo,
-    const std::vector<Repo> all_repos) {
+    const Repo& repo,
+    const std::vector<Repo>& all_repos) {
 
     std::vector<Repo> children;
-    for (auto& child : all_repos) {
+    for (const auto& child : all_repos) {
         if (is_direct_child(repo, child, all_repos)) {
             children.push_back(child);
         }
@@ -121,14 +121,12 @@ std::vector<Repo> find_children(
 }
 
 std::vector<Repo> to_dependency_tree(
-    Repo parent_repo,
-    std::vector<Repo> all_repos) {
+    Repo& parent_repo,
+    std::vector<Repo>& all_repos) {
 
     std::vector<Repo> child_repos = find_children(parent_repo, all_repos);
-    if (!child_repos.empty()) {
-        for (auto& child : child_repos) {
-            child.children = to_dependency_tree(child, all_repos);
-        }
+    for (auto& child : child_repos) {
+        child.children = to_dependency_tree(child, all_repos);
     }
     return child_repos;
 }
