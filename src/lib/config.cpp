@@ -63,7 +63,10 @@ Tree to_tree(const YAML::Node& node) {
         node["repos"].end(),
         std::back_inserter(repos),
         to_repo);
-    return {node["root"].as<std::string>(), repos};
+    return {
+        .root = node["root"].as<std::string>(),
+        .repos = repos
+    };
 }
 
 bool is_direct_child(
