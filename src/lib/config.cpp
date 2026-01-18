@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
 #include <vector>
 #include "config.hpp"
@@ -22,9 +21,9 @@ RepoType to_repo_type(const std::string& str) {
 }
 
 Remote to_remote(const YAML::Node& node) {
-    return {
-        node["name"].as<std::string>(),
-        node["url"].as<std::string>()
+    return Remote {
+        .name = node["name"].as<std::string>(),
+        .url = node["url"].as<std::string>()
     };
 }
 
