@@ -11,7 +11,7 @@ Checks: >
   cert-*,
   misc-*,
     -misc-include-cleaner,
-    -misc-no-recursion
+    -misc-no-recursion,
     -misc-use-internal-linkage
 
 WarningsAsErrors: >
