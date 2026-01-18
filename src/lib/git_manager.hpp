@@ -50,7 +50,7 @@ class GitManager : public RepoManager {
             const git_error* err = git_error_last();
             const std::string error_msg = message + ": " +
                 (err ? err->message : "unknown error");
-            bool should_cleanup = repo &&
+            const bool should_cleanup = repo &&
                 git_repository_state(repo) != GIT_REPOSITORY_STATE_NONE;
             if (should_cleanup) {
                 git_repository_state_cleanup(repo);
@@ -92,20 +92,19 @@ class GitManager : public RepoManager {
     }
 
  public:
-    GitManager() { }
-    ~GitManager() override { }
+    GitManager() = default;
+    ~GitManager() override = default;
 
     bool is_repo(const std::string& path) override {
         const bool path_exists = std::filesystem::exists(path);
         if (!path_exists) {
             return false;
-        } else {
-            GitRepository repo;
-            const int error_code = git_repository_open(
-                repo.get_address(),
-                path.c_str());
-            return error_code == 0;
         }
+        GitRepository repo;
+        const int error_code = git_repository_open(
+            repo.get_address(),
+            path.c_str());
+        return error_code == 0;
     }
 
     void copy(const std::string& source, const std::string& destination)
@@ -181,7 +180,7 @@ class GitManager : public RepoManager {
             "Failed to create signature",
             repo.get());
         git_oid stash_oid;
-        int stash_code = git_stash_save(
+        const int stash_code = git_stash_save(
             &stash_oid,
             repo.get(),
             stash_signature.get(),

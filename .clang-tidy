@@ -7,6 +7,7 @@ Checks: >
     -cppcoreguidelines-special-member-functions,
   performance-*,
   readability-*,
+    -readability-identifier-length,
     -readability-implicit-bool-conversion,
   bugprone-*,
     -bugprone-easily-swappable-parameters,

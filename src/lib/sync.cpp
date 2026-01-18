@@ -1,5 +1,4 @@
 #include <tbb/parallel_for_each.h>
-#include <filesystem>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -13,7 +12,6 @@
 #include "tracker.hpp"
 #include "tree.hpp"
 
-namespace fs = std::filesystem;
 namespace asio = boost::asio;
 
 enum class MatchType { TO_REMOVE, TO_ADD };
