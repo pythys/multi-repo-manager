@@ -1,7 +1,8 @@
 Checks: >
   clang-analyzer-*,
   modernize-*,
-    -modernize-use-trailing-return-type,
+    -modernize-use-nodiscard,
+    -modernize-use-trailing-return-type
   cppcoreguidelines-*,
     -cppcoreguidelines-special-member-functions,
   performance-*,

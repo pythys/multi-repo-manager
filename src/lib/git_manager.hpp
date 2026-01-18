@@ -48,7 +48,7 @@ class GitManager : public RepoManager {
         git_repository* repo = nullptr) {
         if (error_code != 0) {
             const git_error* err = git_error_last();
-            std::string error_msg = message + ": " +
+            const std::string error_msg = message + ": " +
                 (err ? err->message : "unknown error");
             bool should_cleanup = repo &&
                 git_repository_state(repo) != GIT_REPOSITORY_STATE_NONE;

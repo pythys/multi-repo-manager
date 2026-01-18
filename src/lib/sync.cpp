@@ -63,7 +63,7 @@ void sync_repository(
 
     Tracker::get_instance().set_status(root, repo->name, RepoStatus::SYNCHING);
     auto update_action = [root, repo, pool]() {
-        std::cout << "updating repo: " + root + "/" + repo->name << std::endl;
+        std::cout << "updating repo: " + root + "/" + repo->name << '\n';
         auto repo_manager = create_repo_manager(repo->type);
         auto remotes = repo_manager->get_remotes(root + "/" + repo->name);
         auto to_remove = find_remotes(
@@ -104,7 +104,7 @@ void sync_repository(
     };
 
     auto clone_action = [root, repo, pool]() {
-        std::cout << "cloning repo:" + root + "/" + repo->name << std::endl;
+        std::cout << "cloning repo:" + root + "/" + repo->name << '\n';
         auto repo_manager = create_repo_manager(repo->type);
         auto it = std::find_if(
             repo->remotes.begin(),
@@ -117,7 +117,7 @@ void sync_repository(
         } else {
             std::cerr << "No remote found with name 'origin' for repo: "
                       << repo->name
-                      << std::endl;
+                      << '\n';
             std::exit(1);
         }
         for (size_t i = 0; i < repo->remotes.size(); i++) {

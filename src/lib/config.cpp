@@ -74,17 +74,18 @@ bool is_direct_child(
     const Repo child,
     const std::vector<Repo>& all_repos) {
     const bool child_is_longer = child.name.size() > parent.name.size();
-    const bool child_contains_parent = child.name.starts_with(parent.name + "/");
+    const bool child_contains_parent =
+        child.name.starts_with(parent.name + "/");
     const bool intermediate_exists = std::ranges::any_of(
         all_repos,
         [&](const Repo& middle) {
-            bool middle_is_longer =
+            const bool middle_is_longer =
                 middle.name.size() > parent.name.size();
-            bool middle_is_shorter =
+            const bool middle_is_shorter =
                 middle.name.size() < child.name.size();
-            bool middle_contains_parent =
+            const bool middle_contains_parent =
                 middle.name.starts_with(parent.name + "/");
-            bool child_contains_middle =
+            const bool child_contains_middle =
                 child.name.starts_with(middle.name + "/");
             return middle_is_longer &&
                 middle_is_shorter &&
@@ -121,8 +122,8 @@ std::vector<Repo> find_children(
 }
 
 std::vector<Repo> to_dependency_tree(
-    Repo& parent_repo,
-    std::vector<Repo>& all_repos) {
+    const Repo& parent_repo,
+    const std::vector<Repo>& all_repos) {
 
     std::vector<Repo> child_repos = find_children(parent_repo, all_repos);
     for (auto& child : child_repos) {
@@ -168,7 +169,7 @@ std::string make_config(const std::vector<Tree>& trees) {
 void write_config(
     const std::vector<Tree>& trees,
     const std::string& config_file) {
-    std::string config = make_config(trees);
+    const std::string config = make_config(trees);
     std::ofstream file(config_file);
     file << config;
     file.close();
@@ -185,13 +186,12 @@ std::vector<Tree> get_config(const std::string& config_file) {
                 std::back_inserter(trees),
                 to_tree);
         } else {
-            std::cerr << "Error: 'trees' node is missing."
-                      << std::endl;
+            std::cerr << "Error: 'trees' node is missing.\n";
         }
     } catch (YAML::Exception &e) {
         std::cerr << "Error loading YAML file: "
                   << e.what()
-                  << std::endl;
+                  << '\n';
     }
     return trees;
 }
@@ -201,7 +201,8 @@ std::vector<Tree> get_dependencies(const std::string& config_file) {
     for (auto& tree : trees) {
         std::vector<Repo> tree_repos;
         for (auto& repo : tree.repos) {
-            std::vector<Repo> parent_repos = find_parents(repo, tree.repos);
+            const std::vector<Repo> parent_repos =
+                find_parents(repo, tree.repos);
             if (parent_repos.empty()) {
                 repo.children = to_dependency_tree(repo, tree.repos);
                 tree_repos.push_back(repo);

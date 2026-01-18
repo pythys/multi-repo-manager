@@ -30,7 +30,7 @@ std::vector<Repo> find_repos(const std::string& path) {
         }
         auto dirpath = it->path();
         auto filename = dirpath.filename().string();
-        if (repo_map.find(filename) != repo_map.end()) {
+        if (repo_map.contains(filename)) {
             it.disable_recursion_pending();
         } else {
             auto repo_type_it = std::ranges::find_if(
