@@ -2,11 +2,12 @@ Checks: >
   clang-analyzer-*,
   modernize-*,
     -modernize-use-nodiscard,
-    -modernize-use-trailing-return-type
+    -modernize-use-trailing-return-type,
   cppcoreguidelines-*,
     -cppcoreguidelines-special-member-functions,
   performance-*,
   readability-*,
+    -readability-implicit-bool-conversion,
   bugprone-*,
     -bugprone-easily-swappable-parameters,
   cert-*,
