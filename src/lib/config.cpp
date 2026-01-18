@@ -33,7 +33,8 @@ Remote to_remote(const YAML::Node& node) {
 
 Repo to_repo(const YAML::Node& node) {
     std::vector<Remote> remotes;
-    if (node["remotes"] && node["remotes"].IsSequence()) {
+    const auto remote_node = node["remotes"];
+    if (remote_node.IsDefined() && remote_node.IsSequence()) {
         std::transform(
             node["remotes"].begin(),
             node["remotes"].end(),
@@ -41,16 +42,17 @@ Repo to_repo(const YAML::Node& node) {
             to_remote);
     } else {
         std::cerr << "Warning: 'remotes' node is missing or not a sequence "
-                  << "for repo " << node["name"].as<std::string>("unknown")
-                  << std::endl;
+                  << "for repo "
+                  << node["name"].as<std::string>("unknown")
+                  << '\n';
     }
-    return {
-        node["name"].as<std::string>(),
-        to_repo_type(node["type"].as<std::string>()),
-        RepoStatus::PENDING,
-        remotes,
-        std::vector<Repo>(),
-        std::vector<std::string>()
+    return Repo {
+        .name = node["name"].as<std::string>(),
+        .type = to_repo_type(node["type"].as<std::string>()),
+        .status = RepoStatus::PENDING,
+        .remotes = remotes,
+        .children = {},
+        .messages = {}
     };
 }
 
