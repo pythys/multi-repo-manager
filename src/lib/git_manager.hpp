@@ -338,7 +338,7 @@ class GitManager : public RepoManager {
             "Failed to retrieve status in " + path,
             repo.get());
 
-        size_t count = git_status_list_entrycount(status_list.get());
+        const size_t count = git_status_list_entrycount(status_list.get());
         std::vector<std::string> status_lines;
         for (size_t i = 0; i < count; ++i) {
             const git_status_entry* entry =

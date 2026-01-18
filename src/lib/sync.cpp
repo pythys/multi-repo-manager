@@ -1,6 +1,8 @@
 #include <tbb/parallel_for_each.h>
+#include <algorithm>
 #include <iostream>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <vector>
 #include <boost/asio.hpp>
@@ -28,9 +30,8 @@ std::vector<Remote> find_remotes(
 
     if (match_type == MatchType::TO_REMOVE) {
         for (const auto& repo_remote : repo_remotes) {
-            auto it = std::find_if(
-                conf_remotes.begin(),
-                conf_remotes.end(),
+            auto it = std::ranges::find_if(
+                conf_remotes,
                 [&](const Remote& tree_remote) {
                     return compare_by_name(tree_remote, repo_remote);
                 });
@@ -40,9 +41,8 @@ std::vector<Remote> find_remotes(
         }
     } else if (match_type == MatchType::TO_ADD) {
         for (const auto& tree_remote : conf_remotes) {
-            auto it = std::find_if(
-                repo_remotes.begin(),
-                repo_remotes.end(),
+            auto it = std::ranges::find_if(
+                repo_remotes,
                 [&](const Remote& repo_remote) {
                     return compare_by_name(repo_remote, tree_remote);
                 });
@@ -70,7 +70,7 @@ void sync_repository(
             MatchType::TO_REMOVE);
         for (const auto& remote : to_remove) {
             repo_manager->remove_remote(root + "/" + repo->name, remote);
-            std::string message = "Removed from repo: "
+            const std::string message = "Removed from repo: "
                 + root
                 + "/"
                 + repo->name
@@ -84,7 +84,7 @@ void sync_repository(
             MatchType::TO_ADD);
         for (const auto& remote : to_add) {
             repo_manager->add_remote(root + "/" + repo->name, remote);
-            std::string message = "Added to repo: "
+            const std::string message = "Added to repo: "
                 + root
                 + "/"
                 + repo->name
@@ -104,9 +104,8 @@ void sync_repository(
     auto clone_action = [root, repo, pool]() {
         std::cout << "cloning repo:" + root + "/" + repo->name << '\n';
         auto repo_manager = create_repo_manager(repo->type);
-        auto it = std::find_if(
-            repo->remotes.begin(),
-            repo->remotes.end(),
+        auto it = std::ranges::find_if(
+            repo->remotes,
             [](const Remote& remote) {
                 return remote.name == "origin";
             });
