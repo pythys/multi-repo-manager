@@ -15,8 +15,12 @@ std::string from_repo_type(RepoType type) {
 }
 
 RepoType to_repo_type(const std::string& str) {
-    if (str == "git") return RepoType::GIT;
-    if (str == "svn") return RepoType::SVN;
+    if (str == "git") {
+        return RepoType::GIT;
+    }
+    if (str == "svn") {
+        return RepoType::SVN;
+    }
     throw std::runtime_error("Invalid RepoType: " + str);
 }
 
