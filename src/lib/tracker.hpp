@@ -1,7 +1,6 @@
 #ifndef SRC_LIB_TRACKER_HPP_
 #define SRC_LIB_TRACKER_HPP_
 
-#include <algorithm>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -23,6 +22,8 @@ class TreeObservable {
 
 class Tracker : public TreeObservable {
  public:
+    Tracker(const Tracker&) = delete;
+    Tracker& operator=(const Tracker&) = delete;
     static Tracker& get_instance() {
         static Tracker instance;
         return instance;
@@ -33,13 +34,11 @@ class Tracker : public TreeObservable {
     }
 
     void remove_observer(TreeObserver* observer) override {
-        observers.erase(
-            std::remove(observers.begin(), observers.end(), observer),
-            observers.end());
+        std::erase(observers, observer);
     }
 
     void notify_observers() override {
-        for (auto observer : observers) {
+        for (auto* observer : observers) {
             observer->update();
         }
     }
@@ -77,8 +76,6 @@ class Tracker : public TreeObservable {
 
     // Singleton
     Tracker() = default;
-    Tracker(const Tracker&) = delete;
-    Tracker& operator=(const Tracker&) = delete;
 
     Repo* recursive_find(
         const std::string& name,
