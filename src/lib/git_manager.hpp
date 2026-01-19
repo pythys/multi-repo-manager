@@ -2,7 +2,9 @@
 #define SRC_LIB_GIT_MANAGER_HPP_
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
+#include <span>
 #include <string>
 #include <vector>
 #include "repo_manager.hpp"
@@ -220,10 +222,13 @@ class GitManager : public RepoManager {
             repo.get());
 
         GitObject target_obj;
-        char oid_str[GIT_OID_HEXSZ + 1];
-        git_oid_tostr(oid_str, sizeof(oid_str), target_oid);
+        std::array<char, GIT_OID_HEXSZ + 1> oid_str{};
+        git_oid_tostr(oid_str.data(), oid_str.size(), target_oid);
         check_error(
-            git_revparse_single(target_obj.get_address(), repo.get(), oid_str),
+            git_revparse_single(
+                target_obj.get_address(),
+                repo.get(),
+                oid_str.data()),
             "Failed to lookup target commit in " + path,
             repo.get());
         check_error(
@@ -250,7 +255,7 @@ class GitManager : public RepoManager {
         }
     }
 
-    void add_remote(const std::string& path, Remote remote) override {
+    void add_remote(const std::string& path, const Remote& remote) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -268,7 +273,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void remove_remote(const std::string& path, Remote remote) override {
+    void remove_remote(const std::string& path, const Remote& remote) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -295,9 +300,8 @@ class GitManager : public RepoManager {
             repo.get());
 
         std::vector<Remote> remotes;
-        for (size_t i = 0; i < remote_names.count; ++i) {
-            const char* remote_name = remote_names.strings[i];
-
+        auto names = std::span(remote_names.strings, remote_names.count);
+        for (const char* remote_name : names) {
             GitRemote remote;
             check_error(
                 git_remote_lookup(

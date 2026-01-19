@@ -18,11 +18,11 @@ class RepoManager {
 
     virtual void add_remote(
         const std::string& path,
-        const Remote remote) = 0;
+        const Remote& remote) = 0;
 
     virtual void remove_remote(
         const std::string& path,
-        const Remote remote) = 0;
+        const Remote& remote) = 0;
 
     virtual std::vector<Remote> get_remotes(
         const std::string& path) = 0;
