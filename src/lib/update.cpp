@@ -10,10 +10,10 @@
 namespace asio = boost::asio;
 
 int run_update(const std::string& config_file) {
-    std::vector<Tree> config = get_config(config_file);
+    const std::vector<Tree> config = get_config(config_file);
     asio::thread_pool pool(SYNC_POOL_SIZE);
-    for (auto& tree : config) {
-        for (auto& repo : tree.repos) {
+    for (const auto& tree : config) {
+        for (const auto& repo : tree.repos) {
             auto updater = [repo, tree] {
                 auto repo_manager = create_repo_manager(repo.type);
                 auto repo_path = tree.root + "/" + repo.name;
