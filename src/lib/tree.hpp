@@ -1,11 +1,12 @@
 #ifndef SRC_LIB_TREE_HPP_
 #define SRC_LIB_TREE_HPP_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
-enum class RepoType { GIT, SVN, HG };
-enum class RepoStatus { PENDING, SYNCHING, SYNCHED };
+enum class RepoType: std::uint8_t { GIT, SVN, HG };
+enum class RepoStatus: std::uint8_t { PENDING, SYNCHING, SYNCHED };
 
 struct Remote {
     std::string name;
@@ -14,8 +15,8 @@ struct Remote {
 
 struct Repo {
     std::string name;
-    RepoType type;
-    RepoStatus status;
+    RepoType type = RepoType::GIT;
+    RepoStatus status = RepoStatus::PENDING;
     std::vector<Remote> remotes;
     std::vector<Repo> children;
     std::vector<std::string> messages;
