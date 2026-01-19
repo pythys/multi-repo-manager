@@ -13,6 +13,7 @@ Checks: >
     -bugprone-easily-swappable-parameters,
   cert-*,
   misc-*,
+    -misc-const-correctness,
     -misc-include-cleaner,
     -misc-no-recursion,
     -misc-use-internal-linkage

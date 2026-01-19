@@ -1,5 +1,6 @@
-filter=-legal/copyright
 filter=-build/c++11
 filter=-build/c++17
 filter=-build/include_subdir
+filter=-legal/copyright
+filter=-runtime/references
 filter=-whitespace/blank_line
