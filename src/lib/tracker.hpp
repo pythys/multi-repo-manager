@@ -43,7 +43,7 @@ class Tracker : public TreeObservable {
         }
     }
 
-    void populate(std::vector<Tree> initial) {
+    void populate(const std::vector<Tree>& initial) {
         this->trees = initial;
         notify_observers();
     }
