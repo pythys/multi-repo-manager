@@ -79,10 +79,10 @@ class Tracker : public TreeObservable {
 
     Repo* recursive_find(
         const std::string& name,
-        const std::vector<Repo>& repos) {
+        std::vector<Repo>& repos) {
         for (auto& repo : repos) {
             if (repo.name == name) {
-                return const_cast<Repo*>(&repo);
+                return &repo;
             }
             Repo* found = recursive_find(name, repo.children);
             if (found) {
