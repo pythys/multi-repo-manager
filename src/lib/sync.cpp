@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <iostream>
 #include <memory>
-#include <ranges>
 #include <string>
 #include <vector>
 #include <boost/asio.hpp>
@@ -16,7 +15,7 @@
 
 namespace asio = boost::asio;
 
-enum class MatchType { TO_REMOVE, TO_ADD };
+enum class MatchType : std::uint8_t { TO_REMOVE, TO_ADD };
 std::vector<Remote> find_remotes(
     const std::vector<Remote>& conf_remotes,
     const std::vector<Remote>& repo_remotes,
