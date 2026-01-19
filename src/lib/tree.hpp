@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-enum class RepoType: std::uint8_t { GIT, SVN, HG };
-enum class RepoStatus: std::uint8_t { PENDING, SYNCHING, SYNCHED };
+enum class RepoType: std::uint8_t { GIT, SVN, HG, UNKNOWN };
+enum class RepoStatus: std::uint8_t { PENDING, SYNCHING, SYNCHED, UNKNOWN };
 
 struct Remote {
     std::string name;
@@ -15,8 +15,8 @@ struct Remote {
 
 struct Repo {
     std::string name;
-    RepoType type = RepoType::GIT;
-    RepoStatus status = RepoStatus::PENDING;
+    RepoType type = RepoType::UNKNOWN;
+    RepoStatus status = RepoStatus::UNKNOWN;
     std::vector<Remote> remotes;
     std::vector<Repo> children;
     std::vector<std::string> messages;
