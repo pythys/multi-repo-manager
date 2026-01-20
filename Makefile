@@ -31,7 +31,7 @@ endif
 build: ## Compile and generate editor artifacts
 	$(call check_bin, cmake)
 	@echo "Building project..."
-	@CXX=$(CXX) CC=$(CC) cmake -G $(GENERATOR) -B build -S .
+	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S .
 	@cmake --build build -j $(shell nproc)
 	@ln -sf build/compile_commands.json compile_commands.json
 	@ln -sf ../compile_commands.json build/mrm/compile_commands.json
