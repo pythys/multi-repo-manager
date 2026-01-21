@@ -14,11 +14,11 @@
     {"name": "tbb"},
     {"name": "yaml-cpp"}
   ],
-  "builtin-baseline": "57c08a3223a1ec03c3a31986ee38d32e90b6039c",
+  "builtin-baseline": "7c11b72a6f810293d0ce234de126b99e9ab6fa7a",
   "overrides": [
     {
       "name": "libgit2",
-      "version": "1.8.0"
+      "version": "1.9.2"
     },
     {
       "name": "yaml-cpp",
