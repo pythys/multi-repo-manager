@@ -21,15 +21,19 @@ Build and install
 
 Once completed an image called "mrm" will be available on the machine. To use:
 
-`docker run --platform linux/amd64 -it --rm -v $PWD:/opt/repos mrm --help`
+`docker run -it --rm -v $PWD:/tree mrm --help`
 
-To alias the above command
+To alias the docker command
 
-`alias mrm='docker run --platform linux/amd64 -it --rm -v $PWD:/opt/repos mrm'`
+`alias mrm='docker run -it --rm --user $(id -u):$(id -g) -v $PWD:/tree'`
+
+Example usage:
+
+`mrm find /tree`
 
 To build docker partially (skip base rebuild):
 
-`docker build --target builder -t mrm .`
+`docker build --platform=linux/amd64 --no-cache --tag mrm .`
 
 ### troubleshooting
 
