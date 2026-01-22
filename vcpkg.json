@@ -7,12 +7,9 @@
     {"name": "cli11"},
     {"name": "ftxui"},
     {"name": "gtest"},
-    {
-      "name": "libgit2",
-      "features": ["ssh"]
-    },
+    {"name": "libgit2", "features": ["ssh"]},
     {"name": "tbb"},
     {"name": "yaml-cpp"}
   ],
-  "builtin-baseline": "7c11b72a6f810293d0ce234de126b99e9ab6fa7a"
+  "builtin-baseline": "4f326c4072038c8624c36a8ba5ed23f616adda53"
 }
