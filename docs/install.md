@@ -17,14 +17,6 @@ Build and install
 
 ## docker install
 
-Warning: dockerizing the project might take a long time, extending up to an hour
-depending on the following factors:
-
-- hardware capabilities
-- operating system
-- docker settings (virtual machine options)
-- bandwidth
-
 `make dockerize`
 
 Once completed an image called "mrm" will be available on the machine. To use:

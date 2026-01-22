@@ -1,11 +1,11 @@
-FROM debian:bookworm AS base
+FROM debian:bookworm AS build
 
-ENV CMAKE_VERSION=3.31.3
+ENV CMAKE_VERSION=4.2.1
 ENV VCPKG_ROOT=/usr/src/vcpkg
 ENV PATH=$PATH:$VCPKG_ROOT
 
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     clang \
     curl \
@@ -14,6 +14,7 @@ RUN apt-get update && \
     pkg-config \
     python3 \
     python3-pip \
+    unzip \
     zip && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
@@ -31,15 +32,16 @@ RUN git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
     cd $VCPKG_ROOT && \
     ./bootstrap-vcpkg.sh -disableMetrics
 
-FROM base AS builder
-
 COPY . /usr/src/mrm
 
 RUN cd /usr/src/mrm && \
     make clean test lint && \
-    make install && \
-    mkdir -p /opt/repos
+    make install
 
-WORKDIR /opt/repos
+RUN strip /usr/local/bin/mrm
+
+FROM gcr.io/distroless/cc-debian12
+
+COPY --from=build /usr/local/bin/mrm /usr/local/bin/mrm
 
 ENTRYPOINT ["/usr/local/bin/mrm"]
