@@ -18,13 +18,13 @@ clean: ## Clean generated artifacts
 	@rm -rf .cache build compile_commands.json
 
 ifeq ($(COMPILER),clang)
-  CC = clang
-  CXX = clang++
+    CC = clang
+    CXX = clang++
 else ifeq ($(COMPILER),gcc)
-  CC = gcc
-  CXX = g++
+    CC = gcc
+    CXX = g++
 else
-  $(error Unknown compiler: $(COMPILER))
+    $(error Unknown compiler: $(COMPILER))
 endif
 
 .PHONY: build
