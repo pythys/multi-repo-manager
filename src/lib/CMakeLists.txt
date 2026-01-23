@@ -11,6 +11,7 @@ target_sources(mrm_core PRIVATE
   exec.cpp
   find.cpp
   repo_factory.cpp
+  runtime.cpp
   status.cpp
   sync.cpp
   update.cpp

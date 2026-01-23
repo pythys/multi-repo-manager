@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <CLI/CLI.hpp>
 #include "cli.hpp"
@@ -8,10 +7,7 @@
 #include "sync.hpp"
 #include "update.hpp"
 
-int parse_cli(int argc, char **argv, bool is_terminal) {
-    if (!is_terminal) {
-        std::cout << "Running in non-terminal mode\n";
-    }
+int parse_cli(int argc, char **argv) {
     CLI::App app("mrm");
     std::string config_file;
 
