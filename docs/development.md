@@ -2,20 +2,20 @@
 
 ## tools
 
-- [clang-tidy](https://clang.llvm.org/) static analysis
+- [clang-tidy](https://clang.llvm.org/) static analyzer
 - [clang](https://clang.llvm.org/) compiler
-- [cmake](https://cmake.org) builder
+- [cmake](https://cmake.org) build generator
 - [complgen](https://github.com/adaszko/complgen) shell completion
 - [cpplint](https://github.com/cpplint/cpplint) linter
-- [docker](https://docs.docker.com/engine/install/) make dockerize
+- [docker](https://docs.docker.com/engine/install/) containerization
 - [doxygen](https://github.com/doxygen/doxygen) documentation generator
-- [entr](https://github.com/eradman/entr) watching files
+- [entr](https://github.com/eradman/entr) file watcher
 - [gcc](https://gcc.gnu.org/git/?p=gcc.git) compiler
-- [gdb](git://sourceware.org/git/binutils-gdb.git) debugger
-- [lldb](https://lldb.llvm.org) debugger
-- [make](https://www.gnu.org/software/make) builder & generator
-- [ninja](https://github.com/ninja-build/ninja) generator
-- [vcpkg](https://github.com/microsoft/vcpkg) $VCPKG_ROOT must be defined
+- [gdb](git://sourceware.org/git/binutils-gdb.git) debugger (gcc)
+- [lldb](https://lldb.llvm.org) debugger (clang)
+- [make](https://www.gnu.org/software/make) orchestrator and builder
+- [ninja](https://github.com/ninja-build/ninja) builder
+- [vcpkg](https://github.com/microsoft/vcpkg) package manager
 
 `Dockerfile` can be used a reference for steps to build the project
 
