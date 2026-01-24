@@ -1,22 +1,17 @@
 # Roadmap
 
-- Dynamic FTXUI interface for all commands.
+- Terminal based logic to decide between FTXUI and cout for all commands.
 - Auto delete incomplete clones
 - Sync command to provide --delete-untracked
 - Make a more dynamic ssh key fallback (e.g. libssh2)
-- Switch most commands to be parallel.
-- Callback functions in git_manager to report on progress.
-- Progress reporting through messages sent to observer.
 - Implement remotesync command.
 - Implement exec command.
 - Introduce branch tracking
-- Static interface when !is_terminal for all commands.
 - Flag recursion to .gitmodule and .gitignore for improved performance.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
   - Linux bash: /etc/bash_completion.d
   - Linux zsh: /usr/share/zsh/site-functions/
   - Macos bash: $(brew --prefix)/etc/bash_completion.d
   - Macos zsh: $(brew --prefix)/share/zsh/site-functions
-- Resolve clang-tidy scan issues
 - Introduce dynamic and static packaging of software using cpack.
 - Publish to Windows, MacOS and Linux distros.
