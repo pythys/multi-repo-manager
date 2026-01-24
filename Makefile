@@ -2,6 +2,7 @@ COMPILER ?= clang
 GENERATOR ?= "Ninja"
 SCANMATCH = src/**/*.cpp src/**/*.hpp
 TESTTYPE ?=
+VCPKG_ROOT ?=
 
 all: help
 
@@ -12,10 +13,11 @@ define check_bin
     fi
 endef
 
-.PHONY: clean
-clean: ## Clean generated artifacts
-	@echo "Cleaning artifacts..."
-	@rm -rf .cache build compile_commands.json
+ifeq ($(strip $(VCPKG_ROOT)),)
+    VCPKG_TOOLCHAIN :=
+else
+    VCPKG_TOOLCHAIN := -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
+endif
 
 ifeq ($(COMPILER),clang)
     CC = clang
@@ -27,11 +29,16 @@ else
     $(error Unknown compiler: $(COMPILER))
 endif
 
+.PHONY: clean
+clean: ## Clean generated artifacts
+	@echo "Cleaning artifacts..."
+	@rm -rf .cache build compile_commands.json
+
 .PHONY: build
 build: ## Compile and generate editor artifacts
 	$(call check_bin, cmake)
 	@echo "Building project..."
-	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S .
+	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S . $(VCPKG_TOOLCHAIN)
 	@cmake --build build -j $(shell nproc)
 	@ln -sf build/compile_commands.json compile_commands.json
 	@ln -sf ../compile_commands.json build/mrm/compile_commands.json
@@ -94,7 +101,7 @@ dockerize: ## Build docker image "mrm"
 	@docker build --platform=linux/amd64 --no-cache --tag mrm .
 
 define target_help
-	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
 endef
 
 .PHONY: help
@@ -107,7 +114,8 @@ help: ## Show this help
 	@echo ""
 	@echo "Options"
 	@echo "-------"
-	@echo "COMPILER:            \"clang\", \"gcc\""
-	@echo "GENERATOR:           \"Ninja\", \"Unix Makefiles\""
-	@echo "SCANMATCH:           glob-pattern-here (e.g. src/**/*.cpp)"
-	@echo "TESTTYPE:            \"unit\", \"integration\" (empty for all)"
+	@echo "COMPILER:        \"clang\", \"gcc\" - default: \"clang\""
+	@echo "GENERATOR:       \"Ninja\", \"Unix Makefiles\" - default: \"Ninja\""
+	@echo "SCANMATCH:       <glob-pattern> - default: \"src/**/*.cpp src/**/*.hpp\""
+	@echo "TESTTYPE:        \"unit\", \"integration\" - default: all tests"
+	@echo "VCPKG_ROOT:      \"/path/to/vcpkg/\" - empty to disable vcpkg"

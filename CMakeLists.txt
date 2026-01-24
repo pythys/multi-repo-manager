@@ -1,16 +1,6 @@
 cmake_minimum_required(VERSION 3.30)
 
-# vcpkg toolchain
-if(NOT DEFINED ENV{VCPKG_ROOT})
-    message(FATAL_ERROR "VCPKG_ROOT is not defined.")
-endif()
-set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
-
 project(mrm VERSION 1.0)
-
-# vcpkg include
-set(VCPKG_INCLUDE "${CMAKE_BINARY_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}/include")
-include_directories(${VCPKG_INCLUDE})
 
 # compile options
 set(CMAKE_CXX_STANDARD 20)
