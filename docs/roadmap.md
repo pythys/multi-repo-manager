@@ -18,6 +18,5 @@
   - Macos bash: $(brew --prefix)/etc/bash_completion.d
   - Macos zsh: $(brew --prefix)/share/zsh/site-functions
 - Resolve clang-tidy scan issues
-- Replace vcpkg with conan?
 - Introduce dynamic and static packaging of software using cpack.
 - Publish to Windows, MacOS and Linux distros.
