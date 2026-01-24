@@ -1,5 +1,6 @@
 .DS_Store
 .cache/
+.git/
 TAGS
 build/
 compile_commands.json
