@@ -92,8 +92,8 @@ completion: ## Generate shell completion scripts
 	$(call check_bin, complgen)
 	@echo "Generating completion scripts..."
 	@mkdir -p build/completions
-	@complgen aot mrm.usage --bash-script build/completions/mrm-completions.sh
-	@complgen aot mrm.usage --zsh-script build/completions/_mrm
+	@complgen --bash build/completions/mrm-completions.sh mrm.usage
+	@complgen --zsh build/completions/_mrm mrm.usage
 
 .PHONY: package
 package: build ## Package code to various formats
