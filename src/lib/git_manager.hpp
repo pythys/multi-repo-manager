@@ -1,29 +1,35 @@
 #ifndef SRC_LIB_GIT_MANAGER_HPP_
 #define SRC_LIB_GIT_MANAGER_HPP_
 
+#include "git2.h"
+#include "repo_manager.hpp"
 #include <algorithm>
 #include <array>
 #include <filesystem>
 #include <span>
 #include <string>
 #include <vector>
-#include "repo_manager.hpp"
-#include "git2.h"
 
-template <typename T, void (*free_resource)(T*)>
-class GitResource {
-    T* resource_;
- public:
-    explicit GitResource(T* resource = nullptr) : resource_(resource) {}
-    ~GitResource() { free_resource(resource_); }
-    T* get() const { return resource_; }
-    T** get_address() { return &resource_; }
-    void reset(T* resource = nullptr) {
+template <typename T, void (*free_resource)(T *)> class GitResource {
+    T *resource_;
+
+  public:
+    explicit GitResource(T *resource = nullptr) : resource_(resource) {}
+    ~GitResource() {
+        free_resource(resource_);
+    }
+    T *get() const {
+        return resource_;
+    }
+    T **get_address() {
+        return &resource_;
+    }
+    void reset(T *resource = nullptr) {
         free_resource(resource_);
         resource_ = resource;
     }
-    GitResource(const GitResource&) = delete;
-    GitResource& operator=(const GitResource&) = delete;
+    GitResource(const GitResource &) = delete;
+    GitResource &operator=(const GitResource &) = delete;
 };
 
 using GitObject = GitResource<git_object, git_object_free>;
@@ -35,25 +41,32 @@ using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 
 class GitBuffer {
     git_buf buf_;
- public:
+
+  public:
     GitBuffer() : buf_(GIT_BUF_INIT_CONST(NULL, 0)) {}
-    ~GitBuffer() { git_buf_dispose(&buf_); }
-    git_buf* get() { return &buf_; }
-    const char* get_ptr() const { return buf_.ptr; }
+    ~GitBuffer() {
+        git_buf_dispose(&buf_);
+    }
+    git_buf *get() {
+        return &buf_;
+    }
+    const char *get_ptr() const {
+        return buf_.ptr;
+    }
 };
 
 class GitManager : public RepoManager {
- private:
+  private:
     static void check_error(
         int error_code,
-        const std::string& message,
-        git_repository* repo = nullptr) {
+        const std::string &message,
+        git_repository *repo = nullptr) {
         if (error_code != 0) {
-            const git_error* err = git_error_last();
-            const std::string error_msg = message + ": " +
-                (err ? err->message : "unknown error");
-            const bool should_cleanup = repo &&
-                git_repository_state(repo) != GIT_REPOSITORY_STATE_NONE;
+            const git_error *err = git_error_last();
+            const std::string error_msg =
+                message + ": " + (err ? err->message : "unknown error");
+            const bool should_cleanup =
+                repo && git_repository_state(repo) != GIT_REPOSITORY_STATE_NONE;
             if (should_cleanup) {
                 git_repository_state_cleanup(repo);
             }
@@ -62,23 +75,23 @@ class GitManager : public RepoManager {
     }
 
     static int credential_callback(
-        git_credential** out,
-        const char* url,
-        const char* username_from_url,
+        git_credential **out,
+        const char *url,
+        const char *username_from_url,
         unsigned int allowed_types,
-        void* payload) {
+        void *payload) {
         (void)url;
         (void)payload;
         if (allowed_types & GIT_CREDENTIAL_SSH_KEY) {
-            if (git_credential_ssh_key_from_agent(
-                    out,
-                    username_from_url) == 0) {
+            if (git_credential_ssh_key_from_agent(out, username_from_url) ==
+                0) {
                 return 0;
             }
-            const char* privatekey_path = "~/.ssh/id_ed25519";
-            const char* publickey_path = "~/.ssh/id_ed25519.pub";
+            const char *privatekey_path = "~/.ssh/id_ed25519";
+            const char *publickey_path = "~/.ssh/id_ed25519.pub";
             return git_credential_ssh_key_new(
-                out, username_from_url,
+                out,
+                username_from_url,
                 publickey_path,
                 privatekey_path,
                 nullptr);
@@ -93,24 +106,23 @@ class GitManager : public RepoManager {
         return callbacks;
     }
 
- public:
+  public:
     GitManager() = default;
     ~GitManager() override = default;
 
-    bool is_repo(const std::string& path) override {
+    bool is_repo(const std::string &path) override {
         const bool path_exists = std::filesystem::exists(path);
         if (!path_exists) {
             return false;
         }
         GitRepository repo;
-        const int error_code = git_repository_open(
-            repo.get_address(),
-            path.c_str());
+        const int error_code =
+            git_repository_open(repo.get_address(), path.c_str());
         return error_code == 0;
     }
 
-    void copy(const std::string& source, const std::string& destination)
-        override {
+    void
+    copy(const std::string &source, const std::string &destination) override {
         GitRepository repo;
         git_clone_options clone_opts;
         git_clone_options_init(&clone_opts, GIT_CLONE_OPTIONS_VERSION);
@@ -136,7 +148,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void update(const std::string& path) override {
+    void update(const std::string &path) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -193,11 +205,7 @@ class GitManager : public RepoManager {
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
         fetch_opts.callbacks = create_remote_callbacks();
         check_error(
-            git_remote_fetch(
-                remote.get(),
-                nullptr,
-                &fetch_opts,
-                nullptr),
+            git_remote_fetch(remote.get(), nullptr, &fetch_opts, nullptr),
             "Failed to fetch remote in " + path,
             repo.get());
 
@@ -210,7 +218,7 @@ class GitManager : public RepoManager {
             "Failed to lookup remote reference in " + path,
             repo.get());
 
-        const git_oid* target_oid = git_reference_target(remote_ref.get());
+        const git_oid *target_oid = git_reference_target(remote_ref.get());
         GitReference new_head;
         check_error(
             git_reference_set_target(
@@ -237,11 +245,9 @@ class GitManager : public RepoManager {
             repo.get());
 
         git_checkout_options checkout_opts;
-        git_checkout_options_init(
-            &checkout_opts,
-            GIT_CHECKOUT_OPTIONS_VERSION);
-        checkout_opts.checkout_strategy = GIT_CHECKOUT_FORCE |
-            GIT_CHECKOUT_REMOVE_UNTRACKED;
+        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
+        checkout_opts.checkout_strategy =
+            GIT_CHECKOUT_FORCE | GIT_CHECKOUT_REMOVE_UNTRACKED;
         check_error(
             git_checkout_head(repo.get(), &checkout_opts),
             "Failed to update working directory in " + path,
@@ -255,7 +261,7 @@ class GitManager : public RepoManager {
         }
     }
 
-    void add_remote(const std::string& path, const Remote& remote) override {
+    void add_remote(const std::string &path, const Remote &remote) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -273,7 +279,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void remove_remote(const std::string& path, const Remote& remote) override {
+    void remove_remote(const std::string &path, const Remote &remote) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -286,7 +292,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    std::vector<Remote> get_remotes(const std::string& path) override {
+    std::vector<Remote> get_remotes(const std::string &path) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -301,7 +307,7 @@ class GitManager : public RepoManager {
 
         std::vector<Remote> remotes;
         auto names = std::span(remote_names.strings, remote_names.count);
-        for (const char* remote_name : names) {
+        for (const char *remote_name : names) {
             GitRemote remote;
             check_error(
                 git_remote_lookup(
@@ -320,7 +326,7 @@ class GitManager : public RepoManager {
         return remotes;
     }
 
-    std::vector<std::string> get_status(const std::string& path) override {
+    std::vector<std::string> get_status(const std::string &path) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -345,7 +351,7 @@ class GitManager : public RepoManager {
         const size_t count = git_status_list_entrycount(status_list.get());
         std::vector<std::string> status_lines;
         for (size_t i = 0; i < count; ++i) {
-            const git_status_entry* entry =
+            const git_status_entry *entry =
                 git_status_byindex(status_list.get(), i);
             if (!entry) {
                 continue;
@@ -390,4 +396,4 @@ class GitManager : public RepoManager {
     }
 };
 
-#endif  // SRC_LIB_GIT_MANAGER_HPP_
+#endif // SRC_LIB_GIT_MANAGER_HPP_

@@ -1,6 +1,6 @@
+#include "exec.hpp"
 #include <iostream>
 #include <string>
-#include "exec.hpp"
 
 int run_exec(
     const std::string &custom_command,

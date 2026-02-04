@@ -8,6 +8,7 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
     clang \
+    clang-format \
     curl \
     git \
     ninja-build \
@@ -17,8 +18,7 @@ RUN apt-get update && \
     unzip \
     zip && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* && \
-    pip install --break-system-packages cpplint
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \

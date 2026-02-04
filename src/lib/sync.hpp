@@ -3,6 +3,6 @@
 
 #include <string>
 
-int run_sync(const std::string& config_file);
+int run_sync(const std::string &config_file);
 
-#endif  // SRC_LIB_SYNC_HPP_
+#endif // SRC_LIB_SYNC_HPP_

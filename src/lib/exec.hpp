@@ -6,7 +6,6 @@
 int run_exec(
     const std::string &custom_command,
     const std::string &config_file,
-    const std::string &repo_type
-);
+    const std::string &repo_type);
 
-#endif  // SRC_LIB_EXEC_HPP_
+#endif // SRC_LIB_EXEC_HPP_

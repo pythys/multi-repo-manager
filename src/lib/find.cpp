@@ -1,3 +1,7 @@
+#include "find.hpp"
+#include "config.hpp"
+#include "repo_factory.hpp"
+#include "tree.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -5,20 +9,15 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "config.hpp"
-#include "find.hpp"
-#include "repo_factory.hpp"
-#include "tree.hpp"
 
 namespace fs = std::filesystem;
 
-std::vector<Repo> find_repos(const std::string& path) {
+std::vector<Repo> find_repos(const std::string &path) {
     std::vector<Repo> repos;
     const fs::path root(path);
     std::unordered_map<std::string, RepoType> repo_map = {
         {".git", RepoType::GIT},
-        {".svn", RepoType::SVN}
-    };
+        {".svn", RepoType::SVN}};
     const bool valid_root = fs::exists(root) && fs::is_directory(root);
     if (!valid_root) {
         return repos;
@@ -33,12 +32,12 @@ std::vector<Repo> find_repos(const std::string& path) {
         if (repo_map.contains(filename)) {
             it.disable_recursion_pending();
         } else {
-            auto repo_type_it = std::ranges::find_if(
-                repo_map,
-                [&dirpath](const auto& pair) {
+            auto repo_type_it =
+                std::ranges::find_if(repo_map, [&dirpath](const auto &pair) {
                     const auto file_exists = fs::exists(dirpath / pair.first);
                     const auto is_dir = fs::is_directory(dirpath / pair.first);
-                    const auto not_empty = fs::directory_iterator(dirpath) !=
+                    const auto not_empty =
+                        fs::directory_iterator(dirpath) !=
                         fs::end(fs::directory_iterator(dirpath));
                     return file_exists && is_dir && not_empty;
                 });
@@ -55,25 +54,20 @@ std::vector<Repo> find_repos(const std::string& path) {
             }
         }
     }
-    std::ranges::sort(
-        repos,
-        [](const Repo& prev, const Repo& next) {
-            return prev.name < next.name;
-        });
+    std::ranges::sort(repos, [](const Repo &prev, const Repo &next) {
+        return prev.name < next.name;
+    });
 
     return repos;
 }
 
-std::string normalize_path(const std::string& path) {
+std::string normalize_path(const std::string &path) {
     const fs::path fsp(path);
     const std::string normalized = fsp.lexically_normal().string();
-    return normalized.starts_with("./")
-        ? normalized.substr(2)
-        : normalized;
+    return normalized.starts_with("./") ? normalized.substr(2) : normalized;
 }
 
-int run_find(
-    const std::string& find_path, const std::string& save_path) {
+int run_find(const std::string &find_path, const std::string &save_path) {
     Tree tree;
     const std::vector<Repo> repos = find_repos(find_path);
     const fs::path root_path = normalize_path(find_path);

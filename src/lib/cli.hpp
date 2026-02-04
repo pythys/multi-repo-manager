@@ -3,4 +3,4 @@
 
 int parse_cli(int argc, char **argv);
 
-#endif  // SRC_LIB_CLI_HPP_
+#endif // SRC_LIB_CLI_HPP_

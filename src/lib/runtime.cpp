@@ -2,13 +2,13 @@
 #include <cstdio>
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <io.h>
-    #define ISATTY _isatty
-    #define FILENO _fileno
+#include <io.h>
+#define ISATTY _isatty
+#define FILENO _fileno
 #else
-    #include <unistd.h>
-    #define ISATTY isatty
-    #define FILENO fileno
+#include <unistd.h>
+#define ISATTY isatty
+#define FILENO fileno
 #endif
 
 bool is_terminal() {

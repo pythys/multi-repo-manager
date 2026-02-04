@@ -3,6 +3,6 @@
 
 #include <string>
 
-int run_status(const std::string& config_file);
+int run_status(const std::string &config_file);
 
-#endif  // SRC_LIB_STATUS_HPP_
+#endif // SRC_LIB_STATUS_HPP_

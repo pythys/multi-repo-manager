@@ -1,13 +1,13 @@
-#include <gtest/gtest.h>
-#include <string>
-#include <vector>
 #include "find.hpp"
 #include "git_guard.hpp"
 #include "sync.hpp"
+#include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
 const GitGuard git_guard;
 
-int sync(const std::string& filename) {
+int sync(const std::string &filename) {
     return run_sync(std::string(TEST_RESOURCES_DIR) + "/" + filename);
 }
 

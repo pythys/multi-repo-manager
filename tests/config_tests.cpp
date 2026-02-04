@@ -1,13 +1,13 @@
+#include "config.hpp"
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
-#include "config.hpp"
 
-std::vector<Tree> parse_config(const std::string& filename) {
+std::vector<Tree> parse_config(const std::string &filename) {
     return get_config(std::string(TEST_RESOURCES_DIR) + "/" + filename);
 }
 
-std::vector<Tree> parse_dependencies(const std::string& filename) {
+std::vector<Tree> parse_dependencies(const std::string &filename) {
     return get_dependencies(std::string(TEST_RESOURCES_DIR) + "/" + filename);
 }
 

@@ -53,8 +53,6 @@ test: build ## Run all tests
 .PHONY: lint
 lint: ## Lint with clang-format and report issues
 	$(call check_bin, clang-format)
-	$(call check_bin, cpplint)
-	@cpplint --repository=. --recursive --config=.cpplintrc src tests
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
 		-exec clang-format -Werror -i --dry-run {} \;
 

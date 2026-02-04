@@ -4,7 +4,7 @@
 #include <git2.h>
 
 class GitGuard {
- public:
+  public:
     GitGuard() {
         git_libgit2_init();
     }
@@ -14,4 +14,4 @@ class GitGuard {
     }
 };
 
-#endif  // SRC_LIB_GIT_GUARD_HPP_
+#endif // SRC_LIB_GIT_GUARD_HPP_

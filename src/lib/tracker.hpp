@@ -1,90 +1,88 @@
 #ifndef SRC_LIB_TRACKER_HPP_
 #define SRC_LIB_TRACKER_HPP_
 
+#include "tree.hpp"
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "tree.hpp"
 
 class TreeObserver {
- public:
+  public:
     virtual ~TreeObserver() = default;
     virtual void update() = 0;
 };
 
 class TreeObservable {
- public:
+  public:
     virtual ~TreeObservable() = default;
-    virtual void add_observer(TreeObserver* observer) = 0;
-    virtual void remove_observer(TreeObserver* observer) = 0;
+    virtual void add_observer(TreeObserver *observer) = 0;
+    virtual void remove_observer(TreeObserver *observer) = 0;
     virtual void notify_observers() = 0;
 };
 
 class Tracker : public TreeObservable {
- public:
-    Tracker(const Tracker&) = delete;
-    Tracker& operator=(const Tracker&) = delete;
-    static Tracker& get_instance() {
+  public:
+    Tracker(const Tracker &) = delete;
+    Tracker &operator=(const Tracker &) = delete;
+    static Tracker &get_instance() {
         static Tracker instance;
         return instance;
     }
 
-    void add_observer(TreeObserver* observer) override {
+    void add_observer(TreeObserver *observer) override {
         observers.push_back(observer);
     }
 
-    void remove_observer(TreeObserver* observer) override {
+    void remove_observer(TreeObserver *observer) override {
         std::erase(observers, observer);
     }
 
     void notify_observers() override {
-        for (auto* observer : observers) {
+        for (auto *observer : observers) {
             observer->update();
         }
     }
 
-    void populate(const std::vector<Tree>& initial) {
+    void populate(const std::vector<Tree> &initial) {
         this->trees = initial;
         notify_observers();
     }
 
     void set_status(
-        const std::string& root,
-        const std::string& name,
+        const std::string &root,
+        const std::string &name,
         RepoStatus status) {
-        Repo& repo = get_repo(root, name);
+        Repo &repo = get_repo(root, name);
         repo.status = status;
         notify_observers();
     }
 
     void add_message(
-        const std::string& root,
-        const std::string& name,
-        const std::string& message) {
-        Repo& repo = get_repo(root, name);
+        const std::string &root,
+        const std::string &name,
+        const std::string &message) {
+        Repo &repo = get_repo(root, name);
         repo.messages.push_back(message);
         notify_observers();
     }
 
-    const std::vector<Tree>& get_trees() const {
+    const std::vector<Tree> &get_trees() const {
         return trees;
     }
 
- private:
+  private:
     std::vector<Tree> trees;
-    std::vector<TreeObserver*> observers;
+    std::vector<TreeObserver *> observers;
 
     // Singleton
     Tracker() = default;
 
-    Repo* recursive_find(
-        const std::string& name,
-        std::vector<Repo>& repos) {
-        for (auto& repo : repos) {
+    Repo *recursive_find(const std::string &name, std::vector<Repo> &repos) {
+        for (auto &repo : repos) {
             if (repo.name == name) {
                 return &repo;
             }
-            Repo* found = recursive_find(name, repo.children);
+            Repo *found = recursive_find(name, repo.children);
             if (found) {
                 return found;
             }
@@ -92,10 +90,10 @@ class Tracker : public TreeObservable {
         return nullptr;
     }
 
-    Repo& get_repo(const std::string& root, const std::string& name) {
-        for (auto& tree : trees) {
+    Repo &get_repo(const std::string &root, const std::string &name) {
+        for (auto &tree : trees) {
             if (tree.root == root) {
-                Repo* found = recursive_find(name, tree.repos);
+                Repo *found = recursive_find(name, tree.repos);
                 if (found) {
                     return *found;
                 }
@@ -105,4 +103,4 @@ class Tracker : public TreeObservable {
     }
 };
 
-#endif  // SRC_LIB_TRACKER_HPP_
+#endif // SRC_LIB_TRACKER_HPP_

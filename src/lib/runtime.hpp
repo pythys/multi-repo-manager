@@ -3,4 +3,4 @@
 
 bool is_terminal();
 
-#endif  // SRC_LIB_RUNTIME_HPP_
+#endif // SRC_LIB_RUNTIME_HPP_

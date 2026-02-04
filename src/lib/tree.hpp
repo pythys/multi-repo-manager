@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-enum class RepoType: std::uint8_t { GIT, SVN, HG, UNKNOWN };
-enum class RepoStatus: std::uint8_t { PENDING, SYNCHING, SYNCHED, UNKNOWN };
+enum class RepoType : std::uint8_t { GIT, SVN, HG, UNKNOWN };
+enum class RepoStatus : std::uint8_t { PENDING, SYNCHING, SYNCHED, UNKNOWN };
 
 struct Remote {
     std::string name;
@@ -27,4 +27,4 @@ struct Tree {
     std::vector<Repo> repos;
 };
 
-#endif  // SRC_LIB_TREE_HPP_
+#endif // SRC_LIB_TREE_HPP_
