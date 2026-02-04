@@ -10,7 +10,6 @@
 #include "repo_factory.hpp"
 #include "sync.hpp"
 #include "terminal_screen.hpp"
-#include "tracker.hpp"
 #include "tree.hpp"
 
 namespace asio = boost::asio;
@@ -53,81 +52,84 @@ std::vector<Remote> find_remotes(
     return result;
 }
 
+void update_repository(const std::string& root, Repo* repo) {
+    std::cout << "updating repo: " + root + "/" + repo->name << '\n';
+    auto repo_manager = create_repo_manager(repo->type);
+    auto remotes = repo_manager->get_remotes(root + "/" + repo->name);
+    auto to_remove = find_remotes(
+        repo->remotes,
+        remotes,
+        MatchType::TO_REMOVE);
+    for (const auto& remote : to_remove) {
+        repo_manager->remove_remote(root + "/" + repo->name, remote);
+    }
+    auto to_add = find_remotes(
+        repo->remotes,
+        remotes,
+        MatchType::TO_ADD);
+    for (const auto& remote : to_add) {
+        repo_manager->add_remote(root + "/" + repo->name, remote);
+    }
+}
+
+void clone_repository(const std::string& root, Repo* repo) {
+    std::cout << "cloning repo:" + root + "/" + repo->name << '\n';
+    auto repo_manager = create_repo_manager(repo->type);
+    auto it = std::ranges::find_if(
+        repo->remotes,
+        [](const Remote& remote) {
+            return remote.name == "origin";
+        });
+    if (it != repo->remotes.end()) {
+        repo_manager->copy(it->url, root + "/" + repo->name);
+    } else {
+        std::cerr << "No remote found with name 'origin' for repo: "
+                  << repo->name
+                  << '\n';
+        std::exit(1);
+    }
+    for (size_t i = 0; i < repo->remotes.size(); i++) {
+        if (repo->remotes[i].name == "origin") {
+            continue;
+        }
+        repo_manager->add_remote(
+            root + "/" + repo->name,
+            repo->remotes[i]);
+    }
+}
+
 void sync_repository(
     const std::string& root,
     Repo* repo,
     asio::thread_pool* pool) {
 
-    Tracker::get_instance().set_status(root, repo->name, RepoStatus::SYNCHING);
     auto update_action = [root, repo, pool]() {
-        std::cout << "updating repo: " + root + "/" + repo->name << '\n';
-        auto repo_manager = create_repo_manager(repo->type);
-        auto remotes = repo_manager->get_remotes(root + "/" + repo->name);
-        auto to_remove = find_remotes(
-            repo->remotes,
-            remotes,
-            MatchType::TO_REMOVE);
-        for (const auto& remote : to_remove) {
-            repo_manager->remove_remote(root + "/" + repo->name, remote);
-            const std::string message = "Removed from repo: "
-                + root
-                + "/"
-                + repo->name
-                + " remote: "
-                + remote.name;
-            Tracker::get_instance().add_message(root, repo->name, message);
+        try {
+            update_repository(root, repo);
+        } catch (const std::exception& e) {
+            std::cerr << "Error updating repository "
+                      << repo->name
+                      << ": "
+                      << e.what()
+                      << '\n';
+            return;
         }
-        auto to_add = find_remotes(
-            repo->remotes,
-            remotes,
-            MatchType::TO_ADD);
-        for (const auto& remote : to_add) {
-            repo_manager->add_remote(root + "/" + repo->name, remote);
-            const std::string message = "Added to repo: "
-                + root
-                + "/"
-                + repo->name
-                + " remote: "
-                + remote.name;
-            Tracker::get_instance().add_message(root, repo->name, message);
-        }
-        Tracker::get_instance().set_status(
-            root,
-            repo->name,
-            RepoStatus::SYNCHED);
         for (auto& child : repo->children) {
             sync_repository(root, &child, pool);
         }
     };
 
     auto clone_action = [root, repo, pool]() {
-        std::cout << "cloning repo:" + root + "/" + repo->name << '\n';
-        auto repo_manager = create_repo_manager(repo->type);
-        auto it = std::ranges::find_if(
-            repo->remotes,
-            [](const Remote& remote) {
-                return remote.name == "origin";
-            });
-        if (it != repo->remotes.end()) {
-            repo_manager->copy(it->url, root + "/" + repo->name);
-        } else {
-            std::cerr << "No remote found with name 'origin' for repo: "
+        try {
+            clone_repository(root, repo);
+        } catch (const std::exception& e) {
+            std::cerr << "Error cloning repository "
                       << repo->name
+                      << ": "
+                      << e.what()
                       << '\n';
-            std::exit(1);
+            return;
         }
-        for (size_t i = 0; i < repo->remotes.size(); i++) {
-            if (repo->remotes[i].name == "origin") {
-                continue;
-            }
-            repo_manager->add_remote(
-                root + "/" + repo->name,
-                repo->remotes[i]);
-        }
-        Tracker::get_instance().set_status(
-            root,
-            repo->name,
-            RepoStatus::SYNCHED);
         for (auto& child : repo->children) {
             sync_repository(root, &child, pool);
         }
@@ -144,21 +146,12 @@ void sync_repository(
 
 int run_sync(const std::string& config_file) {
     std::vector<Tree> config = get_dependencies(config_file);
-    Tracker::get_instance().populate(config);
-    auto screen = std::make_unique<TerminalScreen>();
-    Tracker::get_instance().add_observer(screen.get());
     asio::thread_pool pool(SYNC_POOL_SIZE);
-    tbb::parallel_for_each(
-        config.begin(),
-        config.end(),
-        [&pool](Tree& tree) {
-            tbb::parallel_for_each(
-                tree.repos.begin(),
-                tree.repos.end(),
-                [&pool, &tree](Repo& repo) {
-                    sync_repository(tree.root, &repo, &pool);
-                });
-        });
+    for (auto& tree : config) {
+        for (auto& repo : tree.repos) {
+            sync_repository(tree.root, &repo, &pool);
+        }
+    }
     pool.join();
     return 0;
 }
