@@ -58,7 +58,7 @@ lint: ## Lint with clang-format and report issues
 
 .PHONY: lint-fix
 lint-fix: ## Lint and automatically fix formatting issues
-	find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
+	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
 		-exec clang-format -Werror -i {} \;
 
 .PHONY: scan
