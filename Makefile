@@ -51,10 +51,17 @@ test: build ## Run all tests
 	@cd build && ctest $(if $(TESTTYPE),-L $(TESTTYPE))
 
 .PHONY: lint
-lint: ## Lint source code with cpplint
+lint: ## Lint with clang-format and report issues
+	$(call check_bin, clang-format)
 	$(call check_bin, cpplint)
-	@echo "Linting src and tests directories..."
 	@cpplint --repository=. --recursive --config=.cpplintrc src tests
+	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
+		-exec clang-format -Werror -i --dry-run {} \;
+
+.PHONY: lint-fix
+lint-fix: ## Lint and automatically fix formatting issues
+	find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
+		-exec clang-format -Werror -i {} \;
 
 .PHONY: scan
 scan: ## Scan source code with clang-tidy
