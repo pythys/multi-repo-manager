@@ -2,7 +2,6 @@
 #include "config.hpp"
 #include "constants.hpp"
 #include "repo_factory.hpp"
-#include "terminal_screen.hpp"
 #include "tree.hpp"
 #include <algorithm>
 #include <boost/asio.hpp>

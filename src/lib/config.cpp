@@ -33,15 +33,31 @@ Remote to_remote(const YAML::Node &node) {
         .url = node["url"].as<std::string>()};
 }
 
+Branch to_branch(const YAML::Node &node) {
+    return Branch{
+        .name = node["name"].as<std::string>(),
+        .remote = node["remote"].as<std::string>(),
+        .is_current = node["is_current"].as<bool>()};
+}
+
 Repo to_repo(const YAML::Node &node) {
     std::vector<Remote> remotes;
+    std::vector<Branch> branches;
     const auto remote_node = node["remotes"];
+    const auto branch_node = node["branches"];
     if (remote_node.IsDefined() && remote_node.IsSequence()) {
         std::transform(
             node["remotes"].begin(),
             node["remotes"].end(),
             std::back_inserter(remotes),
             to_remote);
+        if (branch_node.IsDefined() && branch_node.IsSequence()) {
+            std::transform(
+                node["branches"].begin(),
+                node["branches"].end(),
+                std::back_inserter(branches),
+                to_branch);
+        }
     } else {
         std::cerr << "Warning: 'remotes' node is missing or not a sequence "
                   << "for repo " << node["name"].as<std::string>("unknown")
@@ -52,6 +68,7 @@ Repo to_repo(const YAML::Node &node) {
         .type = to_repo_type(node["type"].as<std::string>()),
         .status = RepoStatus::PENDING,
         .remotes = remotes,
+        .branches = branches,
         .children = {},
         .messages = {}};
 }
@@ -142,6 +159,16 @@ std::string make_config(const std::vector<Tree> &trees) {
                 out << YAML::BeginMap;
                 out << YAML::Key << "name" << YAML::Value << remote.name;
                 out << YAML::Key << "url" << YAML::Value << remote.url;
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
+            out << YAML::Key << "branches" << YAML::Value << YAML::BeginSeq;
+            for (const auto &branch : repo.branches) {
+                out << YAML::BeginMap;
+                out << YAML::Key << "name" << YAML::Value << branch.name;
+                out << YAML::Key << "remote" << YAML::Value << branch.remote;
+                out << YAML::Key << "is_current" << YAML::Value
+                    << branch.is_current;
                 out << YAML::EndMap;
             }
             out << YAML::EndSeq;

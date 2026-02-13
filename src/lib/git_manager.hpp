@@ -38,6 +38,8 @@ using GitRemote = GitResource<git_remote, git_remote_free>;
 using GitRepository = GitResource<git_repository, git_repository_free>;
 using GitSignature = GitResource<git_signature, git_signature_free>;
 using GitStatusList = GitResource<git_status_list, git_status_list_free>;
+using GitBranchIterator =
+    GitResource<git_branch_iterator, git_branch_iterator_free>;
 
 class GitBuffer {
     git_buf buf_;
@@ -324,6 +326,58 @@ class GitManager : public RepoManager {
         }
         git_strarray_dispose(&remote_names);
         return remotes;
+    }
+
+    std::vector<Branch> get_branches(const std::string &path) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+        GitBranchIterator branch_iter;
+        check_error(
+            git_branch_iterator_new(
+                branch_iter.get_address(),
+                repo.get(),
+                GIT_BRANCH_LOCAL),
+            "Failed to create branch iterator in " + path,
+            repo.get());
+        std::vector<Branch> branches;
+        while (true) {
+            GitReference next_branch;
+            git_branch_t branch_type;
+            const int code = git_branch_next(
+                next_branch.get_address(),
+                &branch_type,
+                branch_iter.get());
+            if (code == GIT_ITEROVER) {
+                break;
+            } else if (code != 0) {
+                check_error(
+                    code,
+                    "Failed to iterate branches in " + path,
+                    repo.get());
+            }
+            const char *name = nullptr;
+            check_error(
+                git_branch_name(&name, next_branch.get()),
+                "Failed to get branch name in " + path,
+                repo.get());
+            const std::string branch_name(name);
+            GitBuffer remote_name_buf;
+            const char* next_ref = git_reference_name(next_branch.get());
+            const int rcode = git_branch_upstream_remote(
+                remote_name_buf.get(),
+                repo.get(),
+                next_ref);
+            const bool is_tracked = rcode == 0;
+            if (!is_tracked) {
+                continue;
+            }
+            const std::string remote_name = remote_name_buf.get_ptr();
+            branches.push_back(Branch{branch_name, remote_name, false});
+        }
+        return branches;
     }
 
     std::vector<std::string> get_status(const std::string &path) override {

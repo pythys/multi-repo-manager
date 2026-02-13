@@ -21,6 +21,8 @@ class RepoManager {
 
     virtual std::vector<Remote> get_remotes(const std::string &path) = 0;
 
+    virtual std::vector<Branch> get_branches(const std::string &path) = 0;
+
     virtual std::vector<std::string> get_status(const std::string &path) = 0;
 
     virtual ~RepoManager() = default;

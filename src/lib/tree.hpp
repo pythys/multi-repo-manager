@@ -13,11 +13,18 @@ struct Remote {
     std::string url;
 };
 
+struct Branch {
+    std::string name;
+    std::string remote;
+    bool is_current;
+};
+
 struct Repo {
     std::string name;
     RepoType type = RepoType::UNKNOWN;
     RepoStatus status = RepoStatus::UNKNOWN;
     std::vector<Remote> remotes;
+    std::vector<Branch> branches;
     std::vector<Repo> children;
     std::vector<std::string> messages;
 };

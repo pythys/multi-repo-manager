@@ -4,11 +4,9 @@ ColumnLimit: 80
 UseTab: Never
 BreakBeforeBraces: Attach
 AllowShortFunctionsOnASingleLine: Empty
-
 BinPackParameters: false
 BinPackArguments: false
 AlignAfterOpenBracket: AlwaysBreak
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowAllArgumentsOnNextLine: false
-BraceWrapping:
-  AfterFunction: false
+ContinuationIndentWidth: 4
