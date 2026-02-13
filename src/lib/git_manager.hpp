@@ -345,14 +345,15 @@ class GitManager : public RepoManager {
         std::vector<Branch> branches;
         while (true) {
             GitReference next_branch;
-            git_branch_t branch_type;
+            git_branch_t branch_type = GIT_BRANCH_LOCAL;
             const int code = git_branch_next(
                 next_branch.get_address(),
                 &branch_type,
                 branch_iter.get());
             if (code == GIT_ITEROVER) {
                 break;
-            } else if (code != 0) {
+            }
+            if (code != 0) {
                 check_error(
                     code,
                     "Failed to iterate branches in " + path,
@@ -382,7 +383,11 @@ class GitManager : public RepoManager {
                 repo.get());
             const bool is_current =
                 git_reference_cmp(head_ref.get(), next_branch.get()) == 0;
-            branches.push_back(Branch{branch_name, remote_name, is_current});
+            branches.push_back(
+                Branch{
+                    .name = branch_name,
+                    .remote = remote_name,
+                    .is_current = is_current});
         }
         return branches;
     }
