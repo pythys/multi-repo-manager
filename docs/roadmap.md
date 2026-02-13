@@ -15,3 +15,4 @@
   - Macos zsh: $(brew --prefix)/share/zsh/site-functions
 - Introduce dynamic and static packaging of software using cpack.
 - Publish to Windows, MacOS and Linux distros.
+- Switch from make to [just](https://github.com/casey/just)
