@@ -365,7 +365,7 @@ class GitManager : public RepoManager {
                 repo.get());
             const std::string branch_name(name);
             GitBuffer remote_name_buf;
-            const char* next_ref = git_reference_name(next_branch.get());
+            const char *next_ref = git_reference_name(next_branch.get());
             const int rcode = git_branch_upstream_remote(
                 remote_name_buf.get(),
                 repo.get(),
