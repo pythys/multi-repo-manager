@@ -1,5 +1,6 @@
 # Roadmap
 
+- Update sync command to synchronize branches.
 - Terminal based logic to decide between FTXUI and cout for all commands.
 - Auto delete incomplete clones
 - Sync command to provide --delete-untracked
