@@ -375,7 +375,14 @@ class GitManager : public RepoManager {
                 continue;
             }
             const std::string remote_name = remote_name_buf.get_ptr();
-            branches.push_back(Branch{branch_name, remote_name, false});
+            GitReference head_ref;
+            check_error(
+                git_repository_head(head_ref.get_address(), repo.get()),
+                "Failed to retrieve HEAD in " + path,
+                repo.get());
+            const bool is_current =
+                git_reference_cmp(head_ref.get(), next_branch.get()) == 0;
+            branches.push_back(Branch{branch_name, remote_name, is_current});
         }
         return branches;
     }
