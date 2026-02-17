@@ -2,12 +2,11 @@
 
 - Update sync command to synchronize branches.
 - Terminal based logic to decide between FTXUI and cout for all commands.
-- Auto delete incomplete clones
 - Sync command to provide --delete-untracked
 - Make a more dynamic ssh key fallback (e.g. libssh2)
+- Introduce cmake-lint / cmake-format
 - Implement remotesync command.
 - Implement exec command.
-- Introduce branch tracking
 - Flag recursion to .gitmodule and .gitignore for improved performance.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
   - Linux bash: /etc/bash_completion.d
