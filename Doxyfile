@@ -5,5 +5,5 @@ PROJECT_BRIEF          = "Manage all your repos with one tool"
 OUTPUT_DIRECTORY       = build/docs
 CREATE_SUBDIRS         = YES
 CREATE_SUBDIRS_LEVEL   = 8
-INPUT                  = docs/ README.md
+INPUT                  = docs/ README.md src/ src/lib/
 USE_MDFILE_AS_MAINPAGE = README.md
