@@ -58,6 +58,8 @@ lint: ## Lint with clang-format and report issues
 
 .PHONY: lint-fix
 lint-fix: ## Lint and automatically fix formatting issues
+	$(call check_bin, clang-format)
+	$(call check_bin, cmake-format)
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
 		-exec clang-format -Werror -i {} \;
 	@find . -name "CMakeLists.txt" \
