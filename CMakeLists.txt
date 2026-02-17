@@ -10,14 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 if(MSVC)
     add_compile_options(/W4 /experimental:module)
 else()
-    add_compile_options(
-        -Wall
-        -Wextra
-        -Wshadow
-        -Wconversion
-        -Wpedantic
-        -Werror
-    )
+    add_compile_options(-Wall -Wextra -Wshadow -Wconversion -Wpedantic -Werror)
 endif()
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)

@@ -4,7 +4,6 @@
 - Terminal based logic to decide between FTXUI and cout for all commands.
 - Sync command to provide --delete-untracked
 - Make a more dynamic ssh key fallback (e.g. libssh2)
-- Introduce cmake-lint / cmake-format
 - Implement remotesync command.
 - Implement exec command.
 - Flag recursion to .gitmodule and .gitignore for improved performance.

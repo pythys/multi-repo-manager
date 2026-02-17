@@ -60,6 +60,9 @@ lint: ## Lint with clang-format and report issues
 lint-fix: ## Lint and automatically fix formatting issues
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
 		-exec clang-format -Werror -i {} \;
+	@find . -name "CMakeLists.txt" \
+		-not -path "./build/*" \
+		-exec cmake-format -i {} +
 
 .PHONY: scan
 scan: ## Scan source code with clang-tidy
