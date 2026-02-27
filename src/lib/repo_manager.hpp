@@ -23,6 +23,18 @@ class RepoManager {
 
     virtual std::vector<Branch> get_branches(const std::string &path) = 0;
 
+    virtual void add_branch(const std::string &path, const Branch &branch) = 0;
+
+    virtual void
+    remove_branch(const std::string &path, const Branch &branch) = 0;
+
+    virtual void checkout_branch(
+        const std::string &path,
+        const std::string &branch_name) = 0;
+
+    virtual void
+    fetch_remote(const std::string &path, const std::string &remote_name) = 0;
+
     virtual std::vector<std::string> get_status(const std::string &path) = 0;
 
     virtual ~RepoManager() = default;

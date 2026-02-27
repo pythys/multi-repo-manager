@@ -1,6 +1,5 @@
 # Roadmap
 
-- Update sync command to synchronize branches.
 - Terminal based logic to decide between FTXUI and cout for all commands.
 - Sync command to provide --delete-untracked
 - Make a more dynamic ssh key fallback (e.g. libssh2)

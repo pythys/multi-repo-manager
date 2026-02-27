@@ -36,6 +36,7 @@ using GitObject = GitResource<git_object, git_object_free>;
 using GitReference = GitResource<git_reference, git_reference_free>;
 using GitRemote = GitResource<git_remote, git_remote_free>;
 using GitRepository = GitResource<git_repository, git_repository_free>;
+using GitCommit = GitResource<git_commit, git_commit_free>;
 using GitSignature = GitResource<git_signature, git_signature_free>;
 using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 using GitBranchIterator =
@@ -390,6 +391,170 @@ class GitManager : public RepoManager {
                     .is_current = is_current});
         }
         return branches;
+    }
+
+    void add_branch(const std::string &path, const Branch &branch) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        if (branch.remote.empty()) {
+            throw std::runtime_error(
+                "Branch remote is missing for " + branch.name);
+        }
+
+        const std::string remote_ref_name =
+            "refs/remotes/" + branch.remote + "/" + branch.name;
+        GitReference remote_ref;
+        check_error(
+            git_reference_lookup(
+                remote_ref.get_address(),
+                repo.get(),
+                remote_ref_name.c_str()),
+            "Failed to lookup remote branch in " + path,
+            repo.get());
+
+        const git_oid *target_oid = git_reference_target(remote_ref.get());
+        if (!target_oid) {
+            throw std::runtime_error(
+                "Remote branch target not found in " + path);
+        }
+
+        GitCommit target_commit;
+        check_error(
+            git_commit_lookup(
+                target_commit.get_address(),
+                repo.get(),
+                target_oid),
+            "Failed to lookup target commit in " + path,
+            repo.get());
+
+        GitReference new_branch;
+        check_error(
+            git_branch_create(
+                new_branch.get_address(),
+                repo.get(),
+                branch.name.c_str(),
+                target_commit.get(),
+                0),
+            "Failed to create branch in " + path,
+            repo.get());
+
+        const std::string upstream_name = branch.remote + "/" + branch.name;
+        check_error(
+            git_branch_set_upstream(new_branch.get(), upstream_name.c_str()),
+            "Failed to set branch upstream in " + path,
+            repo.get());
+    }
+
+    void remove_branch(const std::string &path, const Branch &branch) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitReference branch_ref;
+        const int lookup_code = git_branch_lookup(
+            branch_ref.get_address(),
+            repo.get(),
+            branch.name.c_str(),
+            GIT_BRANCH_LOCAL);
+        if (lookup_code == GIT_ENOTFOUND) {
+            return;
+        }
+        check_error(
+            lookup_code,
+            "Failed to lookup branch in " + path,
+            repo.get());
+
+        GitReference head_ref;
+        check_error(
+            git_repository_head(head_ref.get_address(), repo.get()),
+            "Failed to retrieve HEAD in " + path,
+            repo.get());
+
+        if (git_reference_cmp(head_ref.get(), branch_ref.get()) == 0) {
+            return;
+        }
+
+        check_error(
+            git_branch_delete(branch_ref.get()),
+            "Failed to delete branch in " + path,
+            repo.get());
+    }
+
+    void checkout_branch(
+        const std::string &path,
+        const std::string &branch_name) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitReference branch_ref;
+        check_error(
+            git_branch_lookup(
+                branch_ref.get_address(),
+                repo.get(),
+                branch_name.c_str(),
+                GIT_BRANCH_LOCAL),
+            "Failed to lookup branch in " + path,
+            repo.get());
+
+        GitObject target_obj;
+        check_error(
+            git_reference_peel(
+                target_obj.get_address(),
+                branch_ref.get(),
+                GIT_OBJECT_COMMIT),
+            "Failed to peel branch reference in " + path,
+            repo.get());
+
+        check_error(
+            git_repository_set_head(
+                repo.get(),
+                git_reference_name(branch_ref.get())),
+            "Failed to set HEAD in " + path,
+            repo.get());
+
+        git_checkout_options checkout_opts;
+        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
+        checkout_opts.checkout_strategy =
+            GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING;
+        check_error(
+            git_checkout_head(repo.get(), &checkout_opts),
+            "Failed to checkout branch in " + path,
+            repo.get());
+    }
+
+    void fetch_remote(const std::string &path, const std::string &remote_name)
+        override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitRemote remote;
+        check_error(
+            git_remote_lookup(
+                remote.get_address(),
+                repo.get(),
+                remote_name.c_str()),
+            "Failed to lookup remote in " + path,
+            repo.get());
+
+        git_fetch_options fetch_opts;
+        git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
+        fetch_opts.callbacks = create_remote_callbacks();
+        check_error(
+            git_remote_fetch(remote.get(), nullptr, &fetch_opts, nullptr),
+            "Failed to fetch remote in " + path,
+            repo.get());
     }
 
     std::vector<std::string> get_status(const std::string &path) override {
