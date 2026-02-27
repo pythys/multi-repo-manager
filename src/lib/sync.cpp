@@ -149,7 +149,8 @@ void sync_branches(
     auto to_remove_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
     for (const auto &branch : to_remove_branches) {
-        repo_manager->remove_branch(repo_path, branch);
+        std::cout << "ignoring branch not in config: " << repo_path << " "
+                  << branch.name << '\n';
     }
     repo_branches = repo_manager->get_branches(repo_path);
     set_current_branch(
