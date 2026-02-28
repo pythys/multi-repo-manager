@@ -77,6 +77,56 @@ class GitManager : public RepoManager {
         }
     }
 
+    static std::string delta_path(const git_diff_delta *delta) {
+        if (!delta) {
+            return "<unknown>";
+        }
+        const char *new_path = delta->new_file.path;
+        const char *old_path = delta->old_file.path;
+        if (new_path) {
+            return {new_path};
+        }
+        if (old_path) {
+            return {old_path};
+        }
+        return "<unknown>";
+    }
+
+    static void append_status_lines(
+        const git_status_entry &entry,
+        std::vector<std::string> &status_lines) {
+        const git_diff_delta *head_to_index = entry.head_to_index;
+        const git_diff_delta *index_to_workdir = entry.index_to_workdir;
+        struct StatusRule {
+            unsigned int flag;
+            const char *label;
+            const git_diff_delta *delta;
+        };
+        const std::array<StatusRule, 11> rules = {{
+            {GIT_STATUS_INDEX_NEW, "New file staged: ", head_to_index},
+            {GIT_STATUS_INDEX_MODIFIED,
+             "Modified file staged: ",
+             head_to_index},
+            {GIT_STATUS_INDEX_DELETED, "Deleted file staged: ", head_to_index},
+            {GIT_STATUS_INDEX_RENAMED, "Renamed file staged: ", head_to_index},
+            {GIT_STATUS_INDEX_TYPECHANGE,
+             "Type-changed file staged: ",
+             head_to_index},
+            {GIT_STATUS_WT_NEW, "New file: ", index_to_workdir},
+            {GIT_STATUS_WT_MODIFIED, "Modified file: ", index_to_workdir},
+            {GIT_STATUS_WT_DELETED, "Deleted file: ", index_to_workdir},
+            {GIT_STATUS_WT_RENAMED, "Renamed file: ", index_to_workdir},
+            {GIT_STATUS_WT_TYPECHANGE, "Type-changed file: ", index_to_workdir},
+            {GIT_STATUS_CONFLICTED, "Conflicted file: ", index_to_workdir},
+        }};
+        for (const auto &rule : rules) {
+            if (entry.status & rule.flag) {
+                status_lines.emplace_back(
+                    std::string(rule.label) + delta_path(rule.delta));
+            }
+        }
+    }
+
     static int credential_callback(
         git_credential **out,
         const char *url,
@@ -582,73 +632,13 @@ class GitManager : public RepoManager {
 
         const size_t count = git_status_list_entrycount(status_list.get());
         std::vector<std::string> status_lines;
-        auto delta_path = [](const git_diff_delta *delta) -> std::string {
-            if (!delta) {
-                return "<unknown>";
-            }
-            const char *new_path = delta->new_file.path;
-            const char *old_path = delta->old_file.path;
-            if (new_path) {
-                return std::string(new_path);
-            }
-            if (old_path) {
-                return std::string(old_path);
-            }
-            return "<unknown>";
-        };
         for (size_t i = 0; i < count; ++i) {
             const git_status_entry *entry =
                 git_status_byindex(status_list.get(), i);
             if (!entry) {
                 continue;
             }
-            const git_diff_delta *head_to_index = entry->head_to_index;
-            const git_diff_delta *index_to_workdir = entry->index_to_workdir;
-
-            if (entry->status & GIT_STATUS_INDEX_NEW) {
-                status_lines.emplace_back(
-                    "New file staged: " + delta_path(head_to_index));
-            }
-            if (entry->status & GIT_STATUS_INDEX_MODIFIED) {
-                status_lines.emplace_back(
-                    "Modified file staged: " + delta_path(head_to_index));
-            }
-            if (entry->status & GIT_STATUS_INDEX_DELETED) {
-                status_lines.emplace_back(
-                    "Deleted file staged: " + delta_path(head_to_index));
-            }
-            if (entry->status & GIT_STATUS_INDEX_RENAMED) {
-                status_lines.emplace_back(
-                    "Renamed file staged: " + delta_path(head_to_index));
-            }
-            if (entry->status & GIT_STATUS_INDEX_TYPECHANGE) {
-                status_lines.emplace_back(
-                    "Type-changed file staged: " + delta_path(head_to_index));
-            }
-            if (entry->status & GIT_STATUS_WT_NEW) {
-                status_lines.emplace_back(
-                    "New file: " + delta_path(index_to_workdir));
-            }
-            if (entry->status & GIT_STATUS_WT_MODIFIED) {
-                status_lines.emplace_back(
-                    "Modified file: " + delta_path(index_to_workdir));
-            }
-            if (entry->status & GIT_STATUS_WT_DELETED) {
-                status_lines.emplace_back(
-                    "Deleted file: " + delta_path(index_to_workdir));
-            }
-            if (entry->status & GIT_STATUS_WT_RENAMED) {
-                status_lines.emplace_back(
-                    "Renamed file: " + delta_path(index_to_workdir));
-            }
-            if (entry->status & GIT_STATUS_WT_TYPECHANGE) {
-                status_lines.emplace_back(
-                    "Type-changed file: " + delta_path(index_to_workdir));
-            }
-            if (entry->status & GIT_STATUS_CONFLICTED) {
-                status_lines.emplace_back(
-                    "Conflicted file: " + delta_path(index_to_workdir));
-            }
+            append_status_lines(*entry, status_lines);
         }
 
         if (status_lines.empty()) {

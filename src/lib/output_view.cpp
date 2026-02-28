@@ -139,7 +139,7 @@ class TuiView final : public OutputView {
             return;
         }
         {
-            std::lock_guard<std::mutex> lock(data_mutex_);
+            std::scoped_lock<std::mutex> lock(data_mutex_);
             trees_ = tracker_.snapshot();
         }
         ui_thread_ = std::thread([this] { run_ui(); });
@@ -147,12 +147,12 @@ class TuiView final : public OutputView {
             TrackerEvent event;
             while (tracker_.wait_next_event(event)) {
                 {
-                    std::lock_guard<std::mutex> lock(data_mutex_);
+                    std::scoped_lock<std::mutex> lock(data_mutex_);
                     trees_ = tracker_.snapshot();
                 }
                 std::function<void()> post;
                 {
-                    std::lock_guard<std::mutex> lock(screen_mutex_);
+                    std::scoped_lock<std::mutex> lock(screen_mutex_);
                     post = post_refresh_;
                 }
                 if (post) {
@@ -172,7 +172,7 @@ class TuiView final : public OutputView {
         }
         std::function<void()> exit;
         {
-            std::lock_guard<std::mutex> lock(screen_mutex_);
+            std::scoped_lock<std::mutex> lock(screen_mutex_);
             exit = exit_loop_;
         }
         if (exit) {
@@ -197,7 +197,7 @@ class TuiView final : public OutputView {
 
         std::vector<Tree> trees;
         {
-            std::lock_guard<std::mutex> lock(data_mutex_);
+            std::scoped_lock<std::mutex> lock(data_mutex_);
             trees = trees_;
         }
 
@@ -219,7 +219,7 @@ class TuiView final : public OutputView {
     void run_ui() {
         auto screen = ftxui::ScreenInteractive::Fullscreen();
         {
-            std::lock_guard<std::mutex> lock(screen_mutex_);
+            std::scoped_lock<std::mutex> lock(screen_mutex_);
             exit_loop_ = screen.ExitLoopClosure();
             post_refresh_ = [&screen] {
                 screen.PostEvent(ftxui::Event::Custom);
@@ -228,7 +228,7 @@ class TuiView final : public OutputView {
         auto renderer = ftxui::Renderer([this] { return render(); });
         screen.Loop(renderer);
         {
-            std::lock_guard<std::mutex> lock(screen_mutex_);
+            std::scoped_lock<std::mutex> lock(screen_mutex_);
             post_refresh_ = {};
             exit_loop_ = {};
         }
@@ -237,10 +237,10 @@ class TuiView final : public OutputView {
     void print_final_report() const {
         const std::vector<Tree> trees = tracker_.snapshot();
         std::vector<std::string> lines;
-        lines.push_back("mrm final report");
+        lines.emplace_back("mrm final report");
         for (const auto &tree : trees) {
-            lines.push_back("");
-            lines.push_back(tree.root);
+            lines.emplace_back("");
+            lines.emplace_back(tree.root);
             flatten_repo_lines_text(tree.root, tree.repos, lines);
         }
         for (const auto &line : lines) {

@@ -1,33 +1,83 @@
 # usage
 
-Example Usage:
+## help
 
-- create a config file
-
+```sh
+mrm --help
+mrm <command> --help
 ```
-mkdir myrepos && cd myrepos
-git clone https://github.com/bootandy/dust
-git clone https://github.com/sharkdp/fd
-git clone https://github.com/junegunn/fzf
-git clone https://github.com/siduck/st
-cd ..
+
+## create config from existing repos
+
+```sh
 mrm find myrepos --save myrepos.yml
 ```
 
-- sync repos from config file
+Without `--save`, output is printed to stdout.
 
-`mrm sync --config myrepos.yml myrepos`
+Recommended workflow:
+- make changes in repositories first (remotes, branches, layout)
+- regenerate config with `mrm find`
 
-- get help
+## sync repos from config
 
-`mrm --help` or `mrm -h`
-`mrm <command> --help` e.g.:
-  - `mrm sync --help`
-  - `mrm find -h`
+```sh
+mrm sync --config myrepos.yml
+```
 
-## SSH Credentials
+`sync` behavior:
+- clone missing repos
+- reconcile remotes
+- reconcile branches
+- align current branch when configured
+- process nested dependencies
 
-If you have authenticated repos, then SSH installation is required along with
-adding the SSH keys as sampled in below command:
+## status of repos from config
 
-`ssh-add ~/.ssh/id_ed25519`
+```sh
+mrm status --config myrepos.yml
+```
+
+Status output is based on libgit2 `git_status_list` and includes:
+- staged: new, modified, deleted, renamed, type-changed
+- worktree: new, modified, deleted, renamed, type-changed
+- conflicted
+
+## update repos from config
+
+```sh
+mrm update --config myrepos.yml
+```
+
+## output modes
+
+`sync` and `update` auto-select output mode:
+- interactive terminal: FTXUI live TUI
+- non-terminal (redirect/script): plain text lines
+
+TUI notes:
+- scroll with arrow keys or mouse wheel
+- after completion, a final plain-text report is printed
+
+## SSH authentication
+
+SSH auth fallback order:
+1. ssh-agent
+2. default key files:
+   - `~/.ssh/id_ed25519`
+   - `~/.ssh/id_ed25519.pub`
+
+If using agent:
+
+```sh
+ssh-add ~/.ssh/id_ed25519
+```
+
+## current placeholders
+
+- `mrm remotesync --config ...` is present but not implemented yet.
+- `mrm exec --config ... --type ... --command ...` is present but currently a placeholder.
+
+## known limitation
+
+CLI accepts `mrm sync --config <file> <workdir>`, but current implementation does not yet use `workdir`.

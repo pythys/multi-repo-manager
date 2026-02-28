@@ -2,7 +2,7 @@
 #include <stdexcept>
 
 void Tracker::populate(const std::vector<Tree> &initial) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock<std::mutex> lock(mutex_);
     trees_ = initial;
 }
 
@@ -12,7 +12,7 @@ void Tracker::set_phase(
     RepoPhase phase,
     const std::string &message,
     MessageLevel level) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock<std::mutex> lock(mutex_);
     if (closed_) {
         return;
     }
@@ -33,7 +33,7 @@ void Tracker::set_phase(
 }
 
 std::vector<Tree> Tracker::snapshot() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock<std::mutex> lock(mutex_);
     return trees_;
 }
 
@@ -50,7 +50,7 @@ bool Tracker::wait_next_event(TrackerEvent &event) {
 }
 
 void Tracker::close() {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::scoped_lock<std::mutex> lock(mutex_);
     closed_ = true;
     condition_.notify_all();
 }
