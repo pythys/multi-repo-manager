@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 4.2)
 
-project(mrm VERSION 1.0)
+project(mrm VERSION 0.1.0)
 
 # compile options
 set(CMAKE_CXX_STANDARD 20)
