@@ -33,6 +33,21 @@ int parse_cli(int argc, char **argv) {
     sync->add_option("--pool-size", sync_jobs, "DEPRECATED: use --jobs")
         ->type_name("N")
         ->group("");
+    bool prune_remotes = false;
+    sync->add_flag(
+        "--prune-remotes",
+        prune_remotes,
+        "Remove remotes not declared in config");
+    bool prune_branches = false;
+    sync->add_flag(
+        "--prune-branches",
+        prune_branches,
+        "Remove local tracked branches not declared in config");
+    bool prune_all = false;
+    sync->add_flag(
+        "--prune",
+        prune_all,
+        "Enable both --prune-remotes and --prune-branches");
 
     CLI::App *find = app.add_subcommand(
         "find",
@@ -110,7 +125,13 @@ int parse_cli(int argc, char **argv) {
     CLI11_PARSE(app, argc, argv);
 
     if (*sync) {
-        return run_sync(config_file, sync_jobs);
+        const bool should_prune_remotes = prune_all || prune_remotes;
+        const bool should_prune_branches = prune_all || prune_branches;
+        return run_sync(
+            config_file,
+            sync_jobs,
+            should_prune_remotes,
+            should_prune_branches);
     }
 
     if (*find) {

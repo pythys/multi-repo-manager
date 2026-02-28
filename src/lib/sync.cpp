@@ -131,7 +131,8 @@ void sync_branches(
     const std::string &repo_name,
     RepoManager *repo_manager,
     const std::string &repo_path,
-    const std::vector<Branch> &desired_branches) {
+    const std::vector<Branch> &desired_branches,
+    bool prune_branches) {
     if (desired_branches.empty()) {
         return;
     }
@@ -153,13 +154,19 @@ void sync_branches(
     }
     auto to_remove_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
-    for (const auto &branch : to_remove_branches) {
-        tracker.set_phase(
-            root,
-            repo_name,
-            RepoPhase::RUNNING,
-            "Ignoring branch not in config: " + branch.name,
-            MessageLevel::WARNING);
+    if (prune_branches) {
+        for (const auto &branch : to_remove_branches) {
+            repo_manager->remove_branch(repo_path, branch);
+        }
+    } else {
+        for (const auto &branch : to_remove_branches) {
+            tracker.set_phase(
+                root,
+                repo_name,
+                RepoPhase::RUNNING,
+                "Ignoring branch not in config: " + branch.name,
+                MessageLevel::WARNING);
+        }
     }
     repo_branches = repo_manager->get_branches(repo_path);
     set_current_branch(
@@ -170,15 +177,23 @@ void sync_branches(
 }
 } // namespace
 
-void update_repository(const std::string &root, Repo *repo, Tracker &tracker) {
+void update_repository(
+    const std::string &root,
+    Repo *repo,
+    Tracker &tracker,
+    bool prune_remotes,
+    bool prune_branches) {
     tracker
         .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
     auto repo_manager = create_repo_manager(repo->type);
     const std::string repo_path = root + "/" + repo->name;
     auto remotes = repo_manager->get_remotes(repo_path);
-    auto to_remove = find_remotes(repo->remotes, remotes, MatchType::TO_REMOVE);
-    for (const auto &remote : to_remove) {
-        repo_manager->remove_remote(repo_path, remote);
+    if (prune_remotes) {
+        auto to_remove =
+            find_remotes(repo->remotes, remotes, MatchType::TO_REMOVE);
+        for (const auto &remote : to_remove) {
+            repo_manager->remove_remote(repo_path, remote);
+        }
     }
     auto to_add = find_remotes(repo->remotes, remotes, MatchType::TO_ADD);
     for (const auto &remote : to_add) {
@@ -190,7 +205,8 @@ void update_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         repo->name,
         repo_manager.get(),
         repo_path,
-        repo->branches);
+        repo->branches,
+        prune_branches);
 }
 
 void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
@@ -218,58 +234,80 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         repo->name,
         repo_manager.get(),
         root + "/" + repo->name,
-        repo->branches);
+        repo->branches,
+        false);
 }
 
 void sync_repository(
     const std::string &root,
     Repo *repo,
     Tracker *tracker,
-    asio::thread_pool *pool) {
+    asio::thread_pool *pool,
+    bool prune_remotes,
+    bool prune_branches) {
 
-    auto update_action = [root, repo, tracker, pool]() {
-        try {
-            update_repository(root, repo, *tracker);
-            tracker->set_phase(
-                root,
-                repo->name,
-                RepoPhase::SUCCEEDED,
-                "Repository synced");
-        } catch (const std::exception &e) {
-            tracker->set_phase(
-                root,
-                repo->name,
-                RepoPhase::FAILED,
-                e.what(),
-                MessageLevel::ERROR);
-            return;
-        }
-        for (auto &child : repo->children) {
-            sync_repository(root, &child, tracker, pool);
-        }
-    };
+    auto update_action =
+        [root, repo, tracker, pool, prune_remotes, prune_branches]() {
+            try {
+                update_repository(
+                    root,
+                    repo,
+                    *tracker,
+                    prune_remotes,
+                    prune_branches);
+                tracker->set_phase(
+                    root,
+                    repo->name,
+                    RepoPhase::SUCCEEDED,
+                    "Repository synced");
+            } catch (const std::exception &e) {
+                tracker->set_phase(
+                    root,
+                    repo->name,
+                    RepoPhase::FAILED,
+                    e.what(),
+                    MessageLevel::ERROR);
+                return;
+            }
+            for (auto &child : repo->children) {
+                sync_repository(
+                    root,
+                    &child,
+                    tracker,
+                    pool,
+                    prune_remotes,
+                    prune_branches);
+            }
+        };
 
-    auto clone_action = [root, repo, tracker, pool]() {
-        try {
-            clone_repository(root, repo, *tracker);
-            tracker->set_phase(
-                root,
-                repo->name,
-                RepoPhase::SUCCEEDED,
-                "Repository synced");
-        } catch (const std::exception &e) {
-            tracker->set_phase(
-                root,
-                repo->name,
-                RepoPhase::FAILED,
-                e.what(),
-                MessageLevel::ERROR);
-            return;
-        }
-        for (auto &child : repo->children) {
-            sync_repository(root, &child, tracker, pool);
-        }
-    };
+    auto clone_action =
+        [root, repo, tracker, pool, prune_remotes, prune_branches]() {
+            try {
+                clone_repository(root, repo, *tracker);
+                tracker->set_phase(
+                    root,
+                    repo->name,
+                    RepoPhase::SUCCEEDED,
+                    "Repository synced");
+            } catch (const std::exception &e) {
+                tracker->set_phase(
+                    root,
+                    repo->name,
+                    RepoPhase::FAILED,
+                    e.what(),
+                    MessageLevel::ERROR);
+                return;
+            }
+            for (auto &child : repo->children) {
+                sync_repository(
+                    root,
+                    &child,
+                    tracker,
+                    pool,
+                    prune_remotes,
+                    prune_branches);
+            }
+        };
 
     auto repo_manager = create_repo_manager(repo->type);
     auto is_repo = repo_manager->is_repo(root + "/" + repo->name);
@@ -280,7 +318,11 @@ void sync_repository(
     }
 }
 
-int run_sync(const std::string &config_file, int pool_size) {
+int run_sync(
+    const std::string &config_file,
+    int pool_size,
+    bool prune_remotes,
+    bool prune_branches) {
     std::vector<Tree> config = get_dependencies(config_file);
     Tracker tracker;
     tracker.populate(config);
@@ -292,7 +334,13 @@ int run_sync(const std::string &config_file, int pool_size) {
     asio::thread_pool pool(effective_pool_size);
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
-            sync_repository(tree.root, &repo, &tracker, &pool);
+            sync_repository(
+                tree.root,
+                &repo,
+                &tracker,
+                &pool,
+                prune_remotes,
+                prune_branches);
         }
     }
     pool.join();

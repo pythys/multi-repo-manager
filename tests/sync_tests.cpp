@@ -20,6 +20,14 @@ int sync(const std::string &filename) {
     return run_sync(std::string(TEST_RESOURCES_DIR) + "/" + filename);
 }
 
+int sync(const std::string &filename, bool prune_remotes, bool prune_branches) {
+    return run_sync(
+        std::string(TEST_RESOURCES_DIR) + "/" + filename,
+        0,
+        prune_remotes,
+        prune_branches);
+}
+
 namespace {
 class TempDir {
   public:
@@ -52,6 +60,39 @@ int run_git(const fs::path &repo, const std::string &command) {
 void write_text(const fs::path &path, const std::string &content) {
     std::ofstream out(path);
     out << content;
+}
+
+void write_main_only_config(
+    const fs::path &path,
+    const fs::path &root,
+    const fs::path &origin_remote) {
+    std::ofstream out(path);
+    out << "trees:\n";
+    out << "- root: " << root.string() << "\n";
+    out << "  repos:\n";
+    out << "  - name: repo1\n";
+    out << "    type: git\n";
+    out << "    remotes:\n";
+    out << "    - name: origin\n";
+    out << "      url: " << origin_remote.string() << "\n";
+    out << "    branches:\n";
+    out << "    - name: main\n";
+    out << "      remote: origin\n";
+    out << "      is_current: true\n";
+}
+
+bool has_remote(const Repo &repo, const std::string &name) {
+    auto it = std::ranges::find_if(repo.remotes, [&](const Remote &remote) {
+        return remote.name == name;
+    });
+    return it != repo.remotes.end();
+}
+
+const Branch *find_branch(const Repo &repo, const std::string &name) {
+    auto it = std::ranges::find_if(repo.branches, [&](const Branch &branch) {
+        return branch.name == name;
+    });
+    return it == repo.branches.end() ? nullptr : &(*it);
 }
 } // namespace
 
@@ -172,4 +213,112 @@ TEST(SyncTests, ExistingBranchesDoNotRequireFetch) {
     EXPECT_NE(std::string::npos, stdout_text.find("SUCCEEDED"));
     EXPECT_EQ(std::string::npos, stdout_text.find("FAILED"));
     EXPECT_EQ(std::string::npos, stderr_text.find("FAILED"));
+}
+
+TEST(SyncTests, PruneRemotesIsOptIn) {
+    TempDir temp;
+    const fs::path root = temp.path() / "root";
+    const fs::path remote = temp.path() / "remote.git";
+    const fs::path upstream = temp.path() / "upstream.git";
+    const fs::path repo = root / "repo1";
+    fs::create_directories(repo);
+    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
+    ASSERT_EQ(0, run_git(temp.path(), "init --bare upstream.git"));
+    ASSERT_EQ(0, run_git(repo, "init -b main"));
+    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
+    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    write_text(repo / "README.md", "hello\n");
+    ASSERT_EQ(0, run_git(repo, "add README.md"));
+    ASSERT_EQ(0, run_git(repo, "commit -m init"));
+    ASSERT_EQ(
+        0,
+        run_git(repo, "remote add origin \"" + remote.string() + "\""));
+    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
+    ASSERT_EQ(
+        0,
+        run_git(repo, "remote add upstream \"" + upstream.string() + "\""));
+
+    const fs::path config = temp.path() / "config.yml";
+    write_main_only_config(config, root, remote);
+
+    run_sync(config.string());
+    auto repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    EXPECT_TRUE(has_remote(repos[0], "upstream"));
+
+    run_sync(config.string(), 0, true, false);
+    repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    EXPECT_FALSE(has_remote(repos[0], "upstream"));
+}
+
+TEST(SyncTests, PruneBranchesRemovesNonCurrentBranches) {
+    TempDir temp;
+    const fs::path root = temp.path() / "root";
+    const fs::path remote = temp.path() / "remote.git";
+    const fs::path repo = root / "repo1";
+    fs::create_directories(repo);
+    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
+    ASSERT_EQ(0, run_git(repo, "init -b main"));
+    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
+    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    write_text(repo / "README.md", "hello\n");
+    ASSERT_EQ(0, run_git(repo, "add README.md"));
+    ASSERT_EQ(0, run_git(repo, "commit -m init"));
+    ASSERT_EQ(
+        0,
+        run_git(repo, "remote add origin \"" + remote.string() + "\""));
+    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
+    ASSERT_EQ(0, run_git(repo, "checkout -b feature"));
+    write_text(repo / "feature.txt", "feature\n");
+    ASSERT_EQ(0, run_git(repo, "add feature.txt"));
+    ASSERT_EQ(0, run_git(repo, "commit -m feature"));
+    ASSERT_EQ(0, run_git(repo, "push -u origin feature"));
+    ASSERT_EQ(0, run_git(repo, "checkout main"));
+
+    const fs::path config = temp.path() / "config.yml";
+    write_main_only_config(config, root, remote);
+
+    run_sync(config.string(), 0, false, true);
+    auto repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    EXPECT_NE(find_branch(repos[0], "main"), nullptr);
+    EXPECT_EQ(find_branch(repos[0], "feature"), nullptr);
+}
+
+TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
+    TempDir temp;
+    const fs::path root = temp.path() / "root";
+    const fs::path remote = temp.path() / "remote.git";
+    const fs::path repo = root / "repo1";
+    fs::create_directories(repo);
+    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
+    ASSERT_EQ(0, run_git(repo, "init -b main"));
+    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
+    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    write_text(repo / "README.md", "hello\n");
+    ASSERT_EQ(0, run_git(repo, "add README.md"));
+    ASSERT_EQ(0, run_git(repo, "commit -m init"));
+    ASSERT_EQ(
+        0,
+        run_git(repo, "remote add origin \"" + remote.string() + "\""));
+    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
+    ASSERT_EQ(0, run_git(repo, "checkout -b feature"));
+    write_text(repo / "feature.txt", "feature\n");
+    ASSERT_EQ(0, run_git(repo, "add feature.txt"));
+    ASSERT_EQ(0, run_git(repo, "commit -m feature"));
+    ASSERT_EQ(0, run_git(repo, "push -u origin feature"));
+
+    const fs::path config = temp.path() / "config.yml";
+    write_main_only_config(config, root, remote);
+
+    run_sync(config.string(), 0, false, true);
+    auto repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    const Branch *main = find_branch(repos[0], "main");
+    const Branch *feature = find_branch(repos[0], "feature");
+    ASSERT_NE(main, nullptr);
+    ASSERT_NE(feature, nullptr);
+    EXPECT_TRUE(main->is_current);
+    EXPECT_FALSE(feature->is_current);
 }

@@ -84,6 +84,7 @@ details.
   subdirectories.
 - `make install` and `make uninstall` write to `/usr/local/bin` (may require
   elevated privileges).
+- Write tests for features that require it, without abiding to 100% coverage.
 - Keep changes consistent with CMake and Makefile conventions already in place.
 - Keep code changes and documentation in sync in the same change whenever
   behavior or interfaces change (docs, usage text, and relevant comments).

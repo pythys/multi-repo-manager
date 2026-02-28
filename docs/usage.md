@@ -24,6 +24,7 @@ Recommended workflow:
 ```sh
 mrm sync --config myrepos.yml
 mrm sync --config myrepos.yml --jobs 12
+mrm sync --config myrepos.yml --prune
 ```
 
 `sync` behavior:
@@ -32,6 +33,13 @@ mrm sync --config myrepos.yml --jobs 12
 - reconcile branches
 - align current branch when configured
 - process nested dependencies
+
+Prune options (all opt-in):
+- `--prune-remotes`: remove remotes not declared in config
+- `--prune-branches`: remove local tracked branches not declared in config
+- `--prune`: enable both `--prune-remotes` and `--prune-branches`
+
+When pruning branches, the current branch is never deleted.
 
 ## status of repos from config
 

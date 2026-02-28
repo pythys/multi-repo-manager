@@ -1,9 +1,8 @@
 # Roadmap
 
-- Sync command to provide --delete-untracked
-- Make a more dynamic ssh key fallback (e.g. libssh2)
 - Implement remotesync command.
 - Implement exec command.
+- Make a more dynamic and robust ssh key fallback (e.g. libssh2)
 - Flag recursion to .gitmodule and .gitignore for improved performance.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
   - Linux bash: /etc/bash_completion.d
