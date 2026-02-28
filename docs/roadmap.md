@@ -2,8 +2,8 @@
 
 - Implement remotesync command.
 - Implement exec command.
+- Add --recurse to find for improved performance.
 - Make a more dynamic and robust ssh key fallback (e.g. libssh2)
-- Flag recursion to .gitmodule and .gitignore for improved performance.
 - Finalize [complgen](https://github.com/adaszko/complgen) (mrm.usage).
   - Linux bash: /etc/bash_completion.d
   - Linux zsh: /usr/share/zsh/site-functions/
