@@ -11,6 +11,8 @@ mrm <command> --help
 
 ```sh
 mrm find myrepos --save myrepos.yml
+# or
+mrm find myrepos > myrepos.yml
 ```
 
 Without `--save`, output is printed to stdout.
