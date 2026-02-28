@@ -120,9 +120,8 @@ bool starts_with_command(
     return !command.empty() && command.front() == prefix_command;
 }
 
-std::vector<std::string> build_command_for_repo(
-    const std::string &custom_command,
-    RepoType type) {
+std::vector<std::string>
+build_command_for_repo(const std::string &custom_command, RepoType type) {
     std::vector<std::string> command_parts = split_command(custom_command);
     if (command_parts.empty()) {
         return {};
@@ -205,7 +204,8 @@ int run_exec(
                 continue;
             }
             const std::string repo_path = tree.root + "/" + repo.name;
-            const auto command = build_command_for_repo(custom_command, repo.type);
+            const auto command =
+                build_command_for_repo(custom_command, repo.type);
             if (command.empty()) {
                 std::cerr << "Invalid command syntax: " << custom_command
                           << "\n";
