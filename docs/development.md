@@ -22,7 +22,8 @@
 ## development setup
 
 ```sh
-make clean build lint test
+make clean
+make build lint test
 # live reload
 make watch
 ```
