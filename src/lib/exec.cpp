@@ -8,21 +8,12 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <vector>
 
 namespace {
-std::string shell_quote(const std::string &text) {
-    std::string out = "'";
-    for (const char ch : text) {
-        if (ch == '\'') {
-            out += "'\\''";
-        } else {
-            out += ch;
-        }
-    }
-    out += "'";
-    return out;
-}
+constexpr int kExecFailureExitCode = 127;
 
 std::vector<std::string> split(const std::string &text, char delimiter) {
     std::vector<std::string> items;
@@ -34,6 +25,55 @@ std::vector<std::string> split(const std::string &text, char delimiter) {
         }
     }
     return items;
+}
+
+std::vector<std::string> split_command(const std::string &command) {
+    std::vector<std::string> args;
+    std::string current;
+    bool in_single_quotes = false;
+    bool in_double_quotes = false;
+    bool escaped = false;
+
+    for (const char ch : command) {
+        if (escaped) {
+            current.push_back(ch);
+            escaped = false;
+            continue;
+        }
+
+        if (ch == '\\' && !in_single_quotes) {
+            escaped = true;
+            continue;
+        }
+
+        if (ch == '\'' && !in_double_quotes) {
+            in_single_quotes = !in_single_quotes;
+            continue;
+        }
+
+        if (ch == '"' && !in_single_quotes) {
+            in_double_quotes = !in_double_quotes;
+            continue;
+        }
+
+        if (ch == ' ' && !in_single_quotes && !in_double_quotes) {
+            if (!current.empty()) {
+                args.push_back(current);
+                current.clear();
+            }
+            continue;
+        }
+
+        current.push_back(ch);
+    }
+
+    if (escaped || in_single_quotes || in_double_quotes) {
+        return {};
+    }
+    if (!current.empty()) {
+        args.push_back(current);
+    }
+    return args;
 }
 
 bool command_exists(const std::string &command) {
@@ -75,26 +115,69 @@ std::string repo_cli(RepoType type) {
 }
 
 bool starts_with_command(
-    const std::string &command,
+    const std::vector<std::string> &command,
     const std::string &prefix_command) {
-    if (command == prefix_command) {
-        return true;
-    }
-    const std::string prefix_with_space = prefix_command + " ";
-    return command.starts_with(prefix_with_space);
+    return !command.empty() && command.front() == prefix_command;
 }
 
-std::string build_command_for_repo(
+std::vector<std::string> build_command_for_repo(
     const std::string &custom_command,
-    const std::string &repo_path,
     RepoType type) {
-    const std::string cli = repo_cli(type);
-    std::string effective_command = custom_command;
-    if (!cli.empty() && command_exists(cli) &&
-        !starts_with_command(custom_command, cli)) {
-        effective_command = cli + " " + custom_command;
+    std::vector<std::string> command_parts = split_command(custom_command);
+    if (command_parts.empty()) {
+        return {};
     }
-    return "cd " + shell_quote(repo_path) + " && " + effective_command;
+    const std::string cli = repo_cli(type);
+    if (!cli.empty() && command_exists(cli) &&
+        !starts_with_command(command_parts, cli)) {
+        command_parts.insert(command_parts.begin(), cli);
+    }
+    return command_parts;
+}
+
+int execute_in_repo(
+    const std::string &repo_path,
+    const std::vector<std::string> &command_parts) {
+    if (command_parts.empty()) {
+        return 1;
+    }
+
+    std::vector<std::vector<char>> mutable_args;
+    mutable_args.reserve(command_parts.size());
+    for (const auto &part : command_parts) {
+        std::vector<char> buffer(part.begin(), part.end());
+        buffer.push_back('\0');
+        mutable_args.push_back(std::move(buffer));
+    }
+
+    std::vector<char *> argv;
+    argv.reserve(command_parts.size() + 1);
+    for (auto &part : mutable_args) {
+        argv.push_back(part.data());
+    }
+    argv.push_back(nullptr);
+
+    const pid_t child_pid = fork();
+    if (child_pid < 0) {
+        return 1;
+    }
+
+    if (child_pid == 0) {
+        if (chdir(repo_path.c_str()) != 0) {
+            _exit(kExecFailureExitCode);
+        }
+        execvp(argv.front(), argv.data());
+        _exit(kExecFailureExitCode);
+    }
+
+    int status = 0;
+    if (waitpid(child_pid, &status, 0) < 0) {
+        return 1;
+    }
+    if (WIFEXITED(status)) {
+        return WEXITSTATUS(status);
+    }
+    return 1;
 }
 } // namespace
 
@@ -122,9 +205,13 @@ int run_exec(
                 continue;
             }
             const std::string repo_path = tree.root + "/" + repo.name;
-            const std::string command =
-                build_command_for_repo(custom_command, repo_path, repo.type);
-            const int command_code = std::system(command.c_str());
+            const auto command = build_command_for_repo(custom_command, repo.type);
+            if (command.empty()) {
+                std::cerr << "Invalid command syntax: " << custom_command
+                          << "\n";
+                return 1;
+            }
+            const int command_code = execute_in_repo(repo_path, command);
             if (command_code != 0) {
                 std::cerr << "Command failed in " << repo_path << ": "
                           << command_code << "\n";

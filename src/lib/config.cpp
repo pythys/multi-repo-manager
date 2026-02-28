@@ -45,7 +45,7 @@ Repo to_repo(const YAML::Node &node) {
                   << "for repo " << node["name"].as<std::string>("unknown")
                   << '\n';
     }
-    const std::string type_name = node["type"].as<std::string>();
+    const auto type_name = node["type"].as<std::string>();
     const std::optional<RepoType> type = parse_repo_type(type_name);
     if (!type.has_value()) {
         throw std::runtime_error("Invalid RepoType: " + type_name);
