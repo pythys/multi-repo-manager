@@ -568,7 +568,8 @@ class GitManager : public RepoManager {
         git_status_options_init(&status_opts, GIT_STATUS_OPTIONS_VERSION);
         status_opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
         status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
-                            GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX;
+                            GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX |
+                            GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR;
 
         GitStatusList status_list;
         check_error(
@@ -581,42 +582,72 @@ class GitManager : public RepoManager {
 
         const size_t count = git_status_list_entrycount(status_list.get());
         std::vector<std::string> status_lines;
+        auto delta_path = [](const git_diff_delta *delta) -> std::string {
+            if (!delta) {
+                return "<unknown>";
+            }
+            const char *new_path = delta->new_file.path;
+            const char *old_path = delta->old_file.path;
+            if (new_path) {
+                return std::string(new_path);
+            }
+            if (old_path) {
+                return std::string(old_path);
+            }
+            return "<unknown>";
+        };
         for (size_t i = 0; i < count; ++i) {
             const git_status_entry *entry =
                 git_status_byindex(status_list.get(), i);
             if (!entry) {
                 continue;
             }
+            const git_diff_delta *head_to_index = entry->head_to_index;
+            const git_diff_delta *index_to_workdir = entry->index_to_workdir;
 
             if (entry->status & GIT_STATUS_INDEX_NEW) {
                 status_lines.emplace_back(
-                    "New file staged: " +
-                    std::string(entry->head_to_index->new_file.path));
+                    "New file staged: " + delta_path(head_to_index));
             }
             if (entry->status & GIT_STATUS_INDEX_MODIFIED) {
                 status_lines.emplace_back(
-                    "Modified file staged: " +
-                    std::string(entry->head_to_index->new_file.path));
+                    "Modified file staged: " + delta_path(head_to_index));
             }
             if (entry->status & GIT_STATUS_INDEX_DELETED) {
                 status_lines.emplace_back(
-                    "Deleted file staged: " +
-                    std::string(entry->head_to_index->old_file.path));
+                    "Deleted file staged: " + delta_path(head_to_index));
+            }
+            if (entry->status & GIT_STATUS_INDEX_RENAMED) {
+                status_lines.emplace_back(
+                    "Renamed file staged: " + delta_path(head_to_index));
+            }
+            if (entry->status & GIT_STATUS_INDEX_TYPECHANGE) {
+                status_lines.emplace_back(
+                    "Type-changed file staged: " + delta_path(head_to_index));
             }
             if (entry->status & GIT_STATUS_WT_NEW) {
                 status_lines.emplace_back(
-                    "New file: " +
-                    std::string(entry->index_to_workdir->new_file.path));
+                    "New file: " + delta_path(index_to_workdir));
             }
             if (entry->status & GIT_STATUS_WT_MODIFIED) {
                 status_lines.emplace_back(
-                    "Modified file: " +
-                    std::string(entry->index_to_workdir->new_file.path));
+                    "Modified file: " + delta_path(index_to_workdir));
             }
             if (entry->status & GIT_STATUS_WT_DELETED) {
                 status_lines.emplace_back(
-                    "Deleted file: " +
-                    std::string(entry->index_to_workdir->old_file.path));
+                    "Deleted file: " + delta_path(index_to_workdir));
+            }
+            if (entry->status & GIT_STATUS_WT_RENAMED) {
+                status_lines.emplace_back(
+                    "Renamed file: " + delta_path(index_to_workdir));
+            }
+            if (entry->status & GIT_STATUS_WT_TYPECHANGE) {
+                status_lines.emplace_back(
+                    "Type-changed file: " + delta_path(index_to_workdir));
+            }
+            if (entry->status & GIT_STATUS_CONFLICTED) {
+                status_lines.emplace_back(
+                    "Conflicted file: " + delta_path(index_to_workdir));
             }
         }
 
