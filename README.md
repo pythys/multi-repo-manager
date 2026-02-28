@@ -1,7 +1,14 @@
 # mrm
 
-**mrm (multi-repo-manager)** is a tool to help in managing a large number of
-repositories in a sane way using bulk operations and YAML configurations.
+**mrm (multi-repo-manager)** helps you manage many repositories as one using a
+YAML repository list.
+
+List repos once, then run one command across all of them to turn hours of
+repetitive maintenance into minutes.
+
+```sh
+mrm update --config myrepos.yml --jobs 15
+```
 
 - 📦 [Installation](docs/install.md)
 - 🚀 [Usage](docs/usage.md)
