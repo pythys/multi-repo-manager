@@ -15,3 +15,8 @@ mrm update --config myrepos.yml --jobs 15
 - 🧩 [Config](docs/config.md)
 - ⚙️ [Development](docs/development.md)
 - 🗺️ [Roadmap](docs/roadmap.md)
+
+### Author
+
+Taher Alkhateeb
+https://github.com/pythys
