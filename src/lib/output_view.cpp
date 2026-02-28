@@ -11,6 +11,9 @@
 #include <vector>
 
 namespace {
+constexpr std::size_t kSingleStepLines = 1;
+constexpr std::size_t kWheelStepLines = 3;
+
 std::string phase_to_string(RepoPhase phase) {
     switch (phase) {
     case RepoPhase::QUEUED:
@@ -185,6 +188,50 @@ class TuiView final : public OutputView {
     }
 
   private:
+    void scroll_up(std::size_t lines) {
+        if (selected_line_ > lines) {
+            selected_line_ -= lines;
+            return;
+        }
+        selected_line_ = 0;
+    }
+
+    void scroll_down(std::size_t lines) {
+        if (line_count_ == 0) {
+            selected_line_ = 0;
+            return;
+        }
+        const std::size_t max_line = line_count_ - 1;
+        if (lines > max_line - selected_line_) {
+            selected_line_ = max_line;
+            return;
+        }
+        selected_line_ += lines;
+    }
+
+    bool on_event(ftxui::Event event) {
+        if (event == ftxui::Event::ArrowUp) {
+            scroll_up(kSingleStepLines);
+            return true;
+        }
+        if (event == ftxui::Event::ArrowDown) {
+            scroll_down(kSingleStepLines);
+            return true;
+        }
+        if (event.is_mouse()) {
+            const auto button = event.mouse().button;
+            if (button == ftxui::Mouse::WheelUp) {
+                scroll_up(kWheelStepLines);
+                return true;
+            }
+            if (button == ftxui::Mouse::WheelDown) {
+                scroll_down(kWheelStepLines);
+                return true;
+            }
+        }
+        return false;
+    }
+
     ftxui::Element render() {
         using ftxui::bold;
         using ftxui::flex;
@@ -211,6 +258,15 @@ class TuiView final : public OutputView {
             flatten_repo_lines(tree.root, tree.repos, lines);
             lines.push_back(text(""));
         }
+        line_count_ = lines.size();
+        if (line_count_ == 0) {
+            selected_line_ = 0;
+        } else if (selected_line_ >= line_count_) {
+            selected_line_ = line_count_ - 1;
+            lines[selected_line_] = lines[selected_line_] | ftxui::focus;
+        } else {
+            lines[selected_line_] = lines[selected_line_] | ftxui::focus;
+        }
 
         return vbox(
             {vbox(std::move(lines)) | vscroll_indicator | frame | flex});
@@ -226,7 +282,11 @@ class TuiView final : public OutputView {
             };
         }
         auto renderer = ftxui::Renderer([this] { return render(); });
-        screen.Loop(renderer);
+        auto component =
+            ftxui::CatchEvent(renderer, [this](ftxui::Event event) {
+                return on_event(std::move(event));
+            });
+        screen.Loop(component);
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             post_refresh_ = {};
@@ -259,6 +319,8 @@ class TuiView final : public OutputView {
     std::mutex screen_mutex_;
     std::function<void()> post_refresh_;
     std::function<void()> exit_loop_;
+    std::size_t selected_line_ = 0;
+    std::size_t line_count_ = 0;
 };
 } // namespace
 
