@@ -6,7 +6,7 @@
 #include <vector>
 
 enum class RepoType : std::uint8_t { GIT, SVN, HG, UNKNOWN };
-enum class RepoStatus : std::uint8_t { PENDING, SYNCHING, SYNCHED, UNKNOWN };
+enum class RepoPhase : std::uint8_t { QUEUED, RUNNING, SUCCEEDED, FAILED };
 
 struct Remote {
     std::string name;
@@ -22,7 +22,7 @@ struct Branch {
 struct Repo {
     std::string name;
     RepoType type = RepoType::UNKNOWN;
-    RepoStatus status = RepoStatus::UNKNOWN;
+    RepoPhase phase = RepoPhase::QUEUED;
     std::vector<Remote> remotes;
     std::vector<Branch> branches;
     std::vector<Repo> children;

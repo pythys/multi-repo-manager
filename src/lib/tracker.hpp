@@ -2,105 +2,49 @@
 #define SRC_LIB_TRACKER_HPP_
 
 #include "tree.hpp"
-#include <stdexcept>
+#include <condition_variable>
+#include <cstdint>
+#include <deque>
+#include <mutex>
 #include <string>
 #include <vector>
 
-class TreeObserver {
-  public:
-    virtual ~TreeObserver() = default;
-    virtual void update() = 0;
+enum class MessageLevel : std::uint8_t { INFO, WARNING, ERROR };
+
+struct TrackerEvent {
+    std::string root;
+    std::string repo;
+    RepoPhase phase = RepoPhase::QUEUED;
+    MessageLevel level = MessageLevel::INFO;
+    std::string message;
 };
 
-class TreeObservable {
+class Tracker {
   public:
-    virtual ~TreeObservable() = default;
-    virtual void add_observer(TreeObserver *observer) = 0;
-    virtual void remove_observer(TreeObserver *observer) = 0;
-    virtual void notify_observers() = 0;
-};
+    void populate(const std::vector<Tree> &initial);
 
-class Tracker : public TreeObservable {
-  public:
-    Tracker(const Tracker &) = delete;
-    Tracker &operator=(const Tracker &) = delete;
-    static Tracker &get_instance() {
-        static Tracker instance;
-        return instance;
-    }
-
-    void add_observer(TreeObserver *observer) override {
-        observers.push_back(observer);
-    }
-
-    void remove_observer(TreeObserver *observer) override {
-        std::erase(observers, observer);
-    }
-
-    void notify_observers() override {
-        for (auto *observer : observers) {
-            observer->update();
-        }
-    }
-
-    void populate(const std::vector<Tree> &initial) {
-        this->trees = initial;
-        notify_observers();
-    }
-
-    void set_status(
+    void set_phase(
         const std::string &root,
-        const std::string &name,
-        RepoStatus status) {
-        Repo &repo = get_repo(root, name);
-        repo.status = status;
-        notify_observers();
-    }
+        const std::string &repo,
+        RepoPhase phase,
+        const std::string &message = "",
+        MessageLevel level = MessageLevel::INFO);
 
-    void add_message(
-        const std::string &root,
-        const std::string &name,
-        const std::string &message) {
-        Repo &repo = get_repo(root, name);
-        repo.messages.push_back(message);
-        notify_observers();
-    }
+    std::vector<Tree> snapshot() const;
 
-    const std::vector<Tree> &get_trees() const {
-        return trees;
-    }
+    bool wait_next_event(TrackerEvent &event);
+
+    void close();
 
   private:
-    std::vector<Tree> trees;
-    std::vector<TreeObserver *> observers;
+    Repo *recursive_find(const std::string &name, std::vector<Repo> &repos);
+    Repo &get_repo_locked(const std::string &root, const std::string &name);
 
-    // Singleton
-    Tracker() = default;
-
-    Repo *recursive_find(const std::string &name, std::vector<Repo> &repos) {
-        for (auto &repo : repos) {
-            if (repo.name == name) {
-                return &repo;
-            }
-            Repo *found = recursive_find(name, repo.children);
-            if (found) {
-                return found;
-            }
-        }
-        return nullptr;
-    }
-
-    Repo &get_repo(const std::string &root, const std::string &name) {
-        for (auto &tree : trees) {
-            if (tree.root == root) {
-                Repo *found = recursive_find(name, tree.repos);
-                if (found) {
-                    return *found;
-                }
-            }
-        }
-        throw std::runtime_error("Repo not found");
-    }
+    mutable std::mutex mutex_;
+    std::condition_variable condition_;
+    std::vector<Tree> trees_;
+    std::deque<TrackerEvent> events_;
+    bool closed_ = false;
 };
 
 #endif // SRC_LIB_TRACKER_HPP_

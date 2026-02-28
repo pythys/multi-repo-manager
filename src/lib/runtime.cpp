@@ -15,3 +15,11 @@ bool is_terminal() {
     static const bool cached = ISATTY(FILENO(stdout));
     return cached;
 }
+
+OutputMode output_mode_from_terminal(bool terminal) {
+    return terminal ? OutputMode::TUI : OutputMode::TEXT;
+}
+
+OutputMode detect_output_mode() {
+    return output_mode_from_terminal(is_terminal());
+}

@@ -1,6 +1,7 @@
 #include "config.hpp"
 #include "find.hpp"
 #include "git_guard.hpp"
+#include "runtime.hpp"
 #include "sync.hpp"
 #include <gtest/gtest.h>
 #include <ranges>
@@ -61,4 +62,17 @@ TEST(SyncTests, BranchSyncMatchesConfig) {
         EXPECT_EQ(actual->remote, expected_branch.remote);
         EXPECT_EQ(actual->is_current, expected_branch.is_current);
     }
+}
+
+TEST(SyncTests, EmitsTextOutputWhenNotInTerminal) {
+    if (detect_output_mode() != OutputMode::TEXT) {
+        GTEST_SKIP() << "Only valid for non-terminal execution mode";
+    }
+
+    testing::internal::CaptureStdout();
+    sync("nested_repos.yml");
+    const std::string out = testing::internal::GetCapturedStdout();
+    EXPECT_NE(std::string::npos, out.find("[nested/parent]"));
+    EXPECT_NE(std::string::npos, out.find("RUNNING"));
+    EXPECT_NE(std::string::npos, out.find("SUCCEEDED"));
 }

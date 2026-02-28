@@ -66,7 +66,7 @@ Repo to_repo(const YAML::Node &node) {
     return Repo{
         .name = node["name"].as<std::string>(),
         .type = to_repo_type(node["type"].as<std::string>()),
-        .status = RepoStatus::PENDING,
+        .phase = RepoPhase::QUEUED,
         .remotes = remotes,
         .branches = branches,
         .children = {},

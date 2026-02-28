@@ -8,6 +8,7 @@ add_library(mrm_core STATIC)
 target_sources(
     mrm_core
     PRIVATE cli.cpp
+            output_view.cpp
             config.cpp
             exec.cpp
             find.cpp
@@ -15,6 +16,7 @@ target_sources(
             runtime.cpp
             status.cpp
             sync.cpp
+            tracker.cpp
             update.cpp)
 target_include_directories(mrm_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(mrm_core PRIVATE Boost::system)

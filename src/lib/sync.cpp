@@ -1,12 +1,15 @@
 #include "sync.hpp"
 #include "config.hpp"
 #include "constants.hpp"
+#include "output_view.hpp"
 #include "repo_factory.hpp"
+#include "runtime.hpp"
+#include "tracker.hpp"
 #include "tree.hpp"
 #include <algorithm>
 #include <boost/asio.hpp>
-#include <iostream>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <tbb/parallel_for_each.h>
 #include <unordered_set>
@@ -123,6 +126,9 @@ void set_current_branch(
 }
 
 void sync_branches(
+    Tracker &tracker,
+    const std::string &root,
+    const std::string &repo_name,
     RepoManager *repo_manager,
     const std::string &repo_path,
     const std::vector<Branch> &desired_branches) {
@@ -130,27 +136,30 @@ void sync_branches(
         return;
     }
 
-    std::unordered_set<std::string> remotes;
-    for (const auto &branch : desired_branches) {
-        if (!branch.remote.empty()) {
-            remotes.insert(branch.remote);
-        }
-    }
-    for (const auto &remote_name : remotes) {
-        repo_manager->fetch_remote(repo_path, remote_name);
-    }
-
     auto repo_branches = repo_manager->get_branches(repo_path);
     auto to_add_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_ADD);
+    std::unordered_set<std::string> remotes_to_fetch;
+    for (const auto &branch : to_add_branches) {
+        if (!branch.remote.empty()) {
+            remotes_to_fetch.insert(branch.remote);
+        }
+    }
+    for (const auto &remote_name : remotes_to_fetch) {
+        repo_manager->fetch_remote(repo_path, remote_name);
+    }
     for (const auto &branch : to_add_branches) {
         repo_manager->add_branch(repo_path, branch);
     }
     auto to_remove_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
     for (const auto &branch : to_remove_branches) {
-        std::cout << "ignoring branch not in config: " << repo_path << " "
-                  << branch.name << '\n';
+        tracker.set_phase(
+            root,
+            repo_name,
+            RepoPhase::RUNNING,
+            "Ignoring branch not in config: " + branch.name,
+            MessageLevel::WARNING);
     }
     repo_branches = repo_manager->get_branches(repo_path);
     set_current_branch(
@@ -161,8 +170,9 @@ void sync_branches(
 }
 } // namespace
 
-void update_repository(const std::string &root, Repo *repo) {
-    std::cout << "updating repo: " + root + "/" + repo->name << '\n';
+void update_repository(const std::string &root, Repo *repo, Tracker &tracker) {
+    tracker
+        .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
     auto repo_manager = create_repo_manager(repo->type);
     const std::string repo_path = root + "/" + repo->name;
     auto remotes = repo_manager->get_remotes(repo_path);
@@ -174,11 +184,18 @@ void update_repository(const std::string &root, Repo *repo) {
     for (const auto &remote : to_add) {
         repo_manager->add_remote(repo_path, remote);
     }
-    sync_branches(repo_manager.get(), repo_path, repo->branches);
+    sync_branches(
+        tracker,
+        root,
+        repo->name,
+        repo_manager.get(),
+        repo_path,
+        repo->branches);
 }
 
-void clone_repository(const std::string &root, Repo *repo) {
-    std::cout << "cloning repo:" + root + "/" + repo->name << '\n';
+void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
+    tracker
+        .set_phase(root, repo->name, RepoPhase::RUNNING, "Cloning repository");
     auto repo_manager = create_repo_manager(repo->type);
     auto it = std::ranges::find_if(repo->remotes, [](const Remote &remote) {
         return remote.name == "origin";
@@ -186,9 +203,8 @@ void clone_repository(const std::string &root, Repo *repo) {
     if (it != repo->remotes.end()) {
         repo_manager->copy(it->url, root + "/" + repo->name);
     } else {
-        std::cerr << "No remote found with name 'origin' for repo: "
-                  << repo->name << '\n';
-        std::exit(1);
+        throw std::runtime_error(
+            "No remote found with name 'origin' for repo: " + repo->name);
     }
     for (size_t i = 0; i < repo->remotes.size(); i++) {
         if (repo->remotes[i].name == "origin") {
@@ -196,37 +212,62 @@ void clone_repository(const std::string &root, Repo *repo) {
         }
         repo_manager->add_remote(root + "/" + repo->name, repo->remotes[i]);
     }
-    sync_branches(repo_manager.get(), root + "/" + repo->name, repo->branches);
+    sync_branches(
+        tracker,
+        root,
+        repo->name,
+        repo_manager.get(),
+        root + "/" + repo->name,
+        repo->branches);
 }
 
 void sync_repository(
     const std::string &root,
     Repo *repo,
+    Tracker *tracker,
     asio::thread_pool *pool) {
 
-    auto update_action = [root, repo, pool]() {
+    auto update_action = [root, repo, tracker, pool]() {
         try {
-            update_repository(root, repo);
+            update_repository(root, repo, *tracker);
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::SUCCEEDED,
+                "Repository synced");
         } catch (const std::exception &e) {
-            std::cerr << "Error updating repository " << repo->name << ": "
-                      << e.what() << '\n';
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::FAILED,
+                e.what(),
+                MessageLevel::ERROR);
             return;
         }
         for (auto &child : repo->children) {
-            sync_repository(root, &child, pool);
+            sync_repository(root, &child, tracker, pool);
         }
     };
 
-    auto clone_action = [root, repo, pool]() {
+    auto clone_action = [root, repo, tracker, pool]() {
         try {
-            clone_repository(root, repo);
+            clone_repository(root, repo, *tracker);
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::SUCCEEDED,
+                "Repository synced");
         } catch (const std::exception &e) {
-            std::cerr << "Error cloning repository " << repo->name << ": "
-                      << e.what() << '\n';
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::FAILED,
+                e.what(),
+                MessageLevel::ERROR);
             return;
         }
         for (auto &child : repo->children) {
-            sync_repository(root, &child, pool);
+            sync_repository(root, &child, tracker, pool);
         }
     };
 
@@ -241,12 +282,19 @@ void sync_repository(
 
 int run_sync(const std::string &config_file) {
     std::vector<Tree> config = get_dependencies(config_file);
+    Tracker tracker;
+    tracker.populate(config);
+    auto view = create_output_view(detect_output_mode(), tracker);
+    view->start();
+
     asio::thread_pool pool(SYNC_POOL_SIZE);
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
-            sync_repository(tree.root, &repo, &pool);
+            sync_repository(tree.root, &repo, &tracker, &pool);
         }
     }
     pool.join();
+    tracker.close();
+    view->stop();
     return 0;
 }
