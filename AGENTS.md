@@ -85,3 +85,14 @@ details.
 - `make install` and `make uninstall` write to `/usr/local/bin` (may require
   elevated privileges).
 - Keep changes consistent with CMake and Makefile conventions already in place.
+- Keep code changes and documentation in sync in the same change whenever
+  behavior or interfaces change (docs, usage text, and relevant comments).
+- For CLI/API naming, prefer user-facing terms (for example `--jobs`) over
+  implementation-specific names (for example `--pool-size`).
+- If `clang-tidy` is available, prefer running `make scan`, but do it last
+  after compile, test, and formatting issues are resolved.
+- Prefer terse, efficient code over verbose implementations.
+- Prefer modern C++ constructs where they improve clarity and correctness.
+- Prefer functional style (free functions, algorithms, lambdas) when practical.
+- Avoid unnecessary OO layering; use polymorphism and class hierarchies only
+  when they add clear value.
