@@ -1,31 +1,13 @@
 #include "config.hpp"
+#include "repo_type.hpp"
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <optional>
+#include <stdexcept>
 #include <string>
 #include <vector>
 #include <yaml-cpp/yaml.h>
-
-std::string from_repo_type(RepoType type) {
-    switch (type) {
-    case RepoType::GIT:
-        return "git";
-    case RepoType::SVN:
-        return "svn";
-    default:
-        throw std::runtime_error("Unknown RepoType");
-    }
-}
-
-RepoType to_repo_type(const std::string &str) {
-    if (str == "git") {
-        return RepoType::GIT;
-    }
-    if (str == "svn") {
-        return RepoType::SVN;
-    }
-    throw std::runtime_error("Invalid RepoType: " + str);
-}
 
 Remote to_remote(const YAML::Node &node) {
     return Remote{
@@ -63,9 +45,14 @@ Repo to_repo(const YAML::Node &node) {
                   << "for repo " << node["name"].as<std::string>("unknown")
                   << '\n';
     }
+    const std::string type_name = node["type"].as<std::string>();
+    const std::optional<RepoType> type = parse_repo_type(type_name);
+    if (!type.has_value()) {
+        throw std::runtime_error("Invalid RepoType: " + type_name);
+    }
     return Repo{
         .name = node["name"].as<std::string>(),
-        .type = to_repo_type(node["type"].as<std::string>()),
+        .type = *type,
         .phase = RepoPhase::QUEUED,
         .remotes = remotes,
         .branches = branches,
@@ -153,7 +140,7 @@ std::string make_config(const std::vector<Tree> &trees) {
             out << YAML::BeginMap;
             out << YAML::Key << "name" << YAML::Value << repo.name;
             out << YAML::Key << "type" << YAML::Value
-                << from_repo_type(repo.type);
+                << repo_type_name(repo.type);
             out << YAML::Key << "remotes" << YAML::Value << YAML::BeginSeq;
             for (const auto &remote : repo.remotes) {
                 out << YAML::BeginMap;

@@ -11,8 +11,11 @@
 /**
  * @brief Execute custom command over configured repositories.
  *
- * @note Current implementation is a placeholder.
- * @return 0 on completion.
+ * Runs the command in each targeted repository. When the SCM CLI for the
+ * repository type is available (for example, `git`), it is prepended unless
+ * the command already starts with that CLI.
+ *
+ * @return 0 when all targeted repositories succeed, otherwise 1.
  */
 int run_exec(
     const std::string &custom_command,

@@ -61,6 +61,19 @@ mrm update --config myrepos.yml
 mrm update --config myrepos.yml --jobs 12
 ```
 
+## exec custom command in repos
+
+```sh
+mrm exec --config myrepos.yml --type git --command "remote get-url origin"
+```
+
+`exec` runs the command in each targeted repository path from config.
+
+- `--type all` (default) targets all repo types in config. Only works for
+  shared conmmands.
+- when the repo CLI exists (for example `git`), mrm prefixes it for you unless
+  your command already starts with it.
+
 ## concurrency
 
 Use `--jobs` (or `-j`) on `sync` and `update` to control max concurrent repo operations.
@@ -95,7 +108,6 @@ ssh-add ~/.ssh/id_ed25519
 ## current placeholders
 
 - `mrm remotesync --config ...` is present but not implemented yet.
-- `mrm exec --config ... --type ... --command ...` is present but currently a placeholder.
 
 ## known limitation
 

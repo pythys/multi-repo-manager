@@ -12,6 +12,7 @@ target_sources(
             config.cpp
             exec.cpp
             find.cpp
+            repo_type.cpp
             repo_factory.cpp
             runtime.cpp
             status.cpp
