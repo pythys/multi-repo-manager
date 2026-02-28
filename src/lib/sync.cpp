@@ -280,14 +280,16 @@ void sync_repository(
     }
 }
 
-int run_sync(const std::string &config_file) {
+int run_sync(const std::string &config_file, int pool_size) {
     std::vector<Tree> config = get_dependencies(config_file);
     Tracker tracker;
     tracker.populate(config);
     auto view = create_output_view(detect_output_mode(), tracker);
     view->start();
 
-    asio::thread_pool pool(SYNC_POOL_SIZE);
+    const auto effective_pool_size =
+        static_cast<std::size_t>(pool_size > 0 ? pool_size : SYNC_POOL_SIZE);
+    asio::thread_pool pool(effective_pool_size);
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
             sync_repository(tree.root, &repo, &tracker, &pool);

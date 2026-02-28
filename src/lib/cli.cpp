@@ -23,6 +23,16 @@ int parse_cli(int argc, char **argv) {
             sync_path,
             "Path to sync repos to if location is relative. Defaults to \".\"")
         ->type_name("dir");
+    int sync_jobs = 0;
+    sync->add_option(
+            "--jobs,-j",
+            sync_jobs,
+            "Max concurrent repo operations. Use 0 (default) to use the "
+            "built-in value")
+        ->type_name("N");
+    sync->add_option("--pool-size", sync_jobs, "DEPRECATED: use --jobs")
+        ->type_name("N")
+        ->group("");
 
     CLI::App *find = app.add_subcommand(
         "find",
@@ -56,6 +66,17 @@ int parse_cli(int argc, char **argv) {
             "Configuration file for the update command")
         ->required()
         ->type_name("file");
+    int update_jobs = 0;
+    update
+        ->add_option(
+            "--jobs,-j",
+            update_jobs,
+            "Max concurrent repo operations. Use 0 (default) to use the "
+            "built-in value")
+        ->type_name("N");
+    update->add_option("--pool-size", update_jobs, "DEPRECATED: use --jobs")
+        ->type_name("N")
+        ->group("");
 
     CLI::App *remotesync =
         app.add_subcommand("remotesync", "Sync remotes with origin");
@@ -89,7 +110,7 @@ int parse_cli(int argc, char **argv) {
     CLI11_PARSE(app, argc, argv);
 
     if (*sync) {
-        return run_sync(config_file);
+        return run_sync(config_file, sync_jobs);
     }
 
     if (*find) {
@@ -101,7 +122,7 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*update) {
-        return run_update(config_file);
+        return run_update(config_file, update_jobs);
     }
 
     if (*remotesync) {

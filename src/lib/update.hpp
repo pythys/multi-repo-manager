@@ -13,6 +13,6 @@
  *
  * @return 0 on completion.
  */
-int run_update(const std::string &config_file);
+int run_update(const std::string &config_file, int pool_size = 0);
 
 #endif // SRC_LIB_UPDATE_HPP_

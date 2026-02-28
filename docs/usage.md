@@ -23,6 +23,7 @@ Recommended workflow:
 
 ```sh
 mrm sync --config myrepos.yml
+mrm sync --config myrepos.yml --jobs 12
 ```
 
 `sync` behavior:
@@ -47,7 +48,15 @@ Status output is based on libgit2 `git_status_list` and includes:
 
 ```sh
 mrm update --config myrepos.yml
+mrm update --config myrepos.yml --jobs 12
 ```
+
+## concurrency
+
+Use `--jobs` (or `-j`) on `sync` and `update` to control max concurrent repo operations.
+
+- `--jobs 0` (default) uses the built-in fallback value.
+- larger values can speed up network-bound runs but may increase load on disk/network.
 
 ## output modes
 
