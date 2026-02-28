@@ -1,9 +1,17 @@
 mrm (-h || --help);
-mrm sync (-c || --config) <PATH>;
-mrm find <PATH> (-s || --save) <PATH>;
-mrm status (-c || --config) <PATH>;
-mrm update (-c || --config) <PATH>;
-mrm remotesync (-c || --config) <PATH>;
-mrm exec (-c || --config) <PATH> (-t || --type) <REPOTYPE> (-m || --command) "custom command";
 
-<REPOTYPE> ::= git | svn | hg;
+mrm sync (-c || --config) <PATH> [<PATH>] [<PRUNEFLAG>] [(-j || --jobs) <N>];
+mrm sync (-c || --config) <PATH> [<PATH>] [(-j || --jobs) <N>] [<PRUNEFLAG>];
+mrm find [<PATH>] [(-s || --save) <PATH>];
+mrm find [(-s || --save) <PATH>] [<PATH>];
+mrm status (-c || --config) <PATH>;
+mrm update (-c || --config) <PATH> [(-j || --jobs) <N>];
+mrm remotesync (-c || --config) <PATH>;
+mrm exec (-c || --config) <PATH> [(-t || --type) <REPOTYPE>] (-m || --command) "custom command";
+mrm exec (-m || --command) "custom command" [(-t || --type) <REPOTYPE>] (-c || --config) <PATH>;
+mrm exec [(-t || --type) <REPOTYPE>] (-c || --config) <PATH> (-m || --command) "custom command";
+mrm exec [(-t || --type) <REPOTYPE>] (-m || --command) "custom command" (-c || --config) <PATH>;
+
+<PRUNEFLAG> ::= --prune | --prune-remotes | --prune-branches;
+<REPOTYPE> ::= all | git | svn | hg;
+<N> ::= [0-9]+;

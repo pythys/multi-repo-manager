@@ -88,6 +88,7 @@ details.
 - Keep changes consistent with CMake and Makefile conventions already in place.
 - Keep code changes and documentation in sync in the same change whenever
   behavior or interfaces change (docs, usage text, and relevant comments).
+- Keep command changes (names and flags) in sync with mrm.usage.
 - For CLI/API naming, prefer user-facing terms (for example `--jobs`) over
   implementation-specific names (for example `--pool-size`).
 - If `clang-tidy` is available, prefer running `make scan`, but do it last
