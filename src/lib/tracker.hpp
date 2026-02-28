@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 
+/** Severity level attached to tracker messages and events. */
 enum class MessageLevel : std::uint8_t { INFO, WARNING, ERROR };
 
 /** Event emitted when repo state is updated. */
@@ -25,6 +26,7 @@ struct TrackerEvent {
     std::string message;
 };
 
+/** Thread-safe state store for live multi-repository progress tracking. */
 class Tracker {
   public:
     /** Replace tracked state with initial tree snapshot. */

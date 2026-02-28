@@ -7,3 +7,6 @@ CREATE_SUBDIRS         = YES
 CREATE_SUBDIRS_LEVEL   = 8
 INPUT                  = docs/ README.md src/ src/lib/
 USE_MDFILE_AS_MAINPAGE = README.md
+GENERATE_LATEX         = YES
+USE_PDFLATEX           = NO
+WARN_IF_UNDOCUMENTED   = NO
