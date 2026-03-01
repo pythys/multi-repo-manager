@@ -173,7 +173,11 @@ int run_remotesync(
         for (const auto &repo : tree.repos) {
             if (repo.type == RepoType::GIT) {
                 repo_jobs.push_back(
-                    RepoJob{tree.root, repo.name, tree.root + "/" + repo.name});
+                    RepoJob{
+                        .root = tree.root,
+                        .name = repo.name,
+                        .path = tree.root + "/" + repo.name,
+                    });
             }
         }
     }

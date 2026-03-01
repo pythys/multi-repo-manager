@@ -76,3 +76,27 @@ TEST(FindTests, EmptyPathsDefaultToCurrentDirectory) {
     ASSERT_EQ(1, trees.size());
     EXPECT_EQ(".", trees[0].root);
 }
+
+TEST(FindTests, PermissionDeniedEntryIsIgnored) {
+    TempDir temp;
+    const fs::path root = temp.path() / "root";
+    const fs::path blocked = root / "blocked";
+    const fs::path output = temp.path() / "repos.yml";
+    fs::create_directories(blocked / "nested");
+
+    std::error_code ec;
+    fs::permissions(blocked, fs::perms::none, fs::perm_options::replace, ec);
+    ASSERT_FALSE(ec);
+
+    ASSERT_EQ(0, run_find({root.string()}, output.string()));
+
+    const std::vector<Tree> trees = get_config(output.string());
+    ASSERT_EQ(1, trees.size());
+    EXPECT_EQ(root.lexically_normal().string(), trees[0].root);
+
+    fs::permissions(
+        blocked,
+        fs::perms::owner_all,
+        fs::perm_options::replace,
+        ec);
+}
