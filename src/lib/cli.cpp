@@ -37,22 +37,22 @@ int parse_cli(int argc, char **argv) {
         ->group("");
     bool prune_remotes = false;
     sync->add_flag(
-        "--prune-remotes",
+        "--prune-remotes,-R",
         prune_remotes,
         "Remove remotes not declared in config");
     bool prune_branches = false;
     sync->add_flag(
-        "--prune-branches",
+        "--prune-branches,-B",
         prune_branches,
         "Remove local tracked branches not declared in config");
     bool prune_all = false;
     sync->add_flag(
-        "--prune",
+        "--prune,-p",
         prune_all,
         "Enable both --prune-remotes and --prune-branches");
     std::vector<std::string> sync_root_patterns;
     sync->add_option(
-            "--root",
+            "--root,-r",
             sync_root_patterns,
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
@@ -78,7 +78,7 @@ int parse_cli(int argc, char **argv) {
     std::vector<std::string> status_root_patterns;
     status
         ->add_option(
-            "--root",
+            "--root,-r",
             status_root_patterns,
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
@@ -99,7 +99,7 @@ int parse_cli(int argc, char **argv) {
     std::vector<std::string> update_root_patterns;
     update
         ->add_option(
-            "--root",
+            "--root,-r",
             update_root_patterns,
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
@@ -139,7 +139,7 @@ int parse_cli(int argc, char **argv) {
         ->type_name("name");
     bool remotesync_dry_run = false;
     remotesync->add_flag(
-        "--dry-run",
+        "--dry-run,-n",
         remotesync_dry_run,
         "Show planned sync actions without pushing");
     int remotesync_jobs = 0;
@@ -157,7 +157,7 @@ int parse_cli(int argc, char **argv) {
     std::vector<std::string> remotesync_root_patterns;
     remotesync
         ->add_option(
-            "--root",
+            "--root,-r",
             remotesync_root_patterns,
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
@@ -183,7 +183,7 @@ int parse_cli(int argc, char **argv) {
         ->type_name("file");
     std::vector<std::string> exec_root_patterns;
     exec->add_option(
-            "--root",
+            "--root,-r",
             exec_root_patterns,
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");

@@ -41,10 +41,11 @@ mrm sync --config myrepos.yml --root "client*"
 - process nested dependencies
 
 Prune options (all opt-in):
-- `--prune-remotes`: remove remotes not declared in config
-- `--prune-branches`: remove local tracked branches not declared in config
-- `--prune`: enable both `--prune-remotes` and `--prune-branches`
-- `--root <pattern>`: apply command only to matching tree roots (supports `*`, `?`, repeatable)
+- `--prune-remotes` (`-R`): remove remotes not declared in config
+- `--prune-branches` (`-B`): remove local tracked branches not declared in config
+- `--prune` (`-p`): enable both `--prune-remotes` and `--prune-branches`
+- `--root <pattern>` (`-r`): apply command only to matching tree roots (supports `*`, `?`, repeatable)
+- short equivalents exist (for example `-c` for `--config`, `-j` for `--jobs`)
 
 When pruning branches, the current branch is never deleted.
 
@@ -72,8 +73,7 @@ mrm update --config myrepos.yml --root "client*"
 
 ```sh
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master
-mrm remotesync -c myrepos.yml -s upstream -t origin -b master
-mrm remotesync -c myrepos.yml -s upstream -t origin -b master --jobs 12
+mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --jobs 12
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --branch develop --dry-run
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --root "client*"
 ```
@@ -83,7 +83,7 @@ mrm remotesync --config myrepos.yml --source upstream --target origin --branch m
 - if source branch is missing, tries local branch fallback; otherwise skips
 - if target branch is missing, skips (no auto-create)
 - if target and source diverge, skips
-- `--dry-run` reports what would be pushed without changing remotes
+- `--dry-run` (`-n`) reports what would be pushed without changing remotes
 
 ## exec custom command in repos
 
