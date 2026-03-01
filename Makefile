@@ -51,10 +51,22 @@ test: build ## Run all tests
 	@cd build && ctest $(if $(TESTTYPE),-L $(TESTTYPE))
 
 .PHONY: lint
-lint: ## Lint with clang-format and report issues
+lint: ## Lint with clang-format and cmake-format, report issues
 	$(call check_bin, clang-format)
+	$(call check_bin, cmake-format)
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
 		-exec clang-format -Werror -i --dry-run {} \;
+	@failed=0; \
+	for file in $$(find . \( -name "CMakeLists.txt" -o -name "*.cmake" \) \
+		-not -path "./build/*"); do \
+		if ! cmake-format --check "$$file" >/dev/null 2>&1; then \
+			echo "$$file: formatting differs (cmake-format)"; \
+			failed=1; \
+		fi; \
+	done; \
+	if [ $$failed -ne 0 ]; then \
+		exit 1; \
+	fi
 
 .PHONY: lint-fix
 lint-fix: ## Lint and automatically fix formatting issues
@@ -62,7 +74,7 @@ lint-fix: ## Lint and automatically fix formatting issues
 	$(call check_bin, cmake-format)
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
 		-exec clang-format -Werror -i {} \;
-	@find . -name "CMakeLists.txt" \
+	@find . \( -name "CMakeLists.txt" -o -name "*.cmake" \) \
 		-not -path "./build/*" \
 		-exec cmake-format -i {} +
 
