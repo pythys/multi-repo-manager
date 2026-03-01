@@ -85,7 +85,7 @@ Use `--jobs` (or `-j`) on `sync` and `update` to control max concurrent repo ope
 
 `sync` and `update` auto-select output mode:
 - interactive terminal: FTXUI live TUI
-- non-terminal (redirect/script): plain text lines
+- non-terminal (redirect/script): final plain-text summary report
 
 TUI notes:
 - scroll with arrow keys or mouse wheel

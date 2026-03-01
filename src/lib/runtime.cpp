@@ -1,5 +1,7 @@
 #include "runtime.hpp"
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <io.h>
@@ -12,7 +14,19 @@
 #endif
 
 bool is_terminal() {
-    static const bool cached = ISATTY(FILENO(stdout));
+    const auto stream_is_terminal = [](FILE *stream) {
+        return ISATTY(FILENO(stream)) != 0;
+    };
+    const auto term_supports_tui = [] {
+        const char *term = std::getenv("TERM");
+        if (term == nullptr || *term == '\0') {
+            return false;
+        }
+        return std::strcmp(term, "dumb") != 0;
+    };
+    static const bool cached =
+        stream_is_terminal(stdin) && stream_is_terminal(stdout) &&
+        stream_is_terminal(stderr) && term_supports_tui();
     return cached;
 }
 

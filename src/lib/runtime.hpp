@@ -12,15 +12,18 @@
 enum class OutputMode : std::uint8_t { TUI, TEXT };
 
 /**
- * @brief Maps terminal availability to output policy.
+ * @brief Maps interactive terminal availability to output policy.
  *
- * @param terminal true when stdout is a terminal.
+ * @param terminal true when interactive terminal features are available.
  * @return OutputMode::TUI when terminal, otherwise OutputMode::TEXT.
  */
 OutputMode output_mode_from_terminal(bool terminal);
 
 /**
- * @brief Detects whether stdout is attached to a terminal.
+ * @brief Detects whether interactive terminal features are available.
+ *
+ * Returns true only when stdin, stdout, and stderr are terminals and TERM is
+ * suitable for interactive rendering.
  */
 bool is_terminal();
 

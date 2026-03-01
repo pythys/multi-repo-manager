@@ -14,6 +14,17 @@ namespace {
 constexpr std::size_t kSingleStepLines = 1;
 constexpr std::size_t kWheelStepLines = 3;
 
+void restore_terminal_state() {
+    // Reset cursor style to terminal default and disable mouse tracking modes.
+    std::cout << "\x1b[0 q"
+              << "\x1b[?1000l"
+              << "\x1b[?1002l"
+              << "\x1b[?1003l"
+              << "\x1b[?1006l"
+              << "\x1b[?1015l";
+    std::cout.flush();
+}
+
 std::string phase_to_string(RepoPhase phase) {
     switch (phase) {
     case RepoPhase::QUEUED:
@@ -40,13 +51,6 @@ ftxui::Color phase_to_color(RepoPhase phase) {
         return ftxui::Color::Red;
     }
     return ftxui::Color::White;
-}
-
-std::ostream &stream_for(MessageLevel level) {
-    if (level == MessageLevel::ERROR) {
-        return std::cerr;
-    }
-    return std::cout;
 }
 
 void flatten_repo_lines(
@@ -89,45 +93,35 @@ void flatten_repo_lines_text(
     }
 }
 
+void print_final_report(const Tracker &tracker) {
+    const std::vector<Tree> trees = tracker.snapshot();
+    std::vector<std::string> lines;
+    lines.emplace_back("mrm report");
+    for (const auto &tree : trees) {
+        lines.emplace_back("");
+        lines.emplace_back(tree.root);
+        flatten_repo_lines_text(tree.root, tree.repos, lines);
+    }
+    for (const auto &line : lines) {
+        std::cout << line << '\n';
+    }
+}
+
 class TextView final : public OutputView {
   public:
     explicit TextView(Tracker &tracker) : tracker_(tracker) {}
-    ~TextView() override {
-        stop();
-    }
-
-    void start() override {
-        if (started_.exchange(true)) {
-            return;
-        }
-        thread_ = std::thread([this] {
-            TrackerEvent event;
-            while (tracker_.wait_next_event(event)) {
-                std::ostream &out = stream_for(event.level);
-                out << "[" << event.root << "/" << event.repo << "] "
-                    << phase_to_string(event.phase);
-                if (!event.message.empty()) {
-                    out << " - " << event.message;
-                }
-                out << '\n';
-            }
-        });
-    }
-
+    ~TextView() override = default;
+    void start() override {}
     void stop() override {
-        if (!started_.exchange(false)) {
+        if (stopped_.exchange(true)) {
             return;
         }
-        tracker_.close();
-        if (thread_.joinable()) {
-            thread_.join();
-        }
+        print_final_report(tracker_);
     }
 
   private:
     Tracker &tracker_;
-    std::atomic<bool> started_ = false;
-    std::thread thread_;
+    std::atomic<bool> stopped_ = false;
 };
 
 class TuiView final : public OutputView {
@@ -136,7 +130,6 @@ class TuiView final : public OutputView {
     ~TuiView() override {
         stop();
     }
-
     void start() override {
         if (started_.exchange(true)) {
             return;
@@ -184,7 +177,7 @@ class TuiView final : public OutputView {
         if (ui_thread_.joinable()) {
             ui_thread_.join();
         }
-        print_final_report();
+        print_final_report(tracker_);
     }
 
   private:
@@ -241,17 +234,15 @@ class TuiView final : public OutputView {
         using ftxui::text;
         using ftxui::vbox;
         using ftxui::vscroll_indicator;
-
         std::vector<Tree> trees;
         {
             std::scoped_lock<std::mutex> lock(data_mutex_);
             trees = trees_;
         }
-
         std::vector<ftxui::Element> lines;
         lines.push_back(
             hbox({text("mrm"), separator(), text("live status")}) | bold);
-        lines.push_back(text("Scroll with arrow keys or mouse wheel."));
+        lines.push_back(text("Scroll to view all items."));
         lines.push_back(ftxui::separator());
         for (const auto &tree : trees) {
             lines.push_back(text(tree.root) | bold);
@@ -267,13 +258,12 @@ class TuiView final : public OutputView {
         } else {
             lines[selected_line_] = lines[selected_line_] | ftxui::focus;
         }
-
         return vbox(
             {vbox(std::move(lines)) | vscroll_indicator | frame | flex});
     }
 
     void run_ui() {
-        auto screen = ftxui::ScreenInteractive::Fullscreen();
+        auto screen = ftxui::ScreenInteractive::TerminalOutput();
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             exit_loop_ = screen.ExitLoopClosure();
@@ -287,6 +277,7 @@ class TuiView final : public OutputView {
                 return on_event(std::move(event));
             });
         screen.Loop(component);
+        restore_terminal_state();
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             post_refresh_ = {};
@@ -294,28 +285,12 @@ class TuiView final : public OutputView {
         }
     }
 
-    void print_final_report() const {
-        const std::vector<Tree> trees = tracker_.snapshot();
-        std::vector<std::string> lines;
-        lines.emplace_back("mrm final report");
-        for (const auto &tree : trees) {
-            lines.emplace_back("");
-            lines.emplace_back(tree.root);
-            flatten_repo_lines_text(tree.root, tree.repos, lines);
-        }
-        for (const auto &line : lines) {
-            std::cout << line << '\n';
-        }
-    }
-
     Tracker &tracker_;
     std::atomic<bool> started_ = false;
     std::thread ui_thread_;
     std::thread event_thread_;
-
     std::mutex data_mutex_;
     std::vector<Tree> trees_;
-
     std::mutex screen_mutex_;
     std::function<void()> post_refresh_;
     std::function<void()> exit_loop_;
