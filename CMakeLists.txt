@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 4.2)
 
 project(mrm VERSION 0.1.0)
+include(GNUInstallDirs)
 
 # compile options
 set(CMAKE_CXX_STANDARD 20)
@@ -23,4 +24,7 @@ add_subdirectory(tests ${CMAKE_BINARY_DIR}/tests)
 
 # cpack
 set(CPACK_GENERATOR "TGZ;ZIP")
+set(CPACK_PACKAGE_NAME "mrm")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Multi Repo Manager")
 include(CPack)
