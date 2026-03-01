@@ -36,3 +36,25 @@ TEST(ConfigTests, MultipleTrees) {
     std::vector<Tree> trees = parse_dependencies("multi_tree.yml");
     EXPECT_EQ(trees.size(), 2);
 }
+
+TEST(ConfigTests, FilterTreesByExactRoot) {
+    const std::vector<Tree> trees = {
+        Tree{.root = "r/client", .repos = {}},
+        Tree{.root = "r/fork", .repos = {}},
+        Tree{.root = "r/personal", .repos = {}},
+    };
+    const std::vector<Tree> filtered = filter_trees_by_root(trees, {"r/fork"});
+    ASSERT_EQ(1, filtered.size());
+    EXPECT_EQ("r/fork", filtered[0].root);
+}
+
+TEST(ConfigTests, FilterTreesByPattern) {
+    const std::vector<Tree> trees = {
+        Tree{.root = "r/client", .repos = {}},
+        Tree{.root = "r/fork", .repos = {}},
+        Tree{.root = "r/personal", .repos = {}},
+    };
+    const std::vector<Tree> filtered =
+        filter_trees_by_root(trees, {"r/*", "*personal"});
+    ASSERT_EQ(3, filtered.size());
+}

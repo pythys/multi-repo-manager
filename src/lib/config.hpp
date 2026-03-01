@@ -59,4 +59,19 @@ std::vector<Tree> get_config(const std::string &config_file);
  */
 std::vector<Tree> get_dependencies(const std::string &config_file);
 
+/**
+ * @brief Filters trees by root patterns.
+ *
+ * Patterns support `*` (any sequence) and `?` (single character). Exact roots
+ * are matched by providing the root string directly.
+ *
+ * @param trees Input trees from config/dependency loading.
+ * @param root_patterns Root patterns to include. Empty keeps all trees.
+ *
+ * @return Filtered trees preserving original order.
+ */
+std::vector<Tree> filter_trees_by_root(
+    const std::vector<Tree> &trees,
+    const std::vector<std::string> &root_patterns);
+
 #endif // SRC_LIB_CONFIG_HPP_

@@ -74,7 +74,7 @@ int run_find(
     const std::string &save_path) {
     std::vector<std::string> roots = find_paths;
     if (roots.empty()) {
-        roots.push_back(".");
+        roots.emplace_back(".");
     }
 
     std::vector<Tree> trees;

@@ -322,8 +322,10 @@ int run_sync(
     const std::string &config_file,
     int pool_size,
     bool prune_remotes,
-    bool prune_branches) {
-    std::vector<Tree> config = get_dependencies(config_file);
+    bool prune_branches,
+    const std::vector<std::string> &root_patterns) {
+    std::vector<Tree> config =
+        filter_trees_by_root(get_dependencies(config_file), root_patterns);
     Tracker tracker;
     tracker.populate(config);
     auto view = create_output_view(detect_output_mode(), tracker);

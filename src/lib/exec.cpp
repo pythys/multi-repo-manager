@@ -183,8 +183,10 @@ int execute_in_repo(
 int run_exec(
     const std::string &custom_command,
     const std::string &config_file,
-    const std::string &repo_type) {
-    const std::vector<Tree> config = get_config(config_file);
+    const std::string &repo_type,
+    const std::vector<std::string> &root_patterns) {
+    const std::vector<Tree> config =
+        filter_trees_by_root(get_config(config_file), root_patterns);
 
     std::optional<RepoType> target_repo_type;
     if (repo_type != "all") {

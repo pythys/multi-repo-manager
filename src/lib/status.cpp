@@ -6,8 +6,11 @@
 #include <string>
 #include <vector>
 
-int run_status(const std::string &config_file) {
-    const std::vector<Tree> config = get_config(config_file);
+int run_status(
+    const std::string &config_file,
+    const std::vector<std::string> &root_patterns) {
+    const std::vector<Tree> config =
+        filter_trees_by_root(get_config(config_file), root_patterns);
     for (const auto &tree : config) {
         std::cout << "\n";
         for (const auto &repo : tree.repos) {

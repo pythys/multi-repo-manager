@@ -214,3 +214,58 @@ std::vector<Tree> get_dependencies(const std::string &config_file) {
     }
     return trees;
 }
+
+bool root_matches_pattern(const std::string &root, const std::string &pattern) {
+    std::size_t root_index = 0;
+    std::size_t pattern_index = 0;
+    std::size_t star_index = std::string::npos;
+    std::size_t match_index = 0;
+
+    while (root_index < root.size()) {
+        const bool char_matches = pattern_index < pattern.size() &&
+                                  (pattern[pattern_index] == '?' ||
+                                   pattern[pattern_index] == root[root_index]);
+        if (char_matches) {
+            ++pattern_index;
+            ++root_index;
+            continue;
+        }
+        const bool is_star =
+            pattern_index < pattern.size() && pattern[pattern_index] == '*';
+        if (is_star) {
+            star_index = pattern_index++;
+            match_index = root_index;
+            continue;
+        }
+        if (star_index == std::string::npos) {
+            return false;
+        }
+        pattern_index = star_index + 1;
+        root_index = ++match_index;
+    }
+
+    while (pattern_index < pattern.size() && pattern[pattern_index] == '*') {
+        ++pattern_index;
+    }
+    return pattern_index == pattern.size();
+}
+
+std::vector<Tree> filter_trees_by_root(
+    const std::vector<Tree> &trees,
+    const std::vector<std::string> &root_patterns) {
+    if (root_patterns.empty()) {
+        return trees;
+    }
+
+    std::vector<Tree> filtered;
+    for (const auto &tree : trees) {
+        const bool matches =
+            std::ranges::any_of(root_patterns, [&](const std::string &pattern) {
+                return root_matches_pattern(tree.root, pattern);
+            });
+        if (matches) {
+            filtered.push_back(tree);
+        }
+    }
+    return filtered;
+}

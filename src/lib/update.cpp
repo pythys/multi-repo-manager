@@ -11,8 +11,12 @@
 
 namespace asio = boost::asio;
 
-int run_update(const std::string &config_file, int pool_size) {
-    const std::vector<Tree> config = get_config(config_file);
+int run_update(
+    const std::string &config_file,
+    int pool_size,
+    const std::vector<std::string> &root_patterns) {
+    const std::vector<Tree> config =
+        filter_trees_by_root(get_config(config_file), root_patterns);
     Tracker tracker;
     tracker.populate(config);
     auto view = create_output_view(detect_output_mode(), tracker);

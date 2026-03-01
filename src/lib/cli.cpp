@@ -49,6 +49,12 @@ int parse_cli(int argc, char **argv) {
         "--prune",
         prune_all,
         "Enable both --prune-remotes and --prune-branches");
+    std::vector<std::string> sync_root_patterns;
+    sync->add_option(
+            "--root",
+            sync_root_patterns,
+            "Filter trees by root (supports wildcard patterns)")
+        ->type_name("pattern");
 
     CLI::App *find = app.add_subcommand(
         "find",
@@ -72,6 +78,13 @@ int parse_cli(int argc, char **argv) {
             "Configuration file for the status command")
         ->required()
         ->type_name("file");
+    std::vector<std::string> status_root_patterns;
+    status
+        ->add_option(
+            "--root",
+            status_root_patterns,
+            "Filter trees by root (supports wildcard patterns)")
+        ->type_name("pattern");
 
     CLI::App *update =
         app.add_subcommand("update", "Update config repositories");
@@ -90,6 +103,13 @@ int parse_cli(int argc, char **argv) {
             "Max concurrent repo operations. Use 0 (default) to use the "
             "built-in value")
         ->type_name("N");
+    std::vector<std::string> update_root_patterns;
+    update
+        ->add_option(
+            "--root",
+            update_root_patterns,
+            "Filter trees by root (supports wildcard patterns)")
+        ->type_name("pattern");
     update->add_option("--pool-size", update_jobs, "DEPRECATED: use --jobs")
         ->type_name("N")
         ->group("");
@@ -122,6 +142,12 @@ int parse_cli(int argc, char **argv) {
             "Configuration file for the exec command")
         ->required()
         ->type_name("file");
+    std::vector<std::string> exec_root_patterns;
+    exec->add_option(
+            "--root",
+            exec_root_patterns,
+            "Filter trees by root (supports wildcard patterns)")
+        ->type_name("pattern");
 
     CLI11_PARSE(app, argc, argv);
 
@@ -132,7 +158,8 @@ int parse_cli(int argc, char **argv) {
             config_file,
             sync_jobs,
             should_prune_remotes,
-            should_prune_branches);
+            should_prune_branches,
+            sync_root_patterns);
     }
 
     if (*find) {
@@ -140,11 +167,11 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*status) {
-        return run_status(config_file);
+        return run_status(config_file, status_root_patterns);
     }
 
     if (*update) {
-        return run_update(config_file, update_jobs);
+        return run_update(config_file, update_jobs, update_root_patterns);
     }
 
     if (*remotesync) {
@@ -152,7 +179,11 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*exec) {
-        return run_exec(custom_command, config_file, repo_type);
+        return run_exec(
+            custom_command,
+            config_file,
+            repo_type,
+            exec_root_patterns);
     }
 
     return 0;

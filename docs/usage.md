@@ -30,6 +30,7 @@ Recommended workflow:
 mrm sync --config myrepos.yml
 mrm sync --config myrepos.yml --jobs 12
 mrm sync --config myrepos.yml --prune
+mrm sync --config myrepos.yml --root "client*"
 ```
 
 `sync` behavior:
@@ -43,6 +44,7 @@ Prune options (all opt-in):
 - `--prune-remotes`: remove remotes not declared in config
 - `--prune-branches`: remove local tracked branches not declared in config
 - `--prune`: enable both `--prune-remotes` and `--prune-branches`
+- `--root <pattern>`: apply command only to matching tree roots (supports `*`, `?`, repeatable)
 
 When pruning branches, the current branch is never deleted.
 
@@ -50,6 +52,7 @@ When pruning branches, the current branch is never deleted.
 
 ```sh
 mrm status --config myrepos.yml
+mrm status --config myrepos.yml --root "fork*"
 ```
 
 Status output is based on libgit2 `git_status_list` and includes:
@@ -62,12 +65,14 @@ Status output is based on libgit2 `git_status_list` and includes:
 ```sh
 mrm update --config myrepos.yml
 mrm update --config myrepos.yml --jobs 12
+mrm update --config myrepos.yml --root "client*"
 ```
 
 ## exec custom command in repos
 
 ```sh
 mrm exec --config myrepos.yml --type git --command "remote get-url origin"
+mrm exec --config myrepos.yml --root "client*" --command "status -sb"
 ```
 
 `exec` runs the command in each targeted repository path from config.
