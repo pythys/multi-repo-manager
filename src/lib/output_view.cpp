@@ -70,10 +70,9 @@ void flatten_repo_lines(
             separator(),
             text(path),
         }));
-        if (!repo.messages.empty()) {
+        for (const auto &message : repo.messages) {
             lines.push_back(
-                text("  " + repo.messages.back()) |
-                color(ftxui::Color::GrayLight));
+                text("  " + message) | color(ftxui::Color::GrayLight));
         }
         flatten_repo_lines(root, repo.children, lines);
     }
