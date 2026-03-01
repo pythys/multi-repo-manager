@@ -72,6 +72,7 @@ class RepoManager {
     /**
      * Compare source and target refs and classify synchronization state.
      *
+     * @param path Repository path.
      * @param source_ref Candidate reference to push from.
      * @param target_ref Reference on target remote.
      */
@@ -83,6 +84,7 @@ class RepoManager {
     /**
      * Push source reference to target reference on a remote.
      *
+     * @param path Repository path.
      * @param remote_name Remote to push to.
      * @param source_ref Source reference (for example refs/heads/main).
      * @param target_ref Target reference (for example refs/heads/main).
