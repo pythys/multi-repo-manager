@@ -105,6 +105,7 @@ void print_final_report(const Tracker &tracker) {
     for (const auto &line : lines) {
         std::cout << line << '\n';
     }
+    std::cout.flush();
 }
 
 class TextView final : public OutputView {

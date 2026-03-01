@@ -154,9 +154,9 @@ TEST(SyncTests, EmitsTextOutputWhenNotInTerminal) {
     testing::internal::CaptureStdout();
     sync("nested_repos.yml");
     const std::string out = testing::internal::GetCapturedStdout();
-    EXPECT_NE(std::string::npos, out.find("[nested/parent]"));
-    EXPECT_NE(std::string::npos, out.find("RUNNING"));
-    EXPECT_NE(std::string::npos, out.find("SUCCEEDED"));
+    EXPECT_NE(std::string::npos, out.find("mrm report")) << out;
+    EXPECT_NE(std::string::npos, out.find("[SUCCEEDED] nested/parent")) << out;
+    EXPECT_NE(std::string::npos, out.find("SUCCEEDED")) << out;
 }
 
 TEST(SyncTests, ExistingBranchesDoNotRequireFetch) {
