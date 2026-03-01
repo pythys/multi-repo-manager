@@ -6,6 +6,7 @@
 #include "update.hpp"
 #include <CLI/CLI.hpp>
 #include <string>
+#include <vector>
 
 int parse_cli(int argc, char **argv) {
     CLI::App app("mrm");
@@ -52,11 +53,11 @@ int parse_cli(int argc, char **argv) {
     CLI::App *find = app.add_subcommand(
         "find",
         "Generate a configuration from existing repositories");
-    std::string find_path = ".";
+    std::vector<std::string> find_paths;
     find->add_option(
-            "path",
-            find_path,
-            "Path to search for existing repositories. Defaults to \".\"")
+            "paths",
+            find_paths,
+            "Paths to search for existing repositories. Defaults to \".\"")
         ->type_name("dir");
     std::string save_path;
     find->add_option("--save,-s", save_path, "Save to a file instead of stdout")
@@ -135,7 +136,7 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*find) {
-        return run_find(find_path, save_path);
+        return run_find(find_paths, save_path);
     }
 
     if (*status) {

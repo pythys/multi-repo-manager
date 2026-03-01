@@ -69,13 +69,23 @@ std::string normalize_path(const std::string &path) {
     return normalized.starts_with("./") ? normalized.substr(2) : normalized;
 }
 
-int run_find(const std::string &find_path, const std::string &save_path) {
-    Tree tree;
-    const std::vector<Repo> repos = find_repos(find_path);
-    const fs::path root_path = normalize_path(find_path);
-    tree.root = root_path;
-    tree.repos = repos;
-    const std::vector<Tree> trees = {tree};
+int run_find(
+    const std::vector<std::string> &find_paths,
+    const std::string &save_path) {
+    std::vector<std::string> roots = find_paths;
+    if (roots.empty()) {
+        roots.push_back(".");
+    }
+
+    std::vector<Tree> trees;
+    for (const auto &path : roots) {
+        const std::string normalized_root = normalize_path(path);
+        trees.push_back(
+            Tree{
+                .root = normalized_root,
+                .repos = find_repos(normalized_root)});
+    }
+
     std::string config_output = make_config(trees);
     if (!save_path.empty()) {
         std::ofstream file(save_path);

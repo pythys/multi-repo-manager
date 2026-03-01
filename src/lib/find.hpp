@@ -18,6 +18,8 @@ std::vector<Repo> find_repos(const std::string &path);
  *
  * @return 0 on completion.
  */
-int run_find(const std::string &find_path, const std::string &save_path);
+int run_find(
+    const std::vector<std::string> &find_paths,
+    const std::string &save_path);
 
 #endif // SRC_LIB_FIND_HPP_

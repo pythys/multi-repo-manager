@@ -13,8 +13,11 @@ mrm <command> --help
 mrm find myrepos --save myrepos.yml
 # or
 mrm find myrepos > myrepos.yml
+# multiple roots in one config
+mrm find client fork personal --save myrepos.yml
 ```
 
+Each `find` path becomes one `tree.root` in the generated config.
 Without `--save`, output is printed to stdout.
 
 Recommended workflow:

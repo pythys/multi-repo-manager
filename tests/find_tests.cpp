@@ -1,0 +1,78 @@
+#include "config.hpp"
+#include "find.hpp"
+#include "git_guard.hpp"
+#include <chrono>
+#include <filesystem>
+#include <gtest/gtest.h>
+#include <string>
+#include <vector>
+
+namespace fs = std::filesystem;
+const GitGuard git_guard;
+
+namespace {
+class TempDir {
+  public:
+    TempDir() {
+        const auto unique = std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count());
+        path_ = fs::temp_directory_path() / ("mrm-find-tests-" + unique);
+        fs::create_directories(path_);
+    }
+
+    ~TempDir() {
+        std::error_code ec;
+        fs::remove_all(path_, ec);
+    }
+
+    const fs::path &path() const {
+        return path_;
+    }
+
+  private:
+    fs::path path_;
+};
+
+class CurrentPathGuard {
+  public:
+    CurrentPathGuard() : saved_(fs::current_path()) {}
+
+    ~CurrentPathGuard() {
+        std::error_code ec;
+        fs::current_path(saved_, ec);
+    }
+
+  private:
+    fs::path saved_;
+};
+} // namespace
+
+TEST(FindTests, MultiplePathsBecomeMultipleTrees) {
+    TempDir temp;
+    const fs::path first = temp.path() / "first";
+    const fs::path second = temp.path() / "second";
+    const fs::path output = temp.path() / "repos.yml";
+    fs::create_directories(first);
+    fs::create_directories(second);
+
+    const std::vector<std::string> paths = {first.string(), second.string()};
+    ASSERT_EQ(0, run_find(paths, output.string()));
+
+    const std::vector<Tree> trees = get_config(output.string());
+    ASSERT_EQ(2, trees.size());
+    EXPECT_EQ(first.lexically_normal().string(), trees[0].root);
+    EXPECT_EQ(second.lexically_normal().string(), trees[1].root);
+}
+
+TEST(FindTests, EmptyPathsDefaultToCurrentDirectory) {
+    TempDir temp;
+    CurrentPathGuard cwd_guard;
+    const fs::path output = temp.path() / "repos.yml";
+    fs::current_path(temp.path());
+
+    ASSERT_EQ(0, run_find({}, output.string()));
+
+    const std::vector<Tree> trees = get_config(output.string());
+    ASSERT_EQ(1, trees.size());
+    EXPECT_EQ(".", trees[0].root);
+}
