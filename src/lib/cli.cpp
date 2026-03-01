@@ -9,7 +9,7 @@
 #include <vector>
 
 int parse_cli(int argc, char **argv) {
-    CLI::App app("mrm");
+    CLI::App app("multi-repo-manager", "mrm");
     std::string config_file;
 
     CLI::App *sync = app.add_subcommand(
@@ -149,7 +149,15 @@ int parse_cli(int argc, char **argv) {
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
 
-    CLI11_PARSE(app, argc, argv);
+    if (argc <= 1) {
+        return app.exit(CLI::CallForHelp());
+    }
+
+    try {
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        return app.exit(e);
+    }
 
     if (*sync) {
         const bool should_prune_remotes = prune_all || prune_remotes;
