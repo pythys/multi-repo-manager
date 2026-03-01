@@ -1,10 +1,10 @@
 #include "config.hpp"
 #include "find.hpp"
 #include "git_guard.hpp"
+#include "git_test_utils.hpp"
 #include "runtime.hpp"
 #include "sync.hpp"
 #include <chrono>
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -50,12 +50,6 @@ class TempDir {
   private:
     fs::path path_;
 };
-
-int run_git(const fs::path &repo, const std::string &command) {
-    const std::string cmd =
-        "git -C \"" + repo.string() + "\" " + command + " >/dev/null 2>&1";
-    return std::system(cmd.c_str());
-}
 
 void write_text(const fs::path &path, const std::string &content) {
     std::ofstream out(path);
@@ -170,23 +164,16 @@ TEST(SyncTests, ExistingBranchesDoNotRequireFetch) {
     const fs::path invalid_remote = temp.path() / "missing-remote.git";
     const fs::path repo = root / "repo1";
     fs::create_directories(repo);
-    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
-    ASSERT_EQ(0, run_git(repo, "init -b main"));
-    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
-    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    git_test::init_repo(remote, "main", true);
+    git_test::init_repo(repo, "main");
+    git_test::set_user(repo, "test@example.com", "test");
 
     write_text(repo / "README.md", "hello\n");
-    ASSERT_EQ(0, run_git(repo, "add README.md"));
-    ASSERT_EQ(0, run_git(repo, "commit -m init"));
-    ASSERT_EQ(
-        0,
-        run_git(repo, "remote add origin \"" + remote.string() + "\""));
-    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
-    ASSERT_EQ(
-        0,
-        run_git(
-            repo,
-            "remote set-url origin \"" + invalid_remote.string() + "\""));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", remote);
+    git_test::push_branch(repo, "origin", "main", true);
+    git_test::set_remote_url(repo, "origin", invalid_remote);
 
     const fs::path config = temp.path() / "config.yml";
     std::ofstream out(config);
@@ -222,21 +209,16 @@ TEST(SyncTests, PruneRemotesIsOptIn) {
     const fs::path upstream = temp.path() / "upstream.git";
     const fs::path repo = root / "repo1";
     fs::create_directories(repo);
-    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
-    ASSERT_EQ(0, run_git(temp.path(), "init --bare upstream.git"));
-    ASSERT_EQ(0, run_git(repo, "init -b main"));
-    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
-    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    git_test::init_repo(remote, "main", true);
+    git_test::init_repo(upstream, "main", true);
+    git_test::init_repo(repo, "main");
+    git_test::set_user(repo, "test@example.com", "test");
     write_text(repo / "README.md", "hello\n");
-    ASSERT_EQ(0, run_git(repo, "add README.md"));
-    ASSERT_EQ(0, run_git(repo, "commit -m init"));
-    ASSERT_EQ(
-        0,
-        run_git(repo, "remote add origin \"" + remote.string() + "\""));
-    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
-    ASSERT_EQ(
-        0,
-        run_git(repo, "remote add upstream \"" + upstream.string() + "\""));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", remote);
+    git_test::push_branch(repo, "origin", "main", true);
+    git_test::add_remote(repo, "upstream", upstream);
 
     const fs::path config = temp.path() / "config.yml";
     write_main_only_config(config, root, remote);
@@ -258,23 +240,20 @@ TEST(SyncTests, PruneBranchesRemovesNonCurrentBranches) {
     const fs::path remote = temp.path() / "remote.git";
     const fs::path repo = root / "repo1";
     fs::create_directories(repo);
-    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
-    ASSERT_EQ(0, run_git(repo, "init -b main"));
-    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
-    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    git_test::init_repo(remote, "main", true);
+    git_test::init_repo(repo, "main");
+    git_test::set_user(repo, "test@example.com", "test");
     write_text(repo / "README.md", "hello\n");
-    ASSERT_EQ(0, run_git(repo, "add README.md"));
-    ASSERT_EQ(0, run_git(repo, "commit -m init"));
-    ASSERT_EQ(
-        0,
-        run_git(repo, "remote add origin \"" + remote.string() + "\""));
-    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
-    ASSERT_EQ(0, run_git(repo, "checkout -b feature"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", remote);
+    git_test::push_branch(repo, "origin", "main", true);
+    git_test::create_and_checkout_branch(repo, "feature");
     write_text(repo / "feature.txt", "feature\n");
-    ASSERT_EQ(0, run_git(repo, "add feature.txt"));
-    ASSERT_EQ(0, run_git(repo, "commit -m feature"));
-    ASSERT_EQ(0, run_git(repo, "push -u origin feature"));
-    ASSERT_EQ(0, run_git(repo, "checkout main"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "feature");
+    git_test::push_branch(repo, "origin", "feature", true);
+    git_test::checkout_branch(repo, "main");
 
     const fs::path config = temp.path() / "config.yml";
     write_main_only_config(config, root, remote);
@@ -292,22 +271,19 @@ TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
     const fs::path remote = temp.path() / "remote.git";
     const fs::path repo = root / "repo1";
     fs::create_directories(repo);
-    ASSERT_EQ(0, run_git(temp.path(), "init --bare remote.git"));
-    ASSERT_EQ(0, run_git(repo, "init -b main"));
-    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
-    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    git_test::init_repo(remote, "main", true);
+    git_test::init_repo(repo, "main");
+    git_test::set_user(repo, "test@example.com", "test");
     write_text(repo / "README.md", "hello\n");
-    ASSERT_EQ(0, run_git(repo, "add README.md"));
-    ASSERT_EQ(0, run_git(repo, "commit -m init"));
-    ASSERT_EQ(
-        0,
-        run_git(repo, "remote add origin \"" + remote.string() + "\""));
-    ASSERT_EQ(0, run_git(repo, "push -u origin main"));
-    ASSERT_EQ(0, run_git(repo, "checkout -b feature"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", remote);
+    git_test::push_branch(repo, "origin", "main", true);
+    git_test::create_and_checkout_branch(repo, "feature");
     write_text(repo / "feature.txt", "feature\n");
-    ASSERT_EQ(0, run_git(repo, "add feature.txt"));
-    ASSERT_EQ(0, run_git(repo, "commit -m feature"));
-    ASSERT_EQ(0, run_git(repo, "push -u origin feature"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "feature");
+    git_test::push_branch(repo, "origin", "feature", true);
 
     const fs::path config = temp.path() / "config.yml";
     write_main_only_config(config, root, remote);

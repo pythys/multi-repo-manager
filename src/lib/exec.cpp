@@ -188,17 +188,42 @@ int run_exec(
     const std::vector<Tree> config =
         filter_trees_by_root(get_config(config_file), root_patterns);
 
+    const ExecPlanResult plan = plan_exec(custom_command, config, repo_type);
+    if (!plan.error.empty()) {
+        std::cerr << plan.error << "\n";
+        return 1;
+    }
+
+    int return_code = 0;
+    for (const auto &item : plan.items) {
+        const int command_code =
+            execute_in_repo(item.repo_path, item.command_parts);
+        if (command_code != 0) {
+            std::cerr << "Command failed in " << item.repo_path << ": "
+                      << command_code << "\n";
+            return_code = 1;
+        }
+    }
+
+    return return_code;
+}
+
+ExecPlanResult plan_exec(
+    const std::string &custom_command,
+    const std::vector<Tree> &config,
+    const std::string &repo_type) {
     std::optional<RepoType> target_repo_type;
     if (repo_type != "all") {
         target_repo_type = parse_repo_type(repo_type);
         if (!target_repo_type.has_value()) {
-            std::cerr << "Invalid repo type: " << repo_type
-                      << ". Expected one of: all, git, svn, hg\n";
-            return 1;
+            return {
+                .items = {},
+                .error = "Invalid repo type: " + repo_type +
+                         ". Expected one of: all, git, svn, hg"};
         }
     }
 
-    int return_code = 0;
+    std::vector<ExecPlanItem> items;
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
             if (target_repo_type.has_value() &&
@@ -206,21 +231,18 @@ int run_exec(
                 continue;
             }
             const std::string repo_path = tree.root + "/" + repo.name;
-            const auto command =
+            const std::vector<std::string> command_parts =
                 build_command_for_repo(custom_command, repo.type);
-            if (command.empty()) {
-                std::cerr << "Invalid command syntax: " << custom_command
-                          << "\n";
-                return 1;
+            if (command_parts.empty()) {
+                return {
+                    .items = {},
+                    .error = "Invalid command syntax: " + custom_command};
             }
-            const int command_code = execute_in_repo(repo_path, command);
-            if (command_code != 0) {
-                std::cerr << "Command failed in " << repo_path << ": "
-                          << command_code << "\n";
-                return_code = 1;
-            }
+            items.push_back(
+                ExecPlanItem{
+                    .repo_path = repo_path,
+                    .command_parts = command_parts});
         }
     }
-
-    return return_code;
+    return {.items = items, .error = ""};
 }

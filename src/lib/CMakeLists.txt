@@ -13,6 +13,7 @@ target_sources(
             exec.cpp
             find.cpp
             repo_type.cpp
+            remotesync.cpp
             repo_factory.cpp
             runtime.cpp
             status.cpp

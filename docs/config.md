@@ -55,7 +55,7 @@ trees:
           - name: origin
             url: git@github.com:org/app.git
         branches:
-          - name: main
+          - name: master
             remote: origin
             is_current: true
 ```

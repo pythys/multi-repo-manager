@@ -1,6 +1,7 @@
 #include "cli.hpp"
 #include "exec.hpp"
 #include "find.hpp"
+#include "remotesync.hpp"
 #include "status.hpp"
 #include "sync.hpp"
 #include "update.hpp"
@@ -71,11 +72,7 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *status =
         app.add_subcommand("status", "Show the status of config repositories");
-    status
-        ->add_option(
-            "--config,-c",
-            config_file,
-            "Configuration file for the status command")
+    status->add_option("--config,-c", config_file, "Configuration file")
         ->required()
         ->type_name("file");
     std::vector<std::string> status_root_patterns;
@@ -88,11 +85,7 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *update =
         app.add_subcommand("update", "Update config repositories");
-    update
-        ->add_option(
-            "--config,-c",
-            config_file,
-            "Configuration file for the update command")
+    update->add_option("--config,-c", config_file, "Configuration file")
         ->required()
         ->type_name("file");
     int update_jobs = 0;
@@ -114,11 +107,60 @@ int parse_cli(int argc, char **argv) {
         ->type_name("N")
         ->group("");
 
-    CLI::App *remotesync =
-        app.add_subcommand("remotesync", "Sync remotes with origin");
+    CLI::App *remotesync = app.add_subcommand(
+        "remotesync",
+        "Sync selected branches between remotes");
     remotesync->add_option("--config,-c", config_file, "Configuration file")
         ->required()
         ->type_name("file");
+    std::string remotesync_source;
+    remotesync
+        ->add_option(
+            "--source,-s",
+            remotesync_source,
+            "Source remote to sync from")
+        ->required()
+        ->type_name("name");
+    std::string remotesync_target;
+    remotesync
+        ->add_option(
+            "--target,-t",
+            remotesync_target,
+            "Target remote to sync to")
+        ->required()
+        ->type_name("name");
+    std::vector<std::string> remotesync_branches;
+    remotesync
+        ->add_option(
+            "--branch,-b",
+            remotesync_branches,
+            "Branch name to sync (repeatable)")
+        ->required()
+        ->type_name("name");
+    bool remotesync_dry_run = false;
+    remotesync->add_flag(
+        "--dry-run",
+        remotesync_dry_run,
+        "Show planned sync actions without pushing");
+    int remotesync_jobs = 0;
+    remotesync
+        ->add_option(
+            "--jobs,-j",
+            remotesync_jobs,
+            "Max concurrent repo operations. Use 0 (default) to use the "
+            "built-in value")
+        ->type_name("N");
+    remotesync
+        ->add_option("--pool-size", remotesync_jobs, "DEPRECATED: use --jobs")
+        ->type_name("N")
+        ->group("");
+    std::vector<std::string> remotesync_root_patterns;
+    remotesync
+        ->add_option(
+            "--root",
+            remotesync_root_patterns,
+            "Filter trees by root (supports wildcard patterns)")
+        ->type_name("pattern");
 
     CLI::App *exec = app.add_subcommand(
         "exec",
@@ -136,10 +178,7 @@ int parse_cli(int argc, char **argv) {
             repo_type,
             "Type of repositories to target. Defaults to 'all'")
         ->type_name("type");
-    exec->add_option(
-            "--config,-c",
-            config_file,
-            "Configuration file for the exec command")
+    exec->add_option("--config,-c", config_file, "Configuration file")
         ->required()
         ->type_name("file");
     std::vector<std::string> exec_root_patterns;
@@ -183,7 +222,14 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*remotesync) {
-        return 0;
+        return run_remotesync(
+            config_file,
+            remotesync_source,
+            remotesync_target,
+            remotesync_branches,
+            remotesync_dry_run,
+            remotesync_root_patterns,
+            remotesync_jobs);
     }
 
     if (*exec) {

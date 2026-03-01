@@ -98,3 +98,6 @@ details.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
 - Avoid unnecessary OO layering; use polymorphism and class hierarchies only
   when they add clear value.
+- If any error occurs in make targets lint, test or scan, then repeat all of
+  them, to avoid changes in a later target triggering more issues in a previous
+  one. A clear full round of clean lint, test and scan is needed to accept work.

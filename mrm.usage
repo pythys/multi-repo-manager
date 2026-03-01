@@ -6,7 +6,7 @@ mrm find [<PATH>...] [(-s || --save) <PATH>];
 mrm find [(-s || --save) <PATH>] [<PATH>...];
 mrm status (-c || --config) <PATH> [--root <ROOTPATTERN>...];
 mrm update (-c || --config) <PATH> [(-j || --jobs) <N>] [--root <ROOTPATTERN>...];
-mrm remotesync (-c || --config) <PATH>;
+mrm remotesync (-c || --config) <PATH> (-s || --source) <NAME> (-t || --target) <NAME> (-b || --branch) <NAME>... [(-j || --jobs) <N>] [--dry-run] [--root <ROOTPATTERN>...];
 mrm exec (-c || --config) <PATH> [(-t || --type) <REPOTYPE>] [--root <ROOTPATTERN>...] (-m || --command) "custom command";
 mrm exec (-m || --command) "custom command" [(-t || --type) <REPOTYPE>] [--root <ROOTPATTERN>...] (-c || --config) <PATH>;
 mrm exec [(-t || --type) <REPOTYPE>] [--root <ROOTPATTERN>...] (-c || --config) <PATH> (-m || --command) "custom command";

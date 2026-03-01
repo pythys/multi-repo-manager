@@ -68,6 +68,23 @@ mrm update --config myrepos.yml --jobs 12
 mrm update --config myrepos.yml --root "client*"
 ```
 
+## sync branches between remotes
+
+```sh
+mrm remotesync --config myrepos.yml --source upstream --target origin --branch master
+mrm remotesync -c myrepos.yml -s upstream -t origin -b master
+mrm remotesync -c myrepos.yml -s upstream -t origin -b master --jobs 12
+mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --branch develop --dry-run
+mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --root "client*"
+```
+
+`remotesync` behavior:
+- syncs only explicitly selected `--branch` values
+- if source branch is missing, tries local branch fallback; otherwise skips
+- if target branch is missing, skips (no auto-create)
+- if target and source diverge, skips
+- `--dry-run` reports what would be pushed without changing remotes
+
 ## exec custom command in repos
 
 ```sh
@@ -78,13 +95,13 @@ mrm exec --config myrepos.yml --root "client*" --command "status -sb"
 `exec` runs the command in each targeted repository path from config.
 
 - `--type all` (default) targets all repo types in config. Only works for
-  shared conmmands.
+  shared commands.
 - when the repo CLI exists (for example `git`), mrm prefixes it for you unless
   your command already starts with it.
 
 ## concurrency
 
-Use `--jobs` (or `-j`) on `sync` and `update` to control max concurrent repo operations.
+Use `--jobs` (or `-j`) on `sync`, `update`, and `remotesync` to control max concurrent repo operations.
 
 - `--jobs 0` (default) uses the built-in fallback value.
 - larger values can speed up network-bound runs but may increase load on disk/network.
@@ -112,10 +129,6 @@ If using agent:
 ```sh
 ssh-add ~/.ssh/id_ed25519
 ```
-
-## current placeholders
-
-- `mrm remotesync --config ...` is present but not implemented yet.
 
 ## known limitation
 

@@ -1,9 +1,9 @@
 #include "git_guard.hpp"
+#include "git_test_utils.hpp"
 #include "repo_factory.hpp"
 #include "tree.hpp"
 #include <algorithm>
 #include <chrono>
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -37,12 +37,6 @@ class TempDir {
     fs::path path_;
 };
 
-int run_git(const fs::path &repo, const std::string &command) {
-    const std::string cmd =
-        "git -C \"" + repo.string() + "\" " + command + " >/dev/null 2>&1";
-    return std::system(cmd.c_str());
-}
-
 void write_text(const fs::path &path, const std::string &content) {
     std::ofstream out(path);
     out << content;
@@ -60,9 +54,8 @@ bool contains_status(
 TEST(StatusTests, ReportsRenameTypechangeAndUntracked) {
     TempDir temp;
     const fs::path repo = temp.path();
-    ASSERT_EQ(0, run_git(repo, "init"));
-    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
-    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    git_test::init_repo(repo, "master");
+    git_test::set_user(repo, "test@example.com", "test");
 
     write_text(repo / ".gitignore", "*.log\n");
     write_text(repo / "target.txt", "target\n");
@@ -70,14 +63,15 @@ TEST(StatusTests, ReportsRenameTypechangeAndUntracked) {
     write_text(repo / "rename_wt.txt", "rename worktree\n");
     write_text(repo / "type_idx.txt", "type staged\n");
     write_text(repo / "type_wt.txt", "type unstaged\n");
-    ASSERT_EQ(0, run_git(repo, "add ."));
-    ASSERT_EQ(0, run_git(repo, "commit -m initial"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "initial");
 
-    ASSERT_EQ(0, run_git(repo, "mv rename_idx.txt rename_idx_new.txt"));
+    fs::rename(repo / "rename_idx.txt", repo / "rename_idx_new.txt");
+    git_test::stage_rename(repo, "rename_idx.txt", "rename_idx_new.txt");
     fs::rename(repo / "rename_wt.txt", repo / "rename_wt_new.txt");
     fs::remove(repo / "type_idx.txt");
     fs::create_symlink("target.txt", repo / "type_idx.txt");
-    ASSERT_EQ(0, run_git(repo, "add type_idx.txt"));
+    git_test::stage_path(repo, "type_idx.txt");
     fs::remove(repo / "type_wt.txt");
     fs::create_symlink("target.txt", repo / "type_wt.txt");
     write_text(repo / "ignored.log", "ignored\n");
@@ -98,22 +92,23 @@ TEST(StatusTests, ReportsRenameTypechangeAndUntracked) {
 TEST(StatusTests, ReportsConflictedFiles) {
     TempDir temp;
     const fs::path repo = temp.path();
-    ASSERT_EQ(0, run_git(repo, "init"));
-    ASSERT_EQ(0, run_git(repo, "config user.email test@example.com"));
-    ASSERT_EQ(0, run_git(repo, "config user.name test"));
+    git_test::init_repo(repo, "master");
+    git_test::set_user(repo, "test@example.com", "test");
 
     write_text(repo / "conflict.txt", "base\n");
-    ASSERT_EQ(0, run_git(repo, "add conflict.txt"));
-    ASSERT_EQ(0, run_git(repo, "commit -m base"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "base");
 
-    ASSERT_EQ(0, run_git(repo, "checkout -b feature"));
+    git_test::create_and_checkout_branch(repo, "feature");
     write_text(repo / "conflict.txt", "feature\n");
-    ASSERT_EQ(0, run_git(repo, "commit -am feature"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "feature");
 
-    ASSERT_EQ(0, run_git(repo, "checkout master"));
+    git_test::checkout_branch(repo, "master");
     write_text(repo / "conflict.txt", "master\n");
-    ASSERT_EQ(0, run_git(repo, "commit -am master"));
-    EXPECT_NE(0, run_git(repo, "merge feature"));
+    git_test::stage_all(repo);
+    git_test::commit(repo, "master");
+    EXPECT_FALSE(git_test::merge_branch(repo, "feature"));
 
     auto repo_manager = create_repo_manager(RepoType::GIT);
     const std::vector<std::string> statuses =

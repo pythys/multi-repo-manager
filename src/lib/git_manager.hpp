@@ -190,6 +190,33 @@ class GitManager : public RepoManager {
         return callbacks;
     }
 
+    static git_oid lookup_ref_oid(git_repository *repo, const char *ref_name) {
+        GitReference ref;
+        check_error(
+            git_reference_lookup(ref.get_address(), repo, ref_name),
+            "Failed to lookup reference " + std::string(ref_name),
+            repo);
+
+        const git_oid *target = git_reference_target(ref.get());
+        if (target != nullptr) {
+            return *target;
+        }
+
+        GitReference resolved;
+        check_error(
+            git_reference_resolve(resolved.get_address(), ref.get()),
+            "Failed to resolve symbolic reference " + std::string(ref_name),
+            repo);
+
+        target = git_reference_target(resolved.get());
+        if (target == nullptr) {
+            throw std::runtime_error(
+                "Failed to resolve target oid for reference " +
+                std::string(ref_name));
+        }
+        return *target;
+    }
+
   public:
     GitManager() = default;
     ~GitManager() override = default;
@@ -635,6 +662,105 @@ class GitManager : public RepoManager {
         check_error(
             git_remote_fetch(remote.get(), nullptr, &fetch_opts, nullptr),
             "Failed to fetch remote in " + path,
+            repo.get());
+    }
+
+    bool
+    ref_exists(const std::string &path, const std::string &ref_name) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitReference ref;
+        const int lookup_code = git_reference_lookup(
+            ref.get_address(),
+            repo.get(),
+            ref_name.c_str());
+        if (lookup_code == GIT_ENOTFOUND) {
+            return false;
+        }
+        check_error(
+            lookup_code,
+            "Failed to lookup reference " + ref_name + " in " + path,
+            repo.get());
+        return true;
+    }
+
+    RefSyncState compare_refs(
+        const std::string &path,
+        const std::string &source_ref,
+        const std::string &target_ref) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        const git_oid source_oid =
+            lookup_ref_oid(repo.get(), source_ref.c_str());
+        const git_oid target_oid =
+            lookup_ref_oid(repo.get(), target_ref.c_str());
+
+        size_t source_ahead_count = 0;
+        size_t source_behind_count = 0;
+        check_error(
+            git_graph_ahead_behind(
+                &source_ahead_count,
+                &source_behind_count,
+                repo.get(),
+                &source_oid,
+                &target_oid),
+            "Failed to compare refs in " + path,
+            repo.get());
+
+        if (source_ahead_count == 0 && source_behind_count == 0) {
+            return RefSyncState::UP_TO_DATE;
+        }
+        if (source_ahead_count == 0 && source_behind_count > 0) {
+            return RefSyncState::TARGET_AHEAD;
+        }
+        if (source_ahead_count > 0 && source_behind_count > 0) {
+            return RefSyncState::DIVERGED;
+        }
+        return RefSyncState::SOURCE_AHEAD;
+    }
+
+    void push_ref(
+        const std::string &path,
+        const std::string &remote_name,
+        const std::string &source_ref,
+        const std::string &target_ref) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitRemote remote;
+        check_error(
+            git_remote_lookup(
+                remote.get_address(),
+                repo.get(),
+                remote_name.c_str()),
+            "Failed to lookup remote in " + path,
+            repo.get());
+
+        std::string refspec = source_ref + ":" + target_ref;
+        std::vector<char> refspec_buffer(refspec.begin(), refspec.end());
+        refspec_buffer.push_back('\0');
+        std::vector<char *> strings = {refspec_buffer.data()};
+        git_strarray refspecs = {
+            .strings = strings.data(),
+            .count = strings.size()};
+
+        git_push_options push_opts;
+        git_push_options_init(&push_opts, GIT_PUSH_OPTIONS_VERSION);
+        push_opts.callbacks = create_remote_callbacks();
+        check_error(
+            git_remote_push(remote.get(), &refspecs, &push_opts),
+            "Failed to push reference in " + path,
             repo.get());
     }
 

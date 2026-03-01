@@ -7,8 +7,17 @@
  */
 
 #include "tree.hpp"
+#include <cstdint>
 #include <string>
 #include <vector>
+
+/** Relation between target and source refs for remotesync decisions. */
+enum class RefSyncState : std::uint8_t {
+    UP_TO_DATE,
+    TARGET_AHEAD,
+    DIVERGED,
+    SOURCE_AHEAD,
+};
 
 /**
  * @brief Backend-neutral repository manager interface.
@@ -55,6 +64,34 @@ class RepoManager {
     /** Fetch a specific remote in repository. */
     virtual void
     fetch_remote(const std::string &path, const std::string &remote_name) = 0;
+
+    /** Returns true if the reference exists in repository. */
+    virtual bool
+    ref_exists(const std::string &path, const std::string &ref_name) = 0;
+
+    /**
+     * Compare source and target refs and classify synchronization state.
+     *
+     * @param source_ref Candidate reference to push from.
+     * @param target_ref Reference on target remote.
+     */
+    virtual RefSyncState compare_refs(
+        const std::string &path,
+        const std::string &source_ref,
+        const std::string &target_ref) = 0;
+
+    /**
+     * Push source reference to target reference on a remote.
+     *
+     * @param remote_name Remote to push to.
+     * @param source_ref Source reference (for example refs/heads/main).
+     * @param target_ref Target reference (for example refs/heads/main).
+     */
+    virtual void push_ref(
+        const std::string &path,
+        const std::string &remote_name,
+        const std::string &source_ref,
+        const std::string &target_ref) = 0;
 
     /** Return status lines similar to default `git status` semantics. */
     virtual std::vector<std::string> get_status(const std::string &path) = 0;

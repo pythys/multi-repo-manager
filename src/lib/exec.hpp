@@ -6,8 +6,31 @@
  * @brief Exec command entry point.
  */
 
+#include "tree.hpp"
 #include <string>
 #include <vector>
+
+/** One planned command invocation for a repository path. */
+struct ExecPlanItem {
+    std::string repo_path;
+    std::vector<std::string> command_parts;
+};
+
+/** Result of planning exec operations. */
+struct ExecPlanResult {
+    std::vector<ExecPlanItem> items;
+    std::string error;
+};
+
+/**
+ * @brief Build repository command invocations without executing them.
+ *
+ * @return `error` is non-empty when planning fails.
+ */
+ExecPlanResult plan_exec(
+    const std::string &custom_command,
+    const std::vector<Tree> &config,
+    const std::string &repo_type);
 
 /**
  * @brief Execute custom command over configured repositories.
