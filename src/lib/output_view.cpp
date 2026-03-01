@@ -178,7 +178,6 @@ class TuiView final : public OutputView {
         if (ui_thread_.joinable()) {
             ui_thread_.join();
         }
-        print_final_report(tracker_);
     }
 
   private:
