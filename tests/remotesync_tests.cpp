@@ -100,7 +100,7 @@ TEST(RemoteSyncTests, DryRunReportsPlannedPush) {
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);
-    EXPECT_NE(std::string::npos, output.find("DRY-RUN - Would push"));
+    EXPECT_NE(std::string::npos, output.find("DRY-RUN would push"));
 }
 
 TEST(RemoteSyncTests, MissingTargetBranchIsSkipped) {
@@ -120,9 +120,7 @@ TEST(RemoteSyncTests, MissingTargetBranchIsSkipped) {
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);
-    EXPECT_NE(
-        std::string::npos,
-        output.find("SKIPPED - Missing target branch"));
+    EXPECT_NE(std::string::npos, output.find("Missing target branch, skipped"));
     EXPECT_FALSE(git_test::ref_exists(origin, "refs/heads/main"));
 }
 
@@ -152,7 +150,7 @@ TEST(RemoteSyncTests, FallsBackToLocalWhenSourceFetchFails) {
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);
-    EXPECT_NE(std::string::npos, output.find("SYNCED"));
+    EXPECT_NE(std::string::npos, output.find("[main] Synced"));
 
     git_test::fetch_remote(repo, "origin");
     const auto [left, right] = git_test::left_right_counts(
