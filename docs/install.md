@@ -33,14 +33,4 @@ Example usage:
 
 To build docker partially (skip base rebuild):
 
-`docker build --platform=linux/amd64 --no-cache --tag mrm .`
-
-### troubleshooting
-
-On macos you might get a docker build crash due to [illegal
-instruction](https://github.com/docker/for-mac/issues/7255) in ca-certificates.
-To solve this problem:
-
-Docker Desktop -> Settings -> General -> Virtual Machine Options ->
-  - Uncheck "Use Rosetta for x86_64/amd64 emulation on Apple Silicon"
-  - Optionally, Select Docker VMM as Virtual Machine Manager
+`docker build --no-cache --tag mrm .`
