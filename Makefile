@@ -83,6 +83,11 @@ scan: ## Scan source code with clang-tidy
 	$(call check_bin, clang-tidy)
 	@clang-tidy -p build $(wildcard $(SCANMATCH))
 
+.PHONY: up-vcpkg
+up-vcpkg: ## Update vcpkg baseline
+	$(call check_bin, vcpkg)
+	@vcpkg x-update-baseline
+
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	$(call check_bin, entr)

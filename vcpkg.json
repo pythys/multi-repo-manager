@@ -2,14 +2,33 @@
   "name": "mrm",
   "version": "1.0.0",
   "dependencies": [
-    {"name": "boost-asio"},
-    {"name": "boost-system"},
-    {"name": "cli11"},
-    {"name": "ftxui"},
-    {"name": "gtest"},
-    {"name": "libgit2", "features": ["ssh"]},
-    {"name": "tbb"},
-    {"name": "yaml-cpp"}
+    {
+      "name": "boost-asio"
+    },
+    {
+      "name": "boost-system"
+    },
+    {
+      "name": "cli11"
+    },
+    {
+      "name": "ftxui"
+    },
+    {
+      "name": "gtest"
+    },
+    {
+      "name": "libgit2",
+      "features": [
+        "ssh"
+      ]
+    },
+    {
+      "name": "tbb"
+    },
+    {
+      "name": "yaml-cpp"
+    }
   ],
   "builtin-baseline": "62159a45e18f3a9ac0548628dcaf74fcb60c6ff9"
 }
