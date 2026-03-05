@@ -3,6 +3,8 @@
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
+#include <ftxui/screen/screen.hpp>
+#include <ftxui/screen/terminal.hpp>
 #include <functional>
 #include <iostream>
 #include <mutex>
@@ -92,6 +94,23 @@ void flatten_repo_lines_text(
     }
 }
 
+std::vector<ftxui::Element> build_tui_lines(const std::vector<Tree> &trees) {
+    using ftxui::bold;
+    using ftxui::hbox;
+    using ftxui::separator;
+    using ftxui::text;
+    std::vector<ftxui::Element> lines;
+    lines.push_back(
+        hbox({text("mrm"), separator(), text("live status")}) | bold);
+    lines.push_back(ftxui::separator());
+    for (const auto &tree : trees) {
+        lines.push_back(text(tree.root) | bold);
+        flatten_repo_lines(tree.root, tree.repos, lines);
+        lines.push_back(text(""));
+    }
+    return lines;
+}
+
 void print_final_report(const Tracker &tracker) {
     const std::vector<Tree> trees = tracker.snapshot();
     std::vector<std::string> lines;
@@ -104,6 +123,22 @@ void print_final_report(const Tracker &tracker) {
     for (const auto &line : lines) {
         std::cout << line << '\n';
     }
+    std::cout.flush();
+}
+
+void print_final_tui_report(const Tracker &tracker) {
+    using ftxui::vbox;
+    const std::vector<Tree> trees = tracker.snapshot();
+    auto lines = build_tui_lines(trees);
+    const std::size_t line_count = lines.size();
+    const auto size = ftxui::Terminal::Size();
+    const int width = size.dimx > 0 ? size.dimx : 80;
+    const int height = line_count > 0 ? static_cast<int>(line_count) : 1;
+    auto screen = ftxui::Screen::Create(
+        ftxui::Dimension::Fixed(width),
+        ftxui::Dimension::Fixed(height));
+    ftxui::Render(screen, vbox(std::move(lines)));
+    std::cout << screen.ToString();
     std::cout.flush();
 }
 
@@ -177,6 +212,7 @@ class TuiView final : public OutputView {
         if (ui_thread_.joinable()) {
             ui_thread_.join();
         }
+        print_final_tui_report(tracker_);
     }
 
   private:
@@ -225,12 +261,8 @@ class TuiView final : public OutputView {
     }
 
     ftxui::Element render() {
-        using ftxui::bold;
         using ftxui::flex;
         using ftxui::frame;
-        using ftxui::hbox;
-        using ftxui::separator;
-        using ftxui::text;
         using ftxui::vbox;
         using ftxui::vscroll_indicator;
         std::vector<Tree> trees;
@@ -238,16 +270,7 @@ class TuiView final : public OutputView {
             std::scoped_lock<std::mutex> lock(data_mutex_);
             trees = trees_;
         }
-        std::vector<ftxui::Element> lines;
-        lines.push_back(
-            hbox({text("mrm"), separator(), text("live status")}) | bold);
-        lines.push_back(text("Scroll to view all items."));
-        lines.push_back(ftxui::separator());
-        for (const auto &tree : trees) {
-            lines.push_back(text(tree.root) | bold);
-            flatten_repo_lines(tree.root, tree.repos, lines);
-            lines.push_back(text(""));
-        }
+        auto lines = build_tui_lines(trees);
         line_count_ = lines.size();
         if (line_count_ == 0) {
             selected_line_ = 0;
@@ -262,7 +285,7 @@ class TuiView final : public OutputView {
     }
 
     void run_ui() {
-        auto screen = ftxui::ScreenInteractive::TerminalOutput();
+        auto screen = ftxui::ScreenInteractive::FullscreenAlternateScreen();
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             exit_loop_ = screen.ExitLoopClosure();
