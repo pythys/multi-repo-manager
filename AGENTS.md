@@ -27,6 +27,7 @@ The Makefile is the single source of truth for day‑to‑day development tasks.
 - `make lint` — run `clang-format` checks (no changes)
 - `make lint-fix` — auto-format C++ and CMake files
 - `make scan` — run `clang-tidy` (requires `build`)
+- `make up-vcpkg` - update vcpkg baseline in vcpkg.json
 - `make watch` — watch files and run `clean test lint`
 - `make docs` — generate Doxygen docs
 - `make completion` — generate shell completions into `build/completions`
