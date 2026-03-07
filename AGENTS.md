@@ -8,7 +8,8 @@ build, test, lint, and tooling tasks.
 
 ```sh
 make help
-make clean build
+make clean
+make build
 make lint
 make test
 ```
@@ -81,10 +82,15 @@ details.
 ## Notes for Agents
 
 - Prefer using Makefile targets over calling tools directly.
+- Do not run `make clean build` as it leads to a race condition in directory
+  deletion and creation. Run the clean target in isolation first then combine.
 - `make build` creates `compile_commands.json` and symlinks it into build
   subdirectories.
 - `make install` and `make uninstall` write to `/usr/local/bin` (may require
   elevated privileges).
+- Multiple repository types are supported in the design like git, subversion
+  etc, so always keep the absstraction and don't break it with improper names
+  or designs that assume a git-only implementation.
 - Write tests for features that require it, without abiding to 100% coverage.
 - Keep changes consistent with CMake and Makefile conventions already in place.
 - Keep code changes and documentation in sync in the same change whenever
@@ -93,7 +99,8 @@ details.
 - For CLI/API naming, prefer user-facing terms (for example `--jobs`) over
   implementation-specific names (for example `--pool-size`).
 - If `clang-tidy` is available, prefer running `make scan`, but do it last
-  after compile, test, and formatting issues are resolved.
+  after compile, test, and formatting issues are resolved. Scan takes a long
+  time, and warnings that are not suppressed should be addressed.
 - Prefer terse, efficient code over verbose implementations.
 - Prefer modern C++ constructs where they improve clarity and correctness.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
