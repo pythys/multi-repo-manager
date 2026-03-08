@@ -22,6 +22,10 @@ For most code changes follow this sequence:
 
 If any step fails, repeat the full cycle.
 
+- If the environment does not have clang-tidy installed, then skip `make scan`
+- `make scan` reports a massive warning count in external code. Ignore it and
+  only react to reported warnings that affect project code.
+
 ### Core Targets
 
 - `make clean` — remove generated artifacts (`.cache`, `build`,
@@ -101,10 +105,6 @@ details.
 - Keep command changes (names and flags) in sync with mrm.usage.
 - For CLI/API naming, prefer user-facing terms (for example `--jobs`) over
   implementation-specific names (for example `--pool-size`).
-- If `clang-tidy` is available, prefer running `make scan`, but do it last
-  after compile, test, and formatting issues are resolved. Scan takes a long
-  time and warnings that are not suppressed should be addressed. Do not timeout
-  on `make scan` for at least 3 minutes.
 - Prefer terse, efficient code over verbose implementations.
 - Prefer modern C++ constructs where they improve clarity and correctness.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
