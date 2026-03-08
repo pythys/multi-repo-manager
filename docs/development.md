@@ -6,7 +6,6 @@
 - [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) static analyzer
 - [clang](https://clang.llvm.org/) compiler
 - [cmake](https://cmake.org) build generator
-- [complgen](https://github.com/adaszko/complgen) shell completion
 - [docker](https://docs.docker.com/engine/install/) containerization
 - [doxygen](https://github.com/doxygen/doxygen) documentation generator
 - [entr](https://github.com/eradman/entr) file watcher

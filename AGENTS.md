@@ -18,13 +18,13 @@ For most code changes follow this sequence:
 3. `make lint`
 4. `make test`
 5. Fix any failures
-6. Run `make scan` last (slow, up to 3 minutes)
+6. Run `make scan` last, it is slow.
 
-If any step fails, repeat the full cycle.
-
+- If any step fails, repeat the full cycle.
 - If the environment does not have clang-tidy installed, then skip `make scan`
 - `make scan` reports a massive warning count in external code. Ignore it and
   only react to reported warnings that affect project code.
+- `make scan` take a long time. Do not time out before at least 5 minutes.
 
 ### Core Targets
 
@@ -81,7 +81,7 @@ Primary tools used via Makefile:
 - Analysis: `clang-tidy`
 - Tests: `ctest`
 - Docs: `doxygen`
-- Other: `complgen`, `entr`, `docker`, `cpack`
+- Other: `entr`, `docker`, `cpack`
 
 Libraries are managed via `vcpkg` (optional). See `docs/development.md` for
 details.
@@ -102,7 +102,6 @@ details.
 - Keep changes consistent with CMake and Makefile conventions already in place.
 - Keep code changes and documentation in sync in the same change whenever
   behavior or interfaces change (docs, usage text, and relevant comments).
-- Keep command changes (names and flags) in sync with mrm.usage.
 - For CLI/API naming, prefer user-facing terms (for example `--jobs`) over
   implementation-specific names (for example `--pool-size`).
 - Prefer terse, efficient code over verbose implementations.

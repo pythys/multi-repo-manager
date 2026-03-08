@@ -7,6 +7,14 @@ mrm --help
 mrm <command> --help
 ```
 
+## shell completion
+
+```sh
+mrm completion bash > mrm-completions.sh
+mrm completion zsh > _mrm
+mrm completion powershell > mrm.ps1
+```
+
 ## create config from existing repos
 
 ```sh

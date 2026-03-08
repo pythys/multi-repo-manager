@@ -1,4 +1,5 @@
 #include "cli.hpp"
+#include "completion.hpp"
 #include "exec.hpp"
 #include "find.hpp"
 #include "remotesync.hpp"
@@ -6,6 +7,7 @@
 #include "sync.hpp"
 #include "update.hpp"
 #include <CLI/CLI.hpp>
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -182,6 +184,13 @@ int parse_cli(int argc, char **argv) {
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
 
+    CLI::App *completion =
+        app.add_subcommand("completion", "Generate shell completion script");
+    std::string completion_shell;
+    completion->add_option("shell", completion_shell, "Shell type")
+        ->required()
+        ->check(CLI::IsMember({"bash", "zsh", "powershell"}));
+
     if (argc <= 1) {
         return app.exit(CLI::CallForHelp());
     }
@@ -232,6 +241,11 @@ int parse_cli(int argc, char **argv) {
             config_file,
             repo_type,
             exec_root_patterns);
+    }
+
+    if (*completion) {
+        std::cout << generate_script(app, parse_shell_type(completion_shell));
+        return 0;
     }
 
     return 0;

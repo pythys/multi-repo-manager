@@ -8,6 +8,7 @@ add_library(mrm_core STATIC)
 target_sources(
     mrm_core
     PRIVATE cli.cpp
+            completion.cpp
             output_view.cpp
             config.cpp
             exec.cpp
