@@ -28,9 +28,6 @@ int parse_cli(int argc, char **argv) {
             "Max concurrent repo operations. Use 0 (default) to use the "
             "built-in value")
         ->type_name("N");
-    sync->add_option("--pool-size", sync_jobs, "DEPRECATED: use --jobs")
-        ->type_name("N")
-        ->group("");
     bool prune_remotes = false;
     sync->add_flag(
         "--prune-remotes,-R",
@@ -99,9 +96,6 @@ int parse_cli(int argc, char **argv) {
             update_root_patterns,
             "Filter trees by root (supports wildcard patterns)")
         ->type_name("pattern");
-    update->add_option("--pool-size", update_jobs, "DEPRECATED: use --jobs")
-        ->type_name("N")
-        ->group("");
 
     CLI::App *remotesync = app.add_subcommand(
         "remotesync",
@@ -146,10 +140,6 @@ int parse_cli(int argc, char **argv) {
             "Max concurrent repo operations. Use 0 (default) to use the "
             "built-in value")
         ->type_name("N");
-    remotesync
-        ->add_option("--pool-size", remotesync_jobs, "DEPRECATED: use --jobs")
-        ->type_name("N")
-        ->group("");
     std::vector<std::string> remotesync_root_patterns;
     remotesync
         ->add_option(
