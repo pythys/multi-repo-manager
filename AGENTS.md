@@ -4,20 +4,23 @@ This repository is **mrm (multi-repo-manager)**, a C++ project built with CMake
 and orchestrated by a Makefile. The Makefile is the primary entry point for
 build, test, lint, and tooling tasks.
 
-## Quick Start
-
-```sh
-make help
-make clean
-make build
-make lint
-make test
-```
-
 ## Makefile Orchestration
 
 The Makefile is the single source of truth for day‑to‑day development tasks. Use
 `make help` for a current list of targets.
+
+## Development Flow
+
+For most code changes follow this sequence:
+
+1. `make clean`
+2. `make build`
+3. `make lint`
+4. `make test`
+5. Fix any failures
+6. Run `make scan` last (slow, up to 3 minutes)
+
+If any step fails, repeat the full cycle.
 
 ### Core Targets
 
@@ -25,11 +28,11 @@ The Makefile is the single source of truth for day‑to‑day development tasks.
   `compile_commands.json`)
 - `make build` — configure/build with CMake and generate `compile_commands.json`
 - `make test` — run all tests (depends on `build`)
-- `make lint` — run `clang-format` checks (no changes)
+- `make lint` — checks for issues with `clang-format` and `cmake-format`
 - `make lint-fix` — auto-format C++ and CMake files
 - `make scan` — run `clang-tidy` (requires `build`)
 - `make up-vcpkg` - update vcpkg baseline in vcpkg.json
-- `make watch` — watch files and run `clean test lint`
+- `make watch` — continuously run `clean test lint` when files change
 - `make docs` — generate Doxygen docs
 - `make completion` — generate shell completions into `build/completions`
 - `make package` — build packages via CPack
@@ -89,7 +92,7 @@ details.
 - `make install` and `make uninstall` write to `/usr/local/bin` (may require
   elevated privileges).
 - Multiple repository types are supported in the design like git, subversion
-  etc, so always keep the absstraction and don't break it with improper names
+  etc, so always keep the abstraction and don't break it with improper names
   or designs that assume a git-only implementation.
 - Write tests for features that require it, without abiding to 100% coverage.
 - Keep changes consistent with CMake and Makefile conventions already in place.
@@ -107,6 +110,3 @@ details.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
 - Avoid unnecessary OO layering; use polymorphism and class hierarchies only
   when they add clear value.
-- If any error occurs in make targets lint, test or scan, then repeat all of
-  them, to avoid changes in a later target triggering more issues in a previous
-  one. A clear full round of clean lint, test and scan is needed to accept work.
