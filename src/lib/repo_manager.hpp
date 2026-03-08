@@ -74,7 +74,7 @@ class RepoManager {
         const std::string &remote_branch) = 0;
 
     /**
-     * Compare local branches and classify synchronization state.
+     * Compare branches and classify synchronization state.
      *
      * @param path Repository path.
      * @param source_branch Local branch compared from.
