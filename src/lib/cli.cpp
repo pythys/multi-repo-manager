@@ -19,12 +19,6 @@ int parse_cli(int argc, char **argv) {
     sync->add_option("--config,-c", config_file, "Configuration file")
         ->required()
         ->type_name("file");
-    std::string sync_path = ".";
-    sync->add_option(
-            "workdir",
-            sync_path,
-            "Path to sync repos to if location is relative. Defaults to \".\"")
-        ->type_name("dir");
     int sync_jobs = 0;
     sync->add_option(
             "--jobs,-j",

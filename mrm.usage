@@ -1,7 +1,7 @@
 mrm (-h || --help);
 
-mrm sync (-c || --config) <PATH> [<PATH>] [<PRUNEFLAG>] [(-j || --jobs) <N>] [(-r || --root) <ROOTPATTERN>...];
-mrm sync (-c || --config) <PATH> [<PATH>] [(-j || --jobs) <N>] [<PRUNEFLAG>] [(-r || --root) <ROOTPATTERN>...];
+mrm sync (-c || --config) <PATH> [<PRUNEFLAG>] [(-j || --jobs) <N>] [(-r || --root) <ROOTPATTERN>...];
+mrm sync (-c || --config) <PATH> [(-j || --jobs) <N>] [<PRUNEFLAG>] [(-r || --root) <ROOTPATTERN>...];
 mrm find [<PATH>...] [(-s || --save) <PATH>];
 mrm find [(-s || --save) <PATH>] [<PATH>...];
 mrm status (-c || --config) <PATH> [(-r || --root) <ROOTPATTERN>...];

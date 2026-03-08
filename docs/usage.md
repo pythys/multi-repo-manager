@@ -129,7 +129,3 @@ If using agent:
 ```sh
 ssh-add ~/.ssh/id_ed25519
 ```
-
-## known limitation
-
-CLI accepts `mrm sync --config <file> <workdir>`, but current implementation does not yet use `workdir`.
