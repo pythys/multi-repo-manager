@@ -100,7 +100,8 @@ details.
   implementation-specific names (for example `--pool-size`).
 - If `clang-tidy` is available, prefer running `make scan`, but do it last
   after compile, test, and formatting issues are resolved. Scan takes a long
-  time, and warnings that are not suppressed should be addressed.
+  time and warnings that are not suppressed should be addressed. Do not timeout
+  on `make scan` for at least 3 minutes.
 - Prefer terse, efficient code over verbose implementations.
 - Prefer modern C++ constructs where they improve clarity and correctness.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
