@@ -109,3 +109,5 @@ details.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
 - Avoid unnecessary OO layering; use polymorphism and class hierarchies only
   when they add clear value.
+- The source code for libraries used in this project can be scanned to use them
+  properly. The libraries can be found in build/vcpkg_installed.
