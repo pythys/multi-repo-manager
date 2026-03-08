@@ -80,9 +80,9 @@ mrm remotesync --config myrepos.yml --source upstream --target origin --branch m
 
 `remotesync` behavior:
 - syncs only explicitly selected `--branch` values
+- pulls the source remote branch into the local branch before pushing
 - if source branch is missing, tries local branch fallback; otherwise skips
-- if target branch is missing, skips (no auto-create)
-- if target and source diverge, skips
+- pushes the local branch to the target remote (creates if missing)
 - `--dry-run` (`-n`) reports what would be pushed without changing remotes
 
 ## exec custom command in repos

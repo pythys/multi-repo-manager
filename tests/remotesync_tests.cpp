@@ -103,7 +103,7 @@ TEST(RemoteSyncTests, DryRunReportsPlannedPush) {
     EXPECT_NE(std::string::npos, output.find("DRY-RUN would push"));
 }
 
-TEST(RemoteSyncTests, MissingTargetBranchIsSkipped) {
+TEST(RemoteSyncTests, MissingTargetBranchIsCreated) {
     TempDir temp;
     fs::path repo;
     fs::path origin;
@@ -120,8 +120,8 @@ TEST(RemoteSyncTests, MissingTargetBranchIsSkipped) {
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);
-    EXPECT_NE(std::string::npos, output.find("Missing target branch, skipped"));
-    EXPECT_FALSE(git_test::ref_exists(origin, "refs/heads/main"));
+    EXPECT_NE(std::string::npos, output.find("[main] Synced"));
+    EXPECT_TRUE(git_test::ref_exists(origin, "refs/heads/main"));
 }
 
 TEST(RemoteSyncTests, FallsBackToLocalWhenSourceFetchFails) {

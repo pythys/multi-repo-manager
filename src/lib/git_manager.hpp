@@ -16,7 +16,7 @@
 #include <vector>
 
 /**
- * @brief Small RAII wrapper around libgit2 handle types.
+ * @brief RAII wrapper around libgit2 handle types.
  *
  * @tparam T Native libgit2 resource type.
  * @tparam free_resource Libgit2 function used to release `T`.
@@ -90,21 +90,6 @@ class GitManager : public RepoManager {
         }
     }
 
-    static std::string delta_path(const git_diff_delta *delta) {
-        if (!delta) {
-            return "<unknown>";
-        }
-        const char *new_path = delta->new_file.path;
-        const char *old_path = delta->old_file.path;
-        if (new_path) {
-            return {new_path};
-        }
-        if (old_path) {
-            return {old_path};
-        }
-        return "<unknown>";
-    }
-
     static void append_status_lines(
         const git_status_entry &entry,
         std::vector<std::string> &status_lines) {
@@ -152,8 +137,15 @@ class GitManager : public RepoManager {
         }};
         for (const auto &rule : rules) {
             if (entry.status & rule.flag) {
-                status_lines.emplace_back(
-                    std::string(rule.label) + delta_path(rule.delta));
+                std::string path = "<unknown>";
+                if (rule.delta) {
+                    if (rule.delta->new_file.path) {
+                        path = rule.delta->new_file.path;
+                    } else if (rule.delta->old_file.path) {
+                        path = rule.delta->old_file.path;
+                    }
+                }
+                status_lines.emplace_back(std::string(rule.label) + path);
             }
         }
     }
@@ -259,119 +251,6 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void update(const std::string &path) override {
-        GitRepository repo;
-        check_error(
-            git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository in " + path,
-            repo.get());
-
-        GitReference head_ref;
-        check_error(
-            git_repository_head(head_ref.get_address(), repo.get()),
-            "Failed to retrieve HEAD in " + path,
-            repo.get());
-
-        GitReference upstream_ref;
-        check_error(
-            git_branch_upstream(upstream_ref.get_address(), head_ref.get()),
-            "Failed to retrieve upstream reference in " + path,
-            repo.get());
-
-        GitBuffer remote_name_buf;
-        check_error(
-            git_branch_remote_name(
-                remote_name_buf.get(),
-                repo.get(),
-                git_reference_name(upstream_ref.get())),
-            "Failed to retrieve remote name in " + path,
-            repo.get());
-
-        GitRemote remote;
-        check_error(
-            git_remote_lookup(
-                remote.get_address(),
-                repo.get(),
-                remote_name_buf.get_ptr()),
-            "Failed to lookup remote in " + path,
-            repo.get());
-
-        GitSignature stash_signature;
-        check_error(
-            git_signature_now(
-                stash_signature.get_address(),
-                "mrm",
-                "mrm@mrm.com"),
-            "Failed to create signature",
-            repo.get());
-        git_oid stash_oid;
-        const int stash_code = git_stash_save(
-            &stash_oid,
-            repo.get(),
-            stash_signature.get(),
-            "mrm pre-update stash",
-            GIT_STASH_DEFAULT | GIT_STASH_INCLUDE_UNTRACKED);
-
-        git_fetch_options fetch_opts;
-        git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        fetch_opts.callbacks = create_remote_callbacks();
-        check_error(
-            git_remote_fetch(remote.get(), nullptr, &fetch_opts, nullptr),
-            "Failed to fetch remote in " + path,
-            repo.get());
-
-        GitReference remote_ref;
-        check_error(
-            git_reference_lookup(
-                remote_ref.get_address(),
-                repo.get(),
-                git_reference_name(upstream_ref.get())),
-            "Failed to lookup remote reference in " + path,
-            repo.get());
-
-        const git_oid *target_oid = git_reference_target(remote_ref.get());
-        GitReference new_head;
-        check_error(
-            git_reference_set_target(
-                new_head.get_address(),
-                head_ref.get(),
-                target_oid,
-                "Fast-forward"),
-            "Failed to fast-forward update in " + path,
-            repo.get());
-
-        GitObject target_obj;
-        std::array<char, GIT_OID_HEXSZ + 1> oid_str{};
-        git_oid_tostr(oid_str.data(), oid_str.size(), target_oid);
-        check_error(
-            git_revparse_single(
-                target_obj.get_address(),
-                repo.get(),
-                oid_str.data()),
-            "Failed to lookup target commit in " + path,
-            repo.get());
-        check_error(
-            git_reset(repo.get(), target_obj.get(), GIT_RESET_MIXED, nullptr),
-            "Failed to reset index in " + path,
-            repo.get());
-
-        git_checkout_options checkout_opts;
-        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
-        checkout_opts.checkout_strategy =
-            GIT_CHECKOUT_FORCE | GIT_CHECKOUT_REMOVE_UNTRACKED;
-        check_error(
-            git_checkout_head(repo.get(), &checkout_opts),
-            "Failed to update working directory in " + path,
-            repo.get());
-
-        if (stash_code != GIT_ENOTFOUND) {
-            check_error(
-                git_stash_pop(repo.get(), 0, nullptr),
-                "Failed to pop stash in " + path,
-                repo.get());
-        }
-    }
-
     void add_remote(const std::string &path, const Remote &remote) override {
         GitRepository repo;
         check_error(
@@ -435,70 +314,6 @@ class GitManager : public RepoManager {
         }
         git_strarray_dispose(&remote_names);
         return remotes;
-    }
-
-    std::vector<Branch> get_branches(const std::string &path) override {
-        GitRepository repo;
-        check_error(
-            git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository in " + path,
-            repo.get());
-        GitBranchIterator branch_iter;
-        check_error(
-            git_branch_iterator_new(
-                branch_iter.get_address(),
-                repo.get(),
-                GIT_BRANCH_LOCAL),
-            "Failed to create branch iterator in " + path,
-            repo.get());
-        std::vector<Branch> branches;
-        while (true) {
-            GitReference next_branch;
-            git_branch_t branch_type = GIT_BRANCH_LOCAL;
-            const int code = git_branch_next(
-                next_branch.get_address(),
-                &branch_type,
-                branch_iter.get());
-            if (code == GIT_ITEROVER) {
-                break;
-            }
-            if (code != 0) {
-                check_error(
-                    code,
-                    "Failed to iterate branches in " + path,
-                    repo.get());
-            }
-            const char *name = nullptr;
-            check_error(
-                git_branch_name(&name, next_branch.get()),
-                "Failed to get branch name in " + path,
-                repo.get());
-            const std::string branch_name(name);
-            GitBuffer remote_name_buf;
-            const char *next_ref = git_reference_name(next_branch.get());
-            const int rcode = git_branch_upstream_remote(
-                remote_name_buf.get(),
-                repo.get(),
-                next_ref);
-            const bool is_tracked = rcode == 0;
-            if (!is_tracked) {
-                continue;
-            }
-            const std::string remote_name = remote_name_buf.get_ptr();
-            GitReference head_ref;
-            check_error(
-                git_repository_head(head_ref.get_address(), repo.get()),
-                "Failed to retrieve HEAD in " + path,
-                repo.get());
-            const bool is_current =
-                git_reference_cmp(head_ref.get(), next_branch.get()) == 0;
-            branches.push_back(
-                Branch{
-                    .name = branch_name,
-                    .remote = remote_name,
-                    .is_current = is_current});
-        }
-        return branches;
     }
 
     void add_branch(const std::string &path, const Branch &branch) override {
@@ -594,9 +409,72 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void checkout_branch(
-        const std::string &path,
-        const std::string &branch_name) override {
+    std::vector<Branch> get_branches(const std::string &path) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+        GitBranchIterator branch_iter;
+        check_error(
+            git_branch_iterator_new(
+                branch_iter.get_address(),
+                repo.get(),
+                GIT_BRANCH_LOCAL),
+            "Failed to create branch iterator in " + path,
+            repo.get());
+        std::vector<Branch> branches;
+        while (true) {
+            GitReference next_branch;
+            git_branch_t branch_type = GIT_BRANCH_LOCAL;
+            const int code = git_branch_next(
+                next_branch.get_address(),
+                &branch_type,
+                branch_iter.get());
+            if (code == GIT_ITEROVER) {
+                break;
+            }
+            if (code != 0) {
+                check_error(
+                    code,
+                    "Failed to iterate branches in " + path,
+                    repo.get());
+            }
+            const char *name = nullptr;
+            check_error(
+                git_branch_name(&name, next_branch.get()),
+                "Failed to get branch name in " + path,
+                repo.get());
+            const std::string branch_name(name);
+            GitBuffer remote_name_buf;
+            const char *next_ref = git_reference_name(next_branch.get());
+            const int rcode = git_branch_upstream_remote(
+                remote_name_buf.get(),
+                repo.get(),
+                next_ref);
+            const bool is_tracked = rcode == 0;
+            if (!is_tracked) {
+                continue;
+            }
+            const std::string remote_name = remote_name_buf.get_ptr();
+            GitReference head_ref;
+            check_error(
+                git_repository_head(head_ref.get_address(), repo.get()),
+                "Failed to retrieve HEAD in " + path,
+                repo.get());
+            const bool is_current =
+                git_reference_cmp(head_ref.get(), next_branch.get()) == 0;
+            branches.push_back(
+                Branch{
+                    .name = branch_name,
+                    .remote = remote_name,
+                    .is_current = is_current});
+        }
+        return branches;
+    }
+
+    bool branch_exists(const std::string &path, const std::string &branch_name)
+        override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -604,12 +482,41 @@ class GitManager : public RepoManager {
             repo.get());
 
         GitReference branch_ref;
+        const int lookup_code = git_branch_lookup(
+            branch_ref.get_address(),
+            repo.get(),
+            branch_name.c_str(),
+            GIT_BRANCH_LOCAL);
+        if (lookup_code == GIT_ENOTFOUND) {
+            return false;
+        }
         check_error(
-            git_branch_lookup(
-                branch_ref.get_address(),
-                repo.get(),
-                branch_name.c_str(),
-                GIT_BRANCH_LOCAL),
+            lookup_code,
+            "Failed to lookup branch in " + path,
+            repo.get());
+        return true;
+    }
+
+    void switch_branch(const std::string &path, const std::string &branch_name)
+        override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitReference branch_ref;
+        const int lookup_code = git_branch_lookup(
+            branch_ref.get_address(),
+            repo.get(),
+            branch_name.c_str(),
+            GIT_BRANCH_LOCAL);
+        if (lookup_code == GIT_ENOTFOUND) {
+            throw std::runtime_error(
+                "Missing branch " + branch_name + " in " + path);
+        }
+        check_error(
+            lookup_code,
             "Failed to lookup branch in " + path,
             repo.get());
 
@@ -639,8 +546,11 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void fetch_remote(const std::string &path, const std::string &remote_name)
-        override {
+    void pull_branch(
+        const std::string &path,
+        const std::string &remote_name,
+        const std::string &remote_branch,
+        const std::string &local_branch) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -655,87 +565,189 @@ class GitManager : public RepoManager {
                 remote_name.c_str()),
             "Failed to lookup remote in " + path,
             repo.get());
+
+        GitReference local_ref;
+        const int local_lookup = git_branch_lookup(
+            local_ref.get_address(),
+            repo.get(),
+            local_branch.c_str(),
+            GIT_BRANCH_LOCAL);
+        const bool local_exists = local_lookup != GIT_ENOTFOUND;
+        if (local_exists) {
+            check_error(
+                local_lookup,
+                "Failed to lookup branch in " + path,
+                repo.get());
+        }
+
+        bool is_current = false;
+        if (local_exists) {
+            GitReference head_ref;
+            check_error(
+                git_repository_head(head_ref.get_address(), repo.get()),
+                "Failed to retrieve HEAD in " + path,
+                repo.get());
+            is_current =
+                git_reference_cmp(head_ref.get(), local_ref.get()) == 0;
+        }
+
+        git_oid stash_oid{};
+        int stash_code = GIT_ENOTFOUND;
+        if (is_current) {
+            GitSignature stash_signature;
+            check_error(
+                git_signature_now(
+                    stash_signature.get_address(),
+                    "mrm",
+                    "mrm@mrm.com"),
+                "Failed to create signature",
+                repo.get());
+            stash_code = git_stash_save(
+                &stash_oid,
+                repo.get(),
+                stash_signature.get(),
+                "mrm pre-pull stash",
+                GIT_STASH_DEFAULT | GIT_STASH_INCLUDE_UNTRACKED);
+        }
+
+        const std::string remote_ref_name = "refs/heads/" + remote_branch;
+        const std::string tracking_ref =
+            "refs/remotes/" + remote_name + "/" + remote_branch;
+        std::string refspec = remote_ref_name + ":" + tracking_ref;
+        std::vector<char> refspec_buffer(refspec.begin(), refspec.end());
+        refspec_buffer.push_back('\0');
+        std::vector<char *> strings = {refspec_buffer.data()};
+        git_strarray refspecs = {
+            .strings = strings.data(),
+            .count = strings.size()};
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
         fetch_opts.callbacks = create_remote_callbacks();
         check_error(
-            git_remote_fetch(remote.get(), nullptr, &fetch_opts, nullptr),
+            git_remote_fetch(remote.get(), &refspecs, &fetch_opts, nullptr),
             "Failed to fetch remote in " + path,
             repo.get());
-    }
 
-    bool
-    ref_exists(const std::string &path, const std::string &ref_name) override {
-        GitRepository repo;
-        check_error(
-            git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository in " + path,
-            repo.get());
-
-        GitReference ref;
-        const int lookup_code = git_reference_lookup(
-            ref.get_address(),
+        GitReference remote_ref;
+        const int remote_lookup = git_reference_lookup(
+            remote_ref.get_address(),
             repo.get(),
-            ref_name.c_str());
-        if (lookup_code == GIT_ENOTFOUND) {
-            return false;
+            tracking_ref.c_str());
+        if (remote_lookup == GIT_ENOTFOUND) {
+            throw std::runtime_error(
+                "Missing remote branch " + remote_name + "/" + remote_branch +
+                " in " + path);
         }
         check_error(
-            lookup_code,
-            "Failed to lookup reference " + ref_name + " in " + path,
+            remote_lookup,
+            "Failed to lookup remote branch in " + path,
             repo.get());
-        return true;
+
+        const git_oid *target_oid = git_reference_target(remote_ref.get());
+        if (target_oid == nullptr) {
+            throw std::runtime_error(
+                "Missing target oid for remote branch " + remote_name + "/" +
+                remote_branch + " in " + path);
+        }
+
+        GitReference new_branch_ref;
+        if (local_exists) {
+            check_error(
+                git_reference_set_target(
+                    new_branch_ref.get_address(),
+                    local_ref.get(),
+                    target_oid,
+                    "Fast-forward"),
+                "Failed to fast-forward branch in " + path,
+                repo.get());
+        } else {
+            GitCommit target_commit;
+            check_error(
+                git_commit_lookup(
+                    target_commit.get_address(),
+                    repo.get(),
+                    target_oid),
+                "Failed to lookup target commit in " + path,
+                repo.get());
+            check_error(
+                git_branch_create(
+                    new_branch_ref.get_address(),
+                    repo.get(),
+                    local_branch.c_str(),
+                    target_commit.get(),
+                    0),
+                "Failed to create branch in " + path,
+                repo.get());
+        }
+
+        GitReference *upstream_ref =
+            local_exists ? &local_ref : &new_branch_ref;
+        const std::string upstream_name = remote_name + "/" + remote_branch;
+        check_error(
+            git_branch_set_upstream(upstream_ref->get(), upstream_name.c_str()),
+            "Failed to set branch upstream in " + path,
+            repo.get());
+
+        if (is_current) {
+            GitObject target_obj;
+            std::array<char, GIT_OID_HEXSZ + 1> oid_str{};
+            git_oid_tostr(oid_str.data(), oid_str.size(), target_oid);
+            check_error(
+                git_revparse_single(
+                    target_obj.get_address(),
+                    repo.get(),
+                    oid_str.data()),
+                "Failed to lookup target commit in " + path,
+                repo.get());
+            check_error(
+                git_reset(
+                    repo.get(),
+                    target_obj.get(),
+                    GIT_RESET_MIXED,
+                    nullptr),
+                "Failed to reset index in " + path,
+                repo.get());
+
+            git_checkout_options checkout_opts;
+            git_checkout_options_init(
+                &checkout_opts,
+                GIT_CHECKOUT_OPTIONS_VERSION);
+            checkout_opts.checkout_strategy =
+                GIT_CHECKOUT_FORCE | GIT_CHECKOUT_REMOVE_UNTRACKED;
+            check_error(
+                git_checkout_head(repo.get(), &checkout_opts),
+                "Failed to update working directory in " + path,
+                repo.get());
+        }
+
+        if (stash_code != GIT_ENOTFOUND) {
+            check_error(
+                git_stash_pop(repo.get(), 0, nullptr),
+                "Failed to pop stash in " + path,
+                repo.get());
+        }
     }
 
-    RefSyncState compare_refs(
-        const std::string &path,
-        const std::string &source_ref,
-        const std::string &target_ref) override {
-        GitRepository repo;
-        check_error(
-            git_repository_open(repo.get_address(), path.c_str()),
-            "Failed to open repository in " + path,
-            repo.get());
-
-        const git_oid source_oid =
-            lookup_ref_oid(repo.get(), source_ref.c_str());
-        const git_oid target_oid =
-            lookup_ref_oid(repo.get(), target_ref.c_str());
-
-        size_t source_ahead_count = 0;
-        size_t source_behind_count = 0;
-        check_error(
-            git_graph_ahead_behind(
-                &source_ahead_count,
-                &source_behind_count,
-                repo.get(),
-                &source_oid,
-                &target_oid),
-            "Failed to compare refs in " + path,
-            repo.get());
-
-        if (source_ahead_count == 0 && source_behind_count == 0) {
-            return RefSyncState::UP_TO_DATE;
-        }
-        if (source_ahead_count == 0 && source_behind_count > 0) {
-            return RefSyncState::TARGET_AHEAD;
-        }
-        if (source_ahead_count > 0 && source_behind_count > 0) {
-            return RefSyncState::DIVERGED;
-        }
-        return RefSyncState::SOURCE_AHEAD;
-    }
-
-    void push_ref(
+    void push_branch(
         const std::string &path,
         const std::string &remote_name,
-        const std::string &source_ref,
-        const std::string &target_ref) override {
+        const std::string &local_branch,
+        const std::string &remote_branch) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
             "Failed to open repository in " + path,
+            repo.get());
+
+        GitReference local_ref;
+        check_error(
+            git_branch_lookup(
+                local_ref.get_address(),
+                repo.get(),
+                local_branch.c_str(),
+                GIT_BRANCH_LOCAL),
+            "Failed to lookup branch in " + path,
             repo.get());
 
         GitRemote remote;
@@ -747,6 +759,8 @@ class GitManager : public RepoManager {
             "Failed to lookup remote in " + path,
             repo.get());
 
+        const std::string source_ref = "refs/heads/" + local_branch;
+        const std::string target_ref = "refs/heads/" + remote_branch;
         std::string refspec = source_ref + ":" + target_ref;
         std::vector<char> refspec_buffer(refspec.begin(), refspec.end());
         refspec_buffer.push_back('\0');
@@ -762,6 +776,47 @@ class GitManager : public RepoManager {
             git_remote_push(remote.get(), &refspecs, &push_opts),
             "Failed to push reference in " + path,
             repo.get());
+    }
+
+    BranchSyncState compare_branches(
+        const std::string &path,
+        const std::string &source_branch,
+        const std::string &target_branch) override {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        const std::string source_ref = "refs/heads/" + source_branch;
+        const std::string target_ref = "refs/heads/" + target_branch;
+        const git_oid source_oid =
+            lookup_ref_oid(repo.get(), source_ref.c_str());
+        const git_oid target_oid =
+            lookup_ref_oid(repo.get(), target_ref.c_str());
+
+        size_t source_ahead_count = 0;
+        size_t source_behind_count = 0;
+        check_error(
+            git_graph_ahead_behind(
+                &source_ahead_count,
+                &source_behind_count,
+                repo.get(),
+                &source_oid,
+                &target_oid),
+            "Failed to compare branches in " + path,
+            repo.get());
+
+        if (source_ahead_count == 0 && source_behind_count == 0) {
+            return BranchSyncState::UP_TO_DATE;
+        }
+        if (source_ahead_count == 0 && source_behind_count > 0) {
+            return BranchSyncState::TARGET_AHEAD;
+        }
+        if (source_ahead_count > 0 && source_behind_count > 0) {
+            return BranchSyncState::DIVERGED;
+        }
+        return BranchSyncState::SOURCE_AHEAD;
     }
 
     std::vector<std::string> get_status(const std::string &path) override {

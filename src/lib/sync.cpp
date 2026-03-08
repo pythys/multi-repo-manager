@@ -12,13 +12,19 @@
 #include <stdexcept>
 #include <string>
 #include <tbb/parallel_for_each.h>
-#include <unordered_set>
 #include <vector>
 
 namespace asio = boost::asio;
 
 namespace {
 enum class MatchType : std::uint8_t { TO_REMOVE, TO_ADD };
+
+const Branch *find_current_branch(const std::vector<Branch> &branches) {
+    auto it = std::ranges::find_if(branches, [](const Branch &branch) {
+        return branch.is_current;
+    });
+    return it == branches.end() ? nullptr : &(*it);
+}
 
 std::vector<Remote> find_remotes(
     const std::vector<Remote> &conf_remotes,
@@ -93,38 +99,6 @@ std::vector<Branch> find_branches(
     return result;
 }
 
-const Branch *find_current_branch(const std::vector<Branch> &branches) {
-    auto it = std::ranges::find_if(branches, [](const Branch &branch) {
-        return branch.is_current;
-    });
-    return it == branches.end() ? nullptr : &(*it);
-}
-
-void set_current_branch(
-    const std::string &path,
-    const std::vector<Branch> &repo_branches,
-    const std::vector<Branch> &conf_branches,
-    RepoManager *repo_manager) {
-
-    const Branch *repo_current = find_current_branch(repo_branches);
-    const Branch *conf_current = find_current_branch(conf_branches);
-
-    if (!conf_current || !repo_current ||
-        repo_current->name == conf_current->name) {
-        return;
-    }
-
-    const bool has_conf_branch =
-        std::ranges::any_of(repo_branches, [&](const Branch &branch) {
-            return branch.name == conf_current->name;
-        });
-    if (!has_conf_branch) {
-        return;
-    }
-
-    repo_manager->checkout_branch(path, conf_current->name);
-}
-
 void sync_branches(
     Tracker &tracker,
     const std::string &root,
@@ -138,19 +112,25 @@ void sync_branches(
     }
 
     auto repo_branches = repo_manager->get_branches(repo_path);
+    const Branch *original = find_current_branch(repo_branches);
+    const std::string original_branch = original ? original->name : "";
     auto to_add_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_ADD);
-    std::unordered_set<std::string> remotes_to_fetch;
     for (const auto &branch : to_add_branches) {
-        if (!branch.remote.empty()) {
-            remotes_to_fetch.insert(branch.remote);
+        if (branch.remote.empty()) {
+            throw std::runtime_error(
+                "Branch remote is missing for " + branch.name);
         }
-    }
-    for (const auto &remote_name : remotes_to_fetch) {
-        repo_manager->fetch_remote(repo_path, remote_name);
-    }
-    for (const auto &branch : to_add_branches) {
-        repo_manager->add_branch(repo_path, branch);
+        if (!repo_manager->branch_exists(repo_path, branch.name)) {
+            repo_manager->pull_branch(
+                repo_path,
+                branch.remote,
+                branch.name,
+                branch.name);
+        }
+        repo_manager->switch_branch(repo_path, branch.name);
+        repo_manager
+            ->pull_branch(repo_path, branch.remote, branch.name, branch.name);
     }
     auto to_remove_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
@@ -168,12 +148,9 @@ void sync_branches(
                 MessageLevel::WARNING);
         }
     }
-    repo_branches = repo_manager->get_branches(repo_path);
-    set_current_branch(
-        repo_path,
-        repo_branches,
-        desired_branches,
-        repo_manager);
+    if (!original_branch.empty()) {
+        repo_manager->switch_branch(repo_path, original_branch);
+    }
 }
 } // namespace
 

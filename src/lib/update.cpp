@@ -36,7 +36,27 @@ int run_update(
                     RepoPhase::RUNNING,
                     "Updating repository");
                 try {
-                    repo_manager->update(repo_path);
+                    const auto branches = repo_manager->get_branches(repo_path);
+                    const Branch *current = nullptr;
+                    for (const auto &branch : branches) {
+                        if (branch.is_current) {
+                            current = &branch;
+                            break;
+                        }
+                    }
+                    if (!current) {
+                        throw std::runtime_error(
+                            "No tracked current branch in " + repo_path);
+                    }
+                    if (current->remote.empty()) {
+                        throw std::runtime_error(
+                            "Current branch has no remote in " + repo_path);
+                    }
+                    repo_manager->pull_branch(
+                        repo_path,
+                        current->remote,
+                        current->name,
+                        current->name);
                 } catch (const std::exception &e) {
                     tracker.set_phase(
                         tree.root,

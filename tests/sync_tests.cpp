@@ -136,7 +136,6 @@ TEST(SyncTests, BranchSyncMatchesConfig) {
             find_branch(repos[0].branches, expected_branch.name);
         ASSERT_NE(actual, nullptr);
         EXPECT_EQ(actual->remote, expected_branch.remote);
-        EXPECT_EQ(actual->is_current, expected_branch.is_current);
     }
 }
 
@@ -295,6 +294,6 @@ TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
     const Branch *feature = find_branch(repos[0], "feature");
     ASSERT_NE(main, nullptr);
     ASSERT_NE(feature, nullptr);
-    EXPECT_TRUE(main->is_current);
-    EXPECT_FALSE(feature->is_current);
+    EXPECT_FALSE(main->is_current);
+    EXPECT_TRUE(feature->is_current);
 }
