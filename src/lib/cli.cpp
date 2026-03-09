@@ -163,7 +163,8 @@ int parse_cli(int argc, char **argv) {
             "--type,-t",
             repo_type,
             "Type of repositories to target. Defaults to 'all'")
-        ->type_name("type");
+        ->type_name("type")
+        ->check(CLI::IsMember({"all", "git", "svn", "hg"}));
     exec->add_option("--config,-c", config_file, "Configuration file")
         ->required()
         ->type_name("file");
@@ -179,7 +180,7 @@ int parse_cli(int argc, char **argv) {
     std::string completion_shell;
     completion->add_option("shell", completion_shell, "Shell type")
         ->required()
-        ->check(CLI::IsMember({"bash", "zsh", "powershell"}));
+        ->check(CLI::IsMember({"bash", "zsh", "powershell", "spec"}));
 
     if (argc <= 1) {
         return app.exit(CLI::CallForHelp());
@@ -234,6 +235,10 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*completion) {
+        if (completion_shell == "spec") {
+            std::cout << print_spec(app);
+            return 0;
+        }
         std::cout << generate_script(app, parse_shell_type(completion_shell));
         return 0;
     }
