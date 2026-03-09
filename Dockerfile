@@ -20,6 +20,8 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
+RUN python3 -m pip install --no-cache-dir --break-system-packages cmakelang
+
 RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
     CMAKE_URL=${CMAKE_BASE}/v${CMAKE_VERSION}/${CMAKE_FILE} && \
