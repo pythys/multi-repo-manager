@@ -1,5 +1,6 @@
 #include "completion.hpp"
 #include "completion_spec.hpp"
+#include "completion_zsh.hpp"
 #include <cctype>
 #include <cstddef>
 #include <stdexcept>
@@ -51,6 +52,10 @@ ValueSpec derive_value_spec_from_type(const std::string &type_name) {
     }
     if (lower.find("directory") != std::string::npos ||
         lower.find("dir") != std::string::npos) {
+        spec.hint = ValueHint::Dir;
+        return spec;
+    }
+    if (lower.find("pattern") != std::string::npos) {
         spec.hint = ValueHint::Dir;
         return spec;
     }
@@ -109,6 +114,7 @@ std::vector<std::string> extract_enum_choices(CLI::Option &option) {
 
 OptionSpec extract_option_spec(CLI::Option &option) {
     OptionSpec spec;
+    spec.description = option.get_description();
     for (const auto &name : option.get_snames()) {
         spec.flags.push_back("-" + name);
     }
@@ -139,6 +145,7 @@ OptionSpec extract_option_spec(CLI::Option &option) {
 ArgSpec extract_positional_spec(CLI::Option &option) {
     ArgSpec spec;
     spec.name = option.get_name();
+    spec.description = option.get_description();
     spec.optional = !option.get_required();
     spec.values = derive_value_spec_from_type(option.get_type_name());
     std::vector<std::string> choices = extract_enum_choices(option);
@@ -152,6 +159,7 @@ ArgSpec extract_positional_spec(CLI::Option &option) {
 CommandSpec extract_command_spec(CLI::App &app) {
     CommandSpec spec;
     spec.name = app.get_name();
+    spec.description = app.get_description();
     for (CLI::Option *option : app.get_options()) {
         if (option->get_positional()) {
             spec.positionals.push_back(extract_positional_spec(*option));
@@ -179,8 +187,10 @@ std::string generate_script(CLI::App &app, const std::string &shell_type) {
     if (shell_type == "spec") {
         return render_spec(spec);
     }
-    if (shell_type == "bash" || shell_type == "zsh" ||
-        shell_type == "powershell") {
+    if (shell_type == "zsh") {
+        return render_zsh(spec);
+    }
+    if (shell_type == "bash" || shell_type == "powershell") {
         return render_spec(spec);
     }
     throw std::invalid_argument("unknown completion format: " + shell_type);

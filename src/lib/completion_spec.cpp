@@ -137,6 +137,10 @@ void append_option_yaml(
     out << "- flags: ";
     append_string_list(out, option.flags);
     out << "\n";
+    if (!option.description.empty()) {
+        append_indent(out, depth + 1);
+        out << "description: " << yaml_quote(option.description) << "\n";
+    }
     append_indent(out, depth + 1);
     out << "takes_value: " << (option.takes_value ? "true" : "false") << "\n";
     append_indent(out, depth + 1);
@@ -149,6 +153,10 @@ void append_option_yaml(
 void append_arg_yaml(std::ostringstream &out, const ArgSpec &arg, int depth) {
     append_indent(out, depth);
     out << "- name: " << yaml_quote(arg.name) << "\n";
+    if (!arg.description.empty()) {
+        append_indent(out, depth + 1);
+        out << "description: " << yaml_quote(arg.description) << "\n";
+    }
     append_indent(out, depth + 1);
     out << "optional: " << (arg.optional ? "true" : "false") << "\n";
     append_indent(out, depth + 1);
@@ -162,13 +170,16 @@ void append_command_yaml(
     int depth,
     bool list_item) {
     append_indent(out, depth);
+    const int child_depth = list_item ? depth + 1 : depth;
     if (list_item) {
         out << "- name: " << yaml_quote(command.name) << "\n";
     } else {
         out << "name: " << yaml_quote(command.name) << "\n";
     }
-
-    const int child_depth = list_item ? depth + 1 : depth;
+    if (!command.description.empty()) {
+        append_indent(out, child_depth);
+        out << "description: " << yaml_quote(command.description) << "\n";
+    }
     append_sequence_header(
         out,
         "options",

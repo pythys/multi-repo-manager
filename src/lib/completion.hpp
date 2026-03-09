@@ -16,6 +16,7 @@ struct ValueSpec {
 
 struct ArgSpec {
     std::string name;
+    std::string description;
     bool optional = false;
     bool repeatable = false;
     ValueSpec values;
@@ -23,6 +24,7 @@ struct ArgSpec {
 
 struct OptionSpec {
     std::vector<std::string> flags;
+    std::string description;
     bool takes_value = false;
     bool repeatable = false;
     ValueSpec value;
@@ -30,6 +32,7 @@ struct OptionSpec {
 
 struct CommandSpec {
     std::string name;
+    std::string description;
     std::vector<OptionSpec> options;
     std::vector<ArgSpec> positionals;
     std::vector<CommandSpec> subcommands;

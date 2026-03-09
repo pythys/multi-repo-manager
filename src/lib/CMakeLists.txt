@@ -10,6 +10,7 @@ target_sources(
     PRIVATE cli.cpp
             completion.cpp
             completion_spec.cpp
+            completion_zsh.cpp
             output_view.cpp
             config.cpp
             exec.cpp
