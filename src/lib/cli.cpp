@@ -235,11 +235,12 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*completion) {
-        if (completion_shell == "spec") {
-            std::cout << print_spec(app);
-            return 0;
+        try {
+            std::cout << generate_script(app, completion_shell);
+        } catch (const std::exception &ex) {
+            std::cerr << ex.what() << "\n";
+            return 1;
         }
-        std::cout << generate_script(app, parse_shell_type(completion_shell));
         return 0;
     }
 

@@ -1,124 +1,11 @@
 #include "completion.hpp"
+#include "completion_spec.hpp"
 #include <cctype>
 #include <cstddef>
-#include <iostream>
-#include <sstream>
-#include <unordered_map>
+#include <stdexcept>
 #include <vector>
 
 namespace {
-
-std::string format_value_hint(ValueHint hint) {
-    switch (hint) {
-    case ValueHint::None:
-        return "none";
-    case ValueHint::File:
-        return "file";
-    case ValueHint::Dir:
-        return "dir";
-    case ValueHint::Enum:
-        return "enum";
-    case ValueHint::Command:
-        return "command";
-    }
-    return "unknown";
-}
-
-void append_indent(std::ostringstream &out, int depth) {
-    for (int i = 0; i < depth; ++i) {
-        out << "  ";
-    }
-}
-
-void append_value_spec(
-    std::ostringstream &out,
-    const ValueSpec &spec,
-    int depth) {
-    append_indent(out, depth);
-    out << "value_hint: " << format_value_hint(spec.hint) << "\n";
-    if (!spec.choices.empty()) {
-        append_indent(out, depth);
-        out << "choices:";
-        for (const auto &choice : spec.choices) {
-            out << " " << choice;
-        }
-        out << "\n";
-    }
-    if (!spec.command.empty()) {
-        append_indent(out, depth);
-        out << "command: " << spec.command << "\n";
-    }
-}
-
-void append_option_spec(
-    std::ostringstream &out,
-    const OptionSpec &option,
-    int depth) {
-    append_indent(out, depth);
-    out << "- flags:";
-    for (const auto &flag : option.flags) {
-        out << " " << flag;
-    }
-    out << "\n";
-    append_indent(out, depth + 1);
-    out << "takes_value: " << (option.takes_value ? "true" : "false") << "\n";
-    append_indent(out, depth + 1);
-    out << "repeatable: " << (option.repeatable ? "true" : "false") << "\n";
-    if (option.takes_value) {
-        append_value_spec(out, option.value, depth + 1);
-    }
-}
-
-void append_arg_spec(std::ostringstream &out, const ArgSpec &arg, int depth) {
-    append_indent(out, depth);
-    out << "- name: " << arg.name << "\n";
-    append_indent(out, depth + 1);
-    out << "optional: " << (arg.optional ? "true" : "false") << "\n";
-    append_indent(out, depth + 1);
-    out << "repeatable: " << (arg.repeatable ? "true" : "false") << "\n";
-    append_value_spec(out, arg.values, depth + 1);
-}
-
-void append_command_spec(
-    std::ostringstream &out,
-    const CommandSpec &command,
-    int depth) {
-    append_indent(out, depth);
-    out << "command: " << command.name << "\n";
-
-    append_indent(out, depth + 1);
-    out << "options:\n";
-    if (command.options.empty()) {
-        append_indent(out, depth + 2);
-        out << "(none)\n";
-    } else {
-        for (const auto &option : command.options) {
-            append_option_spec(out, option, depth + 2);
-        }
-    }
-
-    append_indent(out, depth + 1);
-    out << "positionals:\n";
-    if (command.positionals.empty()) {
-        append_indent(out, depth + 2);
-        out << "(none)\n";
-    } else {
-        for (const auto &arg : command.positionals) {
-            append_arg_spec(out, arg, depth + 2);
-        }
-    }
-
-    append_indent(out, depth + 1);
-    out << "subcommands:\n";
-    if (command.subcommands.empty()) {
-        append_indent(out, depth + 2);
-        out << "(none)\n";
-    } else {
-        for (const auto &subcommand : command.subcommands) {
-            append_command_spec(out, subcommand, depth + 2);
-        }
-    }
-}
 
 std::string to_lower_copy(const std::string &value) {
     std::string out;
@@ -281,29 +168,20 @@ CommandSpec extract_command_spec(CLI::App &app) {
 
 } // namespace
 
-ShellType parse_shell_type(const std::string &shell) {
-    static const std::unordered_map<std::string, ShellType> shell_map = {
-        {"bash", ShellType::Bash},
-        {"zsh", ShellType::Zsh},
-        {"powershell", ShellType::PowerShell}};
-    return shell_map.at(shell);
-}
-
 CompletionSpec extract_spec(CLI::App &app) {
     CompletionSpec spec;
     spec.root = extract_command_spec(app);
     return spec;
 }
 
-std::string print_spec(CLI::App &app) {
+std::string generate_script(CLI::App &app, const std::string &shell_type) {
     const CompletionSpec spec = extract_spec(app);
-    std::ostringstream out;
-    out << "completion spec\n";
-    append_command_spec(out, spec.root, 1);
-    return out.str();
-}
-
-std::string generate_script(CLI::App &app, ShellType shell) {
-    (void)shell;
-    return print_spec(app);
+    if (shell_type == "spec") {
+        return render_spec(spec);
+    }
+    if (shell_type == "bash" || shell_type == "zsh" ||
+        shell_type == "powershell") {
+        return render_spec(spec);
+    }
+    throw std::invalid_argument("unknown completion format: " + shell_type);
 }

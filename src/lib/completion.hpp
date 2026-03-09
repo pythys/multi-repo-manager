@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 
-enum class ShellType : std::uint8_t { Bash, Zsh, PowerShell };
 enum class ValueHint : std::uint8_t { None, File, Dir, Enum, Command };
 
 struct ValueSpec {
@@ -40,9 +39,7 @@ struct CompletionSpec {
     CommandSpec root;
 };
 
-ShellType parse_shell_type(const std::string &shell);
 CompletionSpec extract_spec(CLI::App &app);
-std::string print_spec(CLI::App &app);
-std::string generate_script(CLI::App &app, ShellType shell);
+std::string generate_script(CLI::App &app, const std::string &shell_type);
 
 #endif // SRC_LIB_COMPLETION_HPP_
