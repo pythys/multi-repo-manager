@@ -83,11 +83,6 @@ scan: ## Scan source code with clang-tidy
 	$(call check_bin, clang-tidy)
 	@clang-tidy -p build $(wildcard $(SCANMATCH))
 
-.PHONY: up-vcpkg
-up-vcpkg: ## Update vcpkg baseline
-	$(call check_bin, vcpkg)
-	@vcpkg x-update-baseline
-
 .PHONY: watch
 watch: ## Cycle of clean test lint
 	$(call check_bin, entr)
@@ -126,6 +121,11 @@ package: build ## Package code to various formats
 dockerize: ## Build docker image "mrm"
 	$(call check_bin, docker)
 	@docker build --platform=linux/amd64 --no-cache --tag mrm .
+
+.PHONY: up-vcpkg
+up-vcpkg: ## Update vcpkg baseline
+	$(call check_bin, vcpkg)
+	@vcpkg x-update-baseline
 
 define target_help
 	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
