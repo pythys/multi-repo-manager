@@ -1,11 +1,6 @@
 #ifndef SRC_LIB_GIT_MANAGER_HPP_
 #define SRC_LIB_GIT_MANAGER_HPP_
 
-/**
- * @file git_manager.hpp
- * @brief Git-backed implementation of repository operations.
- */
-
 #include "git2.h"
 #include "repo_manager.hpp"
 #include <algorithm>
@@ -15,12 +10,6 @@
 #include <string>
 #include <vector>
 
-/**
- * @brief RAII wrapper around libgit2 handle types.
- *
- * @tparam T Native libgit2 resource type.
- * @tparam free_resource Libgit2 function used to release `T`.
- */
 template <typename T, void (*free_resource)(T *)> class GitResource {
     T *resource_;
 
@@ -53,7 +42,6 @@ using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 using GitBranchIterator =
     GitResource<git_branch_iterator, git_branch_iterator_free>;
 
-/** RAII wrapper around `git_buf`. */
 class GitBuffer {
     git_buf buf_;
 
@@ -70,7 +58,6 @@ class GitBuffer {
     }
 };
 
-/** Repo manager implementation backed by libgit2. */
 class GitManager : public RepoManager {
   private:
     static void check_error(
