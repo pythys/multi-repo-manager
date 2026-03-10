@@ -26,6 +26,8 @@ Restart your shell after applying the above for the changes to take effect.
 ## create config from existing repos
 
 ```sh
+mrm find myrepos
+mrm find myrepos --save
 mrm find myrepos --save myrepos.yml
 # or
 mrm find myrepos > myrepos.yml
@@ -34,7 +36,8 @@ mrm find client fork personal --save myrepos.yml
 ```
 
 Each `find` path becomes one `tree.root` in the generated config.
-Without `--save`, output is printed to stdout.
+If `--save` is provided without a file, output is saved to `mrm.yml` in the current directory.
+If `--save` is omitted entirely, output is printed to stdout.
 
 Recommended workflow:
 - make changes in repositories first (remotes, branches, layout)
@@ -43,6 +46,7 @@ Recommended workflow:
 ## sync repos from config
 
 ```sh
+mrm sync
 mrm sync --config myrepos.yml
 mrm sync --config myrepos.yml --jobs 12
 mrm sync --config myrepos.yml --prune
@@ -63,11 +67,14 @@ Prune options (all opt-in):
 - `--root <pattern>` (`-r`): apply command only to matching tree roots (supports `*`, `?`, repeatable)
 - short equivalents exist (for example `-c` for `--config`, `-j` for `--jobs`)
 
+If `--config` is omitted, `mrm.yml` is used.
+
 When pruning branches, the current branch is never deleted.
 
 ## status of repos from config
 
 ```sh
+mrm status
 mrm status --config myrepos.yml
 mrm status --config myrepos.yml --root "fork*"
 ```
@@ -80,6 +87,7 @@ Status output is based on libgit2 `git_status_list` and includes:
 ## update repos from config
 
 ```sh
+mrm update
 mrm update --config myrepos.yml
 mrm update --config myrepos.yml --jobs 12
 mrm update --config myrepos.yml --root "client*"
@@ -88,6 +96,7 @@ mrm update --config myrepos.yml --root "client*"
 ## sync branches between remotes
 
 ```sh
+mrm remotesync --source upstream --target origin --branch master
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --jobs 12
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --branch develop --dry-run
@@ -104,6 +113,7 @@ mrm remotesync --config myrepos.yml --source upstream --target origin --branch m
 ## exec custom command in repos
 
 ```sh
+mrm exec --command "remote get-url origin"
 mrm exec --config myrepos.yml --type git --command "remote get-url origin"
 mrm exec --config myrepos.yml --root "client*" --command "status -sb"
 ```

@@ -13,11 +13,10 @@
 
 int parse_cli(int argc, char **argv) {
     CLI::App app("multi-repo-manager", "mrm");
-    std::string config_file;
+    std::string config_file = "mrm.yml";
 
     CLI::App *sync = app.add_subcommand("sync", "Synchronize repositories");
     sync->add_option("--config,-c", config_file, "config file")
-        ->required()
         ->type_name("file");
     int sync_jobs = 0;
     sync->add_option("--jobs,-j", sync_jobs, "number of jobs")->type_name("N");
@@ -35,12 +34,13 @@ int parse_cli(int argc, char **argv) {
     std::vector<std::string> find_paths;
     find->add_option("paths", find_paths, "paths")->type_name("dir");
     std::string save_path;
-    find->add_option("--save,-s", save_path, "save results to file")
-        ->type_name("file");
+    CLI::Option *save_option =
+        find->add_option("--save,-s", save_path, "save results to file")
+            ->type_name("file")
+            ->expected(0, 1);
 
     CLI::App *status = app.add_subcommand("status", "Show repository status");
     status->add_option("--config,-c", config_file, "config file")
-        ->required()
         ->type_name("file");
     std::vector<std::string> status_root_patterns;
     status->add_option("--root,-r", status_root_patterns, "root directory")
@@ -48,7 +48,6 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
     update->add_option("--config,-c", config_file, "config file")
-        ->required()
         ->type_name("file");
     int update_jobs = 0;
     update->add_option("--jobs,-j", update_jobs, "number of jobs")
@@ -60,7 +59,6 @@ int parse_cli(int argc, char **argv) {
     CLI::App *remotesync =
         app.add_subcommand("remotesync", "Sync between remotes");
     remotesync->add_option("--config,-c", config_file, "config file")
-        ->required()
         ->type_name("file");
     std::string remotesync_source;
     remotesync->add_option("--source,-s", remotesync_source, "source remote")
@@ -98,7 +96,6 @@ int parse_cli(int argc, char **argv) {
         ->type_name("type")
         ->check(CLI::IsMember({"all", "git", "svn", "hg"}));
     exec->add_option("--config,-c", config_file, "config file")
-        ->required()
         ->type_name("file");
     std::vector<std::string> exec_root_patterns;
     exec->add_option("--root,-r", exec_root_patterns, "root directory")
@@ -133,6 +130,9 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*find) {
+        if (save_option->count() > 0 && save_path.empty()) {
+            save_path = "mrm.yml";
+        }
         return run_find(find_paths, save_path);
     }
 

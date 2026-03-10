@@ -2,6 +2,8 @@
 
 `mrm` reads a YAML config with top-level `trees`.
 
+If `--config` is omitted, `mrm.yml` in the current directory is used.
+
 ## recommended workflow
 
 Use repo-first changes, then regenerate config with `mrm find`.
