@@ -9,15 +9,7 @@ mrm <command> --help
 
 ## Shell completion
 
-### Linux / macOS
-
-Automatically detect your shell:
-
-```sh
-sh=$(basename "$SHELL"); echo "source <(mrm completion $sh)" >> ~/."$sh"rc
-```
-
-Or configure it manually: 
+Identify your shell and configure:
 
 zsh:
 ```sh
