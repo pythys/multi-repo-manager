@@ -194,8 +194,5 @@ std::string generate_script(CLI::App &app, const std::string &shell_type) {
     if (shell_type == "bash") {
         return render_bash(spec);
     }
-    if (shell_type == "powershell") {
-        return render_spec(spec);
-    }
     throw std::invalid_argument("unknown completion format: " + shell_type);
 }

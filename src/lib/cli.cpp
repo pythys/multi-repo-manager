@@ -109,7 +109,7 @@ int parse_cli(int argc, char **argv) {
     std::string completion_shell;
     completion->add_option("shell", completion_shell, "Shell type")
         ->required()
-        ->check(CLI::IsMember({"bash", "zsh", "powershell", "spec"}));
+        ->check(CLI::IsMember({"bash", "zsh", "spec"}));
 
     if (argc <= 1) {
         return app.exit(CLI::CallForHelp());
