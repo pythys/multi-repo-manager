@@ -7,13 +7,29 @@ mrm --help
 mrm <command> --help
 ```
 
-## shell completion
+## Shell completion
+
+### Linux / macOS
+
+Automatically detect your shell:
 
 ```sh
-mrm completion bash > mrm-completions.sh
-mrm completion zsh > _mrm
-mrm completion powershell > mrm.ps1
+sh=$(basename "$SHELL"); echo "source <(mrm completion $sh)" >> ~/."$sh"rc
 ```
+
+Or configure it manually: 
+
+zsh:
+```sh
+echo 'source <(mrm completion zsh)' >> ~/.zshrc
+```
+
+bash:
+```sh
+echo 'source <(mrm completion bash)' >> ~/.bashrc
+```
+
+Restart your shell after applying the above for the changes to take effect.
 
 ## create config from existing repos
 
