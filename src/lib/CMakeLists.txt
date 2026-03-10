@@ -9,6 +9,7 @@ target_sources(
     mrm_core
     PRIVATE cli.cpp
             completion.cpp
+            completion_bash.cpp
             completion_spec.cpp
             completion_zsh.cpp
             output_view.cpp
