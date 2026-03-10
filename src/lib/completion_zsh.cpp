@@ -148,6 +148,8 @@ std::string render_zsh(const CompletionSpec &spec) {
         out << "        '" << subcommand.name << ":" << desc << "'\n";
     }
     out << "      )\n";
+    out << "      zstyle ':completion:*:" << spec.root.name
+        << ":*:values' sort false\n";
     out << "      _describe 'command' subcmds\n";
     out << "      ;;\n";
     out << "    args)\n";
