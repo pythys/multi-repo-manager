@@ -35,13 +35,13 @@ For most code changes follow this sequence:
 - `make lint` — checks for issues with `clang-format` and `cmake-format`
 - `make lint-fix` — auto-format C++ and CMake files
 - `make scan` — run `clang-tidy` (requires `build`)
-- `make up-vcpkg` - update vcpkg baseline in vcpkg.json
 - `make watch` — continuously run `clean test lint` when files change
+- `make install` / `make uninstall` — copy/remove `mrm` to/from `/usr/local/bin`
 - `make docs` — generate Doxygen docs
 - `make completion` — generate shell completions into `build/completions`
 - `make package` — build packages via CPack
 - `make dockerize` — build Docker image `mrm`
-- `make install` / `make uninstall` — copy/remove `mrm` to/from `/usr/local/bin`
+- `make up-vcpkg` - update vcpkg baseline in vcpkg.json
 
 ### Makefile Options
 
