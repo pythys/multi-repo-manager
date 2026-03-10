@@ -7,6 +7,7 @@
 #include "sync.hpp"
 #include "update.hpp"
 #include <CLI/CLI.hpp>
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -116,6 +117,17 @@ int parse_cli(int argc, char **argv) {
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
         return app.exit(e);
+    }
+
+    const bool needs_config =
+        *sync || *status || *update || *remotesync || *exec;
+    std::error_code error;
+    const bool has_config_file = std::filesystem::exists(config_file, error);
+    if (needs_config && !has_config_file) {
+        std::cerr << "Config file not found: " << config_file << "\n";
+        std::cerr << "Use --config <file> or run `mrm find --save` to "
+                     "create one.\n";
+        return 1;
     }
 
     if (*sync) {
