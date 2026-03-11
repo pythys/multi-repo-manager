@@ -1,7 +1,7 @@
 # nested repos guide
 
-Nested repositories (for example Moqui-style layouts) are supported. Each repo
-is still defined as a separate entry in `mrm.yml` with a nested `name`.
+Nested repositories (for example Moqui framework style layouts) are supported.
+Each repo is still defined as a separate entry in `mrm.yml` with a nested `name`.
 
 ## example layout
 
