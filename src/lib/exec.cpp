@@ -1,6 +1,7 @@
 #include "exec.hpp"
 #include "config.hpp"
 #include "repo_type.hpp"
+#include "runtime.hpp"
 #include "tree.hpp"
 #include <cstdlib>
 #include <filesystem>
@@ -77,12 +78,12 @@ std::vector<std::string> split_command(const std::string &command) {
 }
 
 bool command_exists(const std::string &command) {
-    const char *path_value = std::getenv("PATH");
+    const auto path_value = get_env("PATH");
     if (!path_value) {
         return false;
     }
 
-    for (const auto &directory : split(path_value, ':')) {
+    for (const auto &directory : split(*path_value, ':')) {
         const std::filesystem::path candidate =
             std::filesystem::path(directory) / command;
         std::error_code ec;
