@@ -3,6 +3,7 @@
 
 #include "git2.h"
 #include "repo_manager.hpp"
+#include "runtime.hpp"
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -60,6 +61,60 @@ class GitBuffer {
 
 class GitManager : public RepoManager {
   private:
+    struct SshKeyCursor {
+        std::vector<std::filesystem::path> keys;
+        size_t next_index = 0;
+    };
+
+    static std::vector<std::filesystem::path> discover_ssh_keys() {
+        const auto home_dir = get_env("HOME");
+        if (!home_dir) {
+            return {};
+        }
+
+        const std::filesystem::path ssh_dir =
+            std::filesystem::path(*home_dir) / ".ssh";
+        if (!std::filesystem::exists(ssh_dir)) {
+            return {};
+        }
+
+        std::vector<std::filesystem::path> keys;
+        try {
+            for (const auto &entry :
+                 std::filesystem::directory_iterator(ssh_dir)) {
+                const auto status = entry.symlink_status();
+                if (!std::filesystem::is_regular_file(status) &&
+                    !std::filesystem::is_symlink(status)) {
+                    continue;
+                }
+
+                const auto &path = entry.path();
+                const std::string filename = path.filename().string();
+                if (filename == "config" || filename == "authorized_keys" ||
+                    filename.starts_with("known_hosts")) {
+                    continue;
+                }
+
+                if (path.extension() == ".pub") {
+                    continue;
+                }
+
+                keys.push_back(path);
+            }
+        } catch (const std::filesystem::filesystem_error &) {
+            return {};
+        }
+
+        std::ranges::sort(keys);
+        return keys;
+    }
+
+    static const std::vector<std::filesystem::path> &cached_ssh_keys() {
+        static const std::vector<std::filesystem::path> keys =
+            discover_ssh_keys();
+        return keys;
+    }
+
     static void check_error(
         int error_code,
         const std::string &message,
@@ -144,28 +199,45 @@ class GitManager : public RepoManager {
         unsigned int allowed_types,
         void *payload) {
         (void)url;
-        (void)payload;
         if (allowed_types & GIT_CREDENTIAL_SSH_KEY) {
             if (git_credential_ssh_key_from_agent(out, username_from_url) ==
                 0) {
                 return 0;
             }
-            const char *privatekey_path = "~/.ssh/id_ed25519";
-            const char *publickey_path = "~/.ssh/id_ed25519.pub";
-            return git_credential_ssh_key_new(
-                out,
-                username_from_url,
-                publickey_path,
-                privatekey_path,
-                nullptr);
+            auto *state = static_cast<SshKeyCursor *>(payload);
+            if (!state) {
+                return GIT_PASSTHROUGH;
+            }
+
+            while (state->next_index < state->keys.size()) {
+                const std::filesystem::path private_key =
+                    state->keys[state->next_index++];
+                const std::filesystem::path public_key =
+                    private_key.string() + ".pub";
+                const bool has_public_key = std::filesystem::exists(public_key);
+
+                const char *publickey_path =
+                    has_public_key ? public_key.c_str() : nullptr;
+                const int code = git_credential_ssh_key_new(
+                    out,
+                    username_from_url,
+                    publickey_path,
+                    private_key.c_str(),
+                    nullptr);
+                if (code == 0) {
+                    return 0;
+                }
+            }
+            return GIT_PASSTHROUGH;
         }
         return GIT_PASSTHROUGH;
     }
 
-    static git_remote_callbacks create_remote_callbacks() {
+    static git_remote_callbacks create_remote_callbacks(void *payload) {
         git_remote_callbacks callbacks;
         git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
         callbacks.credentials = credential_callback;
+        callbacks.payload = payload;
         return callbacks;
     }
 
@@ -223,9 +295,13 @@ class GitManager : public RepoManager {
         checkout_opts.checkout_strategy = GIT_CHECKOUT_SAFE;
         clone_opts.checkout_opts = checkout_opts;
 
+        SshKeyCursor key_state{
+            .keys = cached_ssh_keys(),
+            .next_index = 0,
+        };
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        fetch_opts.callbacks = create_remote_callbacks();
+        fetch_opts.callbacks = create_remote_callbacks(&key_state);
         clone_opts.fetch_opts = fetch_opts;
 
         check_error(
@@ -608,9 +684,13 @@ class GitManager : public RepoManager {
             .strings = strings.data(),
             .count = strings.size()};
 
+        SshKeyCursor key_state{
+            .keys = cached_ssh_keys(),
+            .next_index = 0,
+        };
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        fetch_opts.callbacks = create_remote_callbacks();
+        fetch_opts.callbacks = create_remote_callbacks(&key_state);
         check_error(
             git_remote_fetch(remote.get(), &refspecs, &fetch_opts, nullptr),
             "Failed to fetch remote in " + path,
@@ -756,9 +836,13 @@ class GitManager : public RepoManager {
             .strings = strings.data(),
             .count = strings.size()};
 
+        SshKeyCursor key_state{
+            .keys = cached_ssh_keys(),
+            .next_index = 0,
+        };
         git_push_options push_opts;
         git_push_options_init(&push_opts, GIT_PUSH_OPTIONS_VERSION);
-        push_opts.callbacks = create_remote_callbacks();
+        push_opts.callbacks = create_remote_callbacks(&key_state);
         check_error(
             git_remote_push(remote.get(), &refspecs, &push_opts),
             "Failed to push reference in " + path,

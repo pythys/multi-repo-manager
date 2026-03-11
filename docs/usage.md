@@ -146,9 +146,7 @@ TUI notes:
 
 SSH auth fallback order:
 1. ssh-agent
-2. default key files:
-   - `~/.ssh/id_ed25519`
-   - `~/.ssh/id_ed25519.pub`
+2. key files under `~/.ssh` (all private keys, tried in filename order)
 
 If using agent:
 
