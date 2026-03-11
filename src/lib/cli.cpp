@@ -26,9 +26,9 @@ int parse_cli(int argc, char **argv) {
     bool prune_branches = false;
     sync->add_flag("--prune-branches,-B", prune_branches, "prune branches");
     bool prune_all = false;
-    sync->add_flag("--prune,-p", prune_all, "prune both");
+    sync->add_flag("--prune,-p", prune_all, "prune all");
     std::vector<std::string> sync_root_patterns;
-    sync->add_option("--root,-r", sync_root_patterns, "root directory")
+    sync->add_option("--root,-r", sync_root_patterns, "root tree pattern")
         ->type_name("pattern");
 
     CLI::App *find = app.add_subcommand("find", "Find repositories");
@@ -44,7 +44,7 @@ int parse_cli(int argc, char **argv) {
     status->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> status_root_patterns;
-    status->add_option("--root,-r", status_root_patterns, "root directory")
+    status->add_option("--root,-r", status_root_patterns, "root tree pattern")
         ->type_name("pattern");
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
@@ -54,7 +54,7 @@ int parse_cli(int argc, char **argv) {
     update->add_option("--jobs,-j", update_jobs, "number of jobs")
         ->type_name("N");
     std::vector<std::string> update_root_patterns;
-    update->add_option("--root,-r", update_root_patterns, "root directory")
+    update->add_option("--root,-r", update_root_patterns, "root tree pattern")
         ->type_name("pattern");
 
     CLI::App *remotesync =
@@ -83,7 +83,7 @@ int parse_cli(int argc, char **argv) {
         ->type_name("N");
     std::vector<std::string> remotesync_root_patterns;
     remotesync
-        ->add_option("--root,-r", remotesync_root_patterns, "root directory")
+        ->add_option("--root,-r", remotesync_root_patterns, "root tree pattern")
         ->type_name("pattern");
 
     CLI::App *exec =
@@ -99,7 +99,7 @@ int parse_cli(int argc, char **argv) {
     exec->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> exec_root_patterns;
-    exec->add_option("--root,-r", exec_root_patterns, "root directory")
+    exec->add_option("--root,-r", exec_root_patterns, "root tree pattern")
         ->type_name("pattern");
 
     CLI::App *completion =
