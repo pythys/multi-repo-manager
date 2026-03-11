@@ -9,6 +9,7 @@ If `--config` is omitted, `mrm.yml` in the current directory is used.
 Use repo-first changes, then regenerate config with `mrm find`.
 
 ```sh
+mrm find <path> --save # defaults to mrm.yml
 mrm find <path> --save <config.yml>
 ```
 
@@ -22,7 +23,7 @@ trees:
   - root: <path>
     repos:
       - name: <relative/repo/path>
-        type: git | svn
+        type: git | svn | hg
         remotes:
           - name: <remote-name>
             url: <remote-url>
@@ -60,6 +61,26 @@ trees:
           - name: master
             remote: origin
             is_current: true
+```
+
+## example with multiple trees
+
+```yaml
+trees:
+  - root: work
+    repos:
+      - name: app
+        type: git
+        remotes:
+          - name: origin
+            url: https://git.mycompany.com/org/app.git
+  - root: personal
+    repos:
+      - name: blog
+        type: git
+        remotes:
+          - name: origin
+            url: https://git.example.com/user/blog.git
 ```
 
 ## notes

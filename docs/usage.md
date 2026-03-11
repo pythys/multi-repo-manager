@@ -7,22 +7,6 @@ mrm --help
 mrm <command> --help
 ```
 
-## Shell completion
-
-Identify your shell and configure:
-
-zsh:
-```sh
-echo 'source <(mrm completion zsh)' >> ~/.zshrc
-```
-
-bash:
-```sh
-echo 'source <(mrm completion bash)' >> ~/.bashrc
-```
-
-Restart your shell after applying the above for the changes to take effect.
-
 ## create config from existing repos
 
 ```sh
