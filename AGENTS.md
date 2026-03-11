@@ -66,7 +66,7 @@ make scan SCANMATCH=src/main.cpp
 
 - `src/` — application/library source code
 - `tests/` — tests (driven by CTest)
-- `docs/` — documentation (see `docs/development.md`)
+- `docs/` — documentation
 - `build/` — CMake build output (generated)
 - `CMakeLists.txt` — CMake entry point
 - `Makefile` — task orchestration (primary)
@@ -101,7 +101,7 @@ details.
 - Write tests for features that require it, without abiding to 100% coverage.
 - Keep changes consistent with CMake and Makefile conventions already in place.
 - Keep code changes and documentation in sync in the same change whenever
-  behavior or interfaces change (docs, usage text, and relevant comments).
+  behavior or interfaces change. Documentation is located in docs/.
 - For CLI/API naming, prefer user-facing terms (for example `--jobs`) over
   implementation-specific names (for example `--pool-size`).
 - Prefer terse, efficient code over verbose implementations.
