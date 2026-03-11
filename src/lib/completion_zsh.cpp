@@ -76,6 +76,12 @@ std::string option_value_label(const OptionSpec &option) {
     if (option.value.hint == ValueHint::Dir) {
         return "directory";
     }
+    if (option.value.hint == ValueHint::Command) {
+        return "command";
+    }
+    if (option.value.hint == ValueHint::None) {
+        return "value";
+    }
     return "";
 }
 
