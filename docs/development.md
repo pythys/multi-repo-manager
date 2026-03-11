@@ -22,7 +22,9 @@
 
 ```sh
 make clean
-make build lint test
+make build
+make lint
+make test
 # live reload
 make watch
 ```

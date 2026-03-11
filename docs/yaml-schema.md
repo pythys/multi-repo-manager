@@ -1,6 +1,7 @@
-# config
+# yaml schema
 
-`mrm` reads a YAML config with top-level `trees`.
+This page describes the schema of `mrm.yml`. It is a reference for how
+`mrm find` writes the file, not a primary configuration guide.
 
 If `--config` is omitted, `mrm.yml` in the current directory is used.
 
@@ -13,8 +14,8 @@ mrm find <path> --save # defaults to mrm.yml
 mrm find <path> --save <config.yml>
 ```
 
-Prefer not to hand-write or hand-edit YAML. Regeneration keeps config aligned
-with actual repositories.
+Prefer not to hand-write or hand-edit YAML. Regeneration keeps the schema
+aligned with actual repositories.
 
 ## schema
 
@@ -23,7 +24,7 @@ trees:
   - root: <path>
     repos:
       - name: <relative/repo/path>
-        type: git | svn | hg
+        type: git
         remotes:
           - name: <remote-name>
             url: <remote-url>
@@ -88,3 +89,8 @@ trees:
 - `name` is relative to `root`.
 - Nested repo paths are allowed (for example `parent/child`).
 - During `sync`, missing repos are cloned and existing repos are reconciled.
+- Other SCM types are planned; see the roadmap.
+
+## guides
+
+- [Best Practices](guides/best-practices.md)

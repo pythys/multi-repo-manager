@@ -17,9 +17,11 @@ mrm update --config myrepos.yml --jobs 15
 ```
 
 - 📦 [Installation](docs/install.md)
+- ⚡ [Quick Start](docs/guides/quickstart.md)
 - 🚀 [Usage](docs/usage.md)
-- 🧩 [Config](docs/config.md)
+- 📚 [Guides](docs/guides/README.md)
 - ⚙️ [Development](docs/development.md)
+- 🧾 [YAML Schema](docs/yaml-schema.md)
 - 🗺️ [Roadmap](docs/roadmap.md)
 
 ### Author

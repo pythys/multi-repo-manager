@@ -2,18 +2,23 @@
 
 ## source install
 
-Minimum Requirements:
+Minimum requirements:
 
 - [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
 - [make](https://www.gnu.org/software/make)
 - [ninja](https://github.com/ninja-build/ninja)
-- [vcpkg](https://github.com/microsoft/vcpkg)
 
-Build and install
+Optional:
 
-`make build`
-`sudo make install`
+- [vcpkg](https://github.com/microsoft/vcpkg) (only if you want vcpkg-managed dependencies)
+
+Build and install:
+
+```sh
+make build
+sudo make install
+```
 
 ## docker install
 
@@ -25,13 +30,13 @@ Once completed an image called "mrm" will be available on the machine. To use:
 
 To alias the docker command
 
-`alias mrm='docker run -it --rm --user $(id -u):$(id -g) -v $PWD:/tree'`
+`alias mrm='docker run -it --rm --user $(id -u):$(id -g) -v $PWD:/tree mrm'`
 
 Example usage:
 
 `mrm find /tree`
 
-To build docker partially (skip base rebuild):
+To rebuild the Docker image without cache:
 
 `docker build --no-cache --tag mrm .`
 
@@ -50,3 +55,11 @@ echo 'source <(mrm completion bash)' >> ~/.bashrc
 ```
 
 Restart your shell after applying the above for the changes to take effect.
+
+## next
+
+- [Quick Start](guides/quickstart.md)
+- [Fork Sync Guide](guides/remotesync-forks.md)
+- [Nested Repos Guide](guides/nested-repos.md)
+- [Best Practices](guides/best-practices.md)
+- [YAML Schema](yaml-schema.md)

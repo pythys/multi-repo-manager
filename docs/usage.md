@@ -48,8 +48,11 @@ Prune options (all opt-in):
 - `--prune-remotes` (`-R`): remove remotes not declared in config
 - `--prune-branches` (`-B`): remove local tracked branches not declared in config
 - `--prune` (`-p`): enable both `--prune-remotes` and `--prune-branches`
+
+Target options:
 - `--root <pattern>` (`-r`): apply command only to matching tree roots (supports `*`, `?`, repeatable)
-- short equivalents exist (for example `-c` for `--config`, `-j` for `--jobs`)
+
+Common short flags: `-c` (`--config`), `-j` (`--jobs`), `-p` (`--prune`), `-R` (`--prune-remotes`), `-B` (`--prune-branches`), `-r` (`--root`), `-n` (`--dry-run`).
 
 If `--config` is omitted, `mrm.yml` is used.
 
@@ -137,3 +140,28 @@ If using agent:
 ```sh
 ssh-add ~/.ssh/id_ed25519
 ```
+
+## shell completion
+
+Shell completion is a one-time setup. Add to your shell config:
+
+zsh:
+```sh
+echo 'source <(mrm completion zsh)' >> ~/.zshrc
+```
+
+bash:
+```sh
+echo 'source <(mrm completion bash)' >> ~/.bashrc
+```
+
+## guides
+
+- [Quick Start](guides/quickstart.md)
+- [Fork Sync Guide](guides/remotesync-forks.md)
+- [Nested Repos Guide](guides/nested-repos.md)
+- [Best Practices](guides/best-practices.md)
+
+## schema reference
+
+- [YAML Schema](yaml-schema.md)
