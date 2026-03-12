@@ -19,8 +19,8 @@ mrm find myrepos > myrepos.yml
 mrm find client fork personal --save myrepos.yml
 ```
 
-Each `find` path becomes one `tree.root` in the generated config.
-If `--save` is provided without a file, output is saved to `mrm.yml` in the current directory.
+Each `find` path becomes one `tree.root` in the generated config. If `--save` is
+provided without a file, output is saved to `mrm.yml` in the current directory.
 If `--save` is omitted entirely, output is printed to stdout.
 
 Recommended workflow:
@@ -46,13 +46,17 @@ mrm sync --config myrepos.yml --root "client*"
 
 Prune options (all opt-in):
 - `--prune-remotes` (`-R`): remove remotes not declared in config
-- `--prune-branches` (`-B`): remove local tracked branches not declared in config
+- `--prune-branches` (`-B`): remove local tracked branches not declared in
+  config
 - `--prune` (`-p`): enable both `--prune-remotes` and `--prune-branches`
 
 Target options:
-- `--root <pattern>` (`-r`): apply command only to matching tree roots (supports `*`, `?`, repeatable)
+- `--root <pattern>` (`-r`): apply command only to matching tree roots (supports
+  `*`, `?`, repeatable)
 
-Common short flags: `-c` (`--config`), `-j` (`--jobs`), `-p` (`--prune`), `-R` (`--prune-remotes`), `-B` (`--prune-branches`), `-r` (`--root`), `-n` (`--dry-run`).
+Common short flags: `-c` (`--config`), `-j` (`--jobs`), `-p` (`--prune`), `-R`
+(`--prune-remotes`), `-B` (`--prune-branches`), `-r` (`--root`), `-n`
+(`--dry-run`).
 
 If `--config` is omitted, `mrm.yml` is used.
 
@@ -107,17 +111,19 @@ mrm exec --config myrepos.yml --root "client*" --command "status -sb"
 
 `exec` runs the command in each targeted repository path from config.
 
-- `--type all` (default) targets all repo types in config. Only works for
-  shared commands.
+- `--type all` (default) targets all repo types in config. Only works for shared
+  commands.
 - when the repo CLI exists (for example `git`), mrm prefixes it for you unless
   your command already starts with it.
 
 ## concurrency
 
-Use `--jobs` (or `-j`) on `sync`, `update`, and `remotesync` to control max concurrent repo operations.
+Use `--jobs` (or `-j`) on `sync`, `update`, and `remotesync` to control max
+concurrent repo operations.
 
 - `--jobs 0` (default) uses the built-in fallback value.
-- larger values can speed up network-bound runs but may increase load on disk/network.
+- larger values can speed up network-bound runs but may increase load on
+  disk/network.
 
 ## output modes
 
