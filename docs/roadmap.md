@@ -23,3 +23,4 @@
 - Implement subversion logic.
 - Implement mercurial logic.
 - mrm list to show which repos are managed.
+- mrm find can have filters and an exec applied on found repos.
