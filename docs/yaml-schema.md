@@ -1,7 +1,7 @@
 # yaml schema
 
-This page describes the schema of `mrm.yml`. It is a reference for how
-`mrm find` writes the file, not a primary configuration guide.
+This page describes the schema of `mrm.yml`. It is a reference for how `mrm
+find` writes the file, not a primary configuration guide.
 
 If `--config` is omitted, `mrm.yml` in the current directory is used.
 
@@ -33,6 +33,16 @@ trees:
             remote: <remote-name>
             is_current: true | false
 ```
+
+- Each file contains a list of trees.
+- A `tree` is a set of repositories under a common root directory.
+- A `root` is a path relative to the config file.
+- The `repos` are a collection of repositories under the tree.
+- Each repo has a `name` (relative to the tree root), a `type` (like git), a
+  list of `remotes`, and a list of `branches`.
+- Each remote has a `name` and a `URL`.
+- Each branch has a `name`, a `remote` it tracks, and a boolean `is_current`
+  indicating if it is the currently selected branch.
 
 ## minimal example
 
