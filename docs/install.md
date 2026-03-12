@@ -8,10 +8,7 @@ Minimum requirements:
 - [cmake](https://cmake.org)
 - [make](https://www.gnu.org/software/make)
 - [ninja](https://github.com/ninja-build/ninja)
-
-Optional:
-
-- [vcpkg](https://github.com/microsoft/vcpkg) (only if you want vcpkg-managed dependencies)
+- [vcpkg](https://github.com/microsoft/vcpkg)
 
 Build and install:
 
