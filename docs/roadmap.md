@@ -10,7 +10,7 @@
   - pacman / AUR
   - windows (mingw, msi)
 
-## Ideas
+## Backlog
 
 - Add `--recurse` to `find`, and default to not recursing for performance or
   possibly an inverse flag to disable recursing.
