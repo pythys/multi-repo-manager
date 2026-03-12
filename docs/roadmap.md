@@ -1,6 +1,6 @@
 # Roadmap
 
-## Planned
+## Next
 
 - Package for major OSes and distros:
   - one-line curl installer
