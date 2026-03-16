@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
+cmake_policy(SET CMP0167 NEW) # FindBoost warning fix
 
 project(mrm VERSION 0.1.0)
 include(GNUInstallDirs)
