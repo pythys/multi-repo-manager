@@ -199,11 +199,11 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         throw std::runtime_error(
             "No remote found with name 'origin' for repo: " + repo->name);
     }
-    for (size_t i = 0; i < repo->remotes.size(); i++) {
-        if (repo->remotes[i].name == "origin") {
+    for (const auto &remote : repo->remotes) {
+        if (remote.name == "origin") {
             continue;
         }
-        repo_manager->add_remote(root + "/" + repo->name, repo->remotes[i]);
+        repo_manager->add_remote(root + "/" + repo->name, remote);
     }
     sync_branches(
         tracker,

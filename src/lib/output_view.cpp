@@ -276,9 +276,9 @@ class TuiView final : public OutputView {
             selected_line_ = 0;
         } else if (selected_line_ >= line_count_) {
             selected_line_ = line_count_ - 1;
-            lines[selected_line_] = lines[selected_line_] | ftxui::focus;
+            lines.at(selected_line_) = lines.at(selected_line_) | ftxui::focus;
         } else {
-            lines[selected_line_] = lines[selected_line_] | ftxui::focus;
+            lines.at(selected_line_) = lines.at(selected_line_) | ftxui::focus;
         }
         return vbox(
             {vbox(std::move(lines)) | vscroll_indicator | frame | flex});

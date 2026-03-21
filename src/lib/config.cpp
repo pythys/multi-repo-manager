@@ -222,16 +222,17 @@ bool root_matches_pattern(const std::string &root, const std::string &pattern) {
     std::size_t match_index = 0;
 
     while (root_index < root.size()) {
-        const bool char_matches = pattern_index < pattern.size() &&
-                                  (pattern[pattern_index] == '?' ||
-                                   pattern[pattern_index] == root[root_index]);
+        const bool char_matches =
+            pattern_index < pattern.size() &&
+            (pattern.at(pattern_index) == '?' ||
+             pattern.at(pattern_index) == root.at(root_index));
         if (char_matches) {
             ++pattern_index;
             ++root_index;
             continue;
         }
         const bool is_star =
-            pattern_index < pattern.size() && pattern[pattern_index] == '*';
+            pattern_index < pattern.size() && pattern.at(pattern_index) == '*';
         if (is_star) {
             star_index = pattern_index++;
             match_index = root_index;
@@ -244,7 +245,7 @@ bool root_matches_pattern(const std::string &root, const std::string &pattern) {
         root_index = ++match_index;
     }
 
-    while (pattern_index < pattern.size() && pattern[pattern_index] == '*') {
+    while (pattern_index < pattern.size() && pattern.at(pattern_index) == '*') {
         ++pattern_index;
     }
     return pattern_index == pattern.size();

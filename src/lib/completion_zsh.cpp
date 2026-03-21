@@ -174,7 +174,7 @@ std::string render_zsh(const CompletionSpec &spec) {
         }
         for (std::size_t i = 0; i < specs.size(); ++i) {
             const bool last = i + 1 == specs.size();
-            out << "            " << specs[i];
+            out << "            " << specs.at(i);
             if (!last) {
                 out << " \\\n";
             } else {

@@ -25,12 +25,12 @@ std::string trim_string_copy(const std::string &value) {
     };
     std::size_t begin = 0;
     while (begin < value.size() &&
-           is_space(static_cast<unsigned char>(value[begin]))) {
+           is_space(static_cast<unsigned char>(value.at(begin)))) {
         ++begin;
     }
     std::size_t end = value.size();
     while (end > begin &&
-           is_space(static_cast<unsigned char>(value[end - 1]))) {
+           is_space(static_cast<unsigned char>(value.at(end - 1)))) {
         --end;
     }
     if (begin >= end) {

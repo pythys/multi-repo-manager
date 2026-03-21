@@ -210,8 +210,9 @@ class GitManager : public RepoManager {
             }
 
             while (state->next_index < state->keys.size()) {
+                const std::size_t key_index = state->next_index++;
                 const std::filesystem::path private_key =
-                    state->keys[state->next_index++];
+                    state->keys.at(key_index);
                 const std::filesystem::path public_key =
                     private_key.string() + ".pub";
                 const bool has_public_key = std::filesystem::exists(public_key);
