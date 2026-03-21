@@ -140,7 +140,7 @@ std::string make_config(const std::vector<Tree> &trees) {
             out << YAML::BeginMap;
             out << YAML::Key << "name" << YAML::Value << repo.name;
             out << YAML::Key << "type" << YAML::Value
-                << repo_type_name(repo.type);
+                << std::string(repo_type_name(repo.type));
             out << YAML::Key << "remotes" << YAML::Value << YAML::BeginSeq;
             for (const auto &remote : repo.remotes) {
                 out << YAML::BeginMap;

@@ -6,6 +6,7 @@
 - [clang-tidy](https://clang.llvm.org/extra/clang-tidy/) static analyzer
 - [clang](https://clang.llvm.org/) compiler
 - [cmake](https://cmake.org) build generator
+- [conan](https://conan.io) package manager
 - [docker](https://docs.docker.com/engine/install/) containerization
 - [doxygen](https://github.com/doxygen/doxygen) documentation generator
 - [entr](https://github.com/eradman/entr) file watcher
@@ -14,7 +15,6 @@
 - [lldb](https://lldb.llvm.org) debugger (clang)
 - [make](https://www.gnu.org/software/make) orchestrator and builder
 - [ninja](https://github.com/ninja-build/ninja) builder
-- [vcpkg](https://github.com/microsoft/vcpkg) package manager
 
 `Dockerfile` can be used a reference for steps to build the project
 
@@ -34,8 +34,8 @@ To get help on tasks `make help`
 ## compile options
 
 ```sh
-make build COMPILER=gcc GENERATOR=Ninja
-make build COMPILER=clang GENERATOR="Unix Makefiles"
+make COMPILER=gcc GENERATOR=Ninja build
+make COMPILER=clang GENERATOR="Unix Makefiles" build
 # etc ...
 ```
 
@@ -48,8 +48,8 @@ make build COMPILER=clang GENERATOR="Unix Makefiles"
 ## static analysis
 
 - all files:    `make scan`
-- single file:  `make scan SCANMATCH=src/main.cpp`
-- pattern:      `make scan SCANMATCH=src/**/*.cpp`
+- single file:  `make SCANMATCH=src/main.cpp scan`
+- pattern:      `make SCANMATCH=src/**/*.cpp scan`
 
 ## debugging
 
@@ -61,7 +61,7 @@ make build COMPILER=clang GENERATOR="Unix Makefiles"
 Single source of truth is `VERSION`. Update all versioned files with:
 
 ```sh
-make version VERSION=1.2.3
+make VERSION=1.2.3 version
 ```
 
 This updates all versioned files including:
@@ -69,13 +69,13 @@ This updates all versioned files including:
 - `VERSION`
 - `CMakeLists.txt`
 - `Doxyfile`
-- `vcpkg.json`
+- `conanfile.py`
 - `docs/install.md`
 - `README.md`
 
 ## libraries
 
-All libraries fetched using vcpkg.
+All libraries fetched using Conan.
 
 - [boost](https://github.com/boostorg/boost)
 - [cli11](https://github.com/CLIUtils/CLI11)

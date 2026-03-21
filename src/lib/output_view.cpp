@@ -285,7 +285,7 @@ class TuiView final : public OutputView {
     }
 
     void run_ui() {
-        auto screen = ftxui::ScreenInteractive::FullscreenAlternateScreen();
+        auto screen = ftxui::ScreenInteractive::Fullscreen();
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             exit_loop_ = screen.ExitLoopClosure();

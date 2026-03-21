@@ -1,8 +1,8 @@
 COMPILER ?= clang
 GENERATOR ?= "Ninja"
+BUILDTYPE ?= Release
 SCANMATCH = src/**/*.cpp src/**/*.hpp
 TESTTYPE ?=
-VCPKG_ROOT ?=
 
 all: help
 
@@ -12,12 +12,6 @@ define check_bin
         exit 1; \
     fi
 endef
-
-ifeq ($(strip $(VCPKG_ROOT)),)
-    VCPKG_TOOLCHAIN :=
-else
-    VCPKG_TOOLCHAIN := -DCMAKE_TOOLCHAIN_FILE=$(VCPKG_ROOT)/scripts/buildsystems/vcpkg.cmake
-endif
 
 ifeq ($(COMPILER),clang)
     CC = clang
@@ -32,13 +26,30 @@ endif
 .PHONY: clean
 clean: ## Clean generated artifacts
 	@echo "Cleaning artifacts..."
-	@rm -rf .cache build compile_commands.json
+	@rm -rf .cache build compile_commands.json CMakeUserPresets.json
+
+.PHONY: deps
+deps: ## Install dependencies with Conan
+	$(call check_bin, conan)
+	@if ! conan profile show >/dev/null 2>&1; then \
+		echo "No Conan profile found, creating default profile..."; \
+		conan profile detect --force; \
+	fi
+	@if [ ! -f conanfile.lock ] || [ conanfile.py -nt conanfile.lock ]; then \
+		echo "Updating Conan lock file..."; \
+		conan lock create . --lockfile-out=conanfile.lock; \
+	fi
+	@echo "Installing dependencies with Conan..."
+	@mkdir -p build/conan
+	@conan install . --build=missing -of build/conan --lockfile=conanfile.lock -s build_type=$(BUILDTYPE)
 
 .PHONY: build
-build: ## Compile and generate editor artifacts
+build: deps ## Compile and generate editor artifacts
 	$(call check_bin, cmake)
 	@echo "Building project..."
-	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S . $(VCPKG_TOOLCHAIN)
+	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S . \
+		-DCMAKE_TOOLCHAIN_FILE=build/conan/conan_toolchain.cmake \
+		-DCMAKE_BUILD_TYPE=$(BUILDTYPE)
 	@cmake --build build -j $(shell nproc)
 	@ln -sf build/compile_commands.json compile_commands.json
 	@ln -sf ../compile_commands.json build/mrm/compile_commands.json
@@ -121,15 +132,10 @@ dockerize: ## Build docker image "mrm"
 	$(call check_bin, docker)
 	@docker build --platform=linux/amd64 --no-cache --tag mrm .
 
-.PHONY: up-vcpkg
-up-vcpkg: ## Update vcpkg baseline
-	$(call check_bin, vcpkg)
-	@vcpkg x-update-baseline
-
 .PHONY: version
 version: ## Update version across files (VERSION=1.2.3)
 	@if [ -z "$(VERSION)" ]; then \
-		echo "VERSION is required. Example: make version VERSION=1.2.3"; \
+		echo "VERSION is required. Example: make VERSION=1.2.3 version"; \
 		exit 1; \
 	fi
 	@sh scripts/update-version.sh "$(VERSION)"
@@ -148,8 +154,8 @@ help: ## Show this help
 	@echo ""
 	@echo "Options"
 	@echo "-------"
+	@echo "BUILDTYPE:       \"Debug\", \"Release\" - default: \"Release\""
 	@echo "COMPILER:        \"clang\", \"gcc\" - default: \"clang\""
 	@echo "GENERATOR:       \"Ninja\", \"Unix Makefiles\" - default: \"Ninja\""
 	@echo "SCANMATCH:       <glob-pattern> - default: \"src/**/*.cpp src/**/*.hpp\""
 	@echo "TESTTYPE:        \"unit\", \"integration\" - default: all tests"
-	@echo "VCPKG_ROOT:      \"/path/to/vcpkg/\" - empty to disable vcpkg"

@@ -30,7 +30,11 @@ For most code changes follow this sequence:
 
 - `make clean` — remove generated artifacts (`.cache`, `build`,
   `compile_commands.json`)
+- `make deps` — install dependencies with Conan (auto-creates profile if needed)
 - `make build` — configure/build with CMake and generate `compile_commands.json`
+  - Depends on `make deps`
+  - Auto-generates/updates `conanfile.lock` if missing or stale
+  - Lock file is used for reproducible builds across all environments
 - `make test` — run all tests (depends on `build`)
 - `make lint` — checks for issues with `clang-format` and `cmake-format`
 - `make lint-fix` — auto-format C++ and CMake files
@@ -41,25 +45,25 @@ For most code changes follow this sequence:
 - `make completion` — generate shell completions into `build/completions`
 - `make package` — build packages via CPack
 - `make dockerize` — build Docker image `mrm`
-- `make up-vcpkg` - update vcpkg baseline in vcpkg.json
 
 ### Makefile Options
 
 These environment variables control orchestration:
 
+- `BUILDTYPE`: `Debug` or `Release` (default)
 - `COMPILER`: `clang` (default) or `gcc`
 - `GENERATOR`: `Ninja` (default) or `Unix Makefiles`
 - `TESTTYPE`: `unit`, `integration`, or empty for all tests
 - `SCANMATCH`: glob pattern for `clang-tidy` (default: `src/**/*.cpp
   src/**/*.hpp`)
-- `VCPKG_ROOT`: path to vcpkg; empty disables vcpkg toolchain
 
 Example:
 
 ```sh
-make build COMPILER=gcc GENERATOR=Ninja
+make COMPILER=gcc GENERATOR=Ninja build
+make BUILDTYPE=Debug build
 make TESTTYPE=unit test
-make scan SCANMATCH=src/main.cpp
+make SCANMATCH=src/main.cpp scan
 ```
 
 ## Project Layout
@@ -83,14 +87,15 @@ Primary tools used via Makefile:
 - Docs: `doxygen`
 - Other: `entr`, `docker`, `cpack`
 
-Libraries are managed via `vcpkg` (optional). See `docs/development.md` for
-details.
+Libraries are managed via `conan`. See `docs/development.md` for details.
 
 ## Notes for Agents
 
 - Prefer using Makefile targets over calling tools directly.
 - Do not run `make clean build` as it leads to a race condition in directory
   deletion and creation. Run the clean target in isolation first then combine.
+- `make build` depends on `make deps` which installs Conan dependencies. The
+  deps target auto-creates a Conan profile on first run if none exists.
 - `make build` creates `compile_commands.json` and symlinks it into build
   subdirectories.
 - `make install` and `make uninstall` write to `/usr/local/bin` (may require
@@ -110,4 +115,4 @@ details.
 - Avoid unnecessary OO layering; use polymorphism and class hierarchies only
   when they add clear value.
 - The source code for libraries used in this project can be scanned to use them
-  properly. The libraries can be found in build/vcpkg_installed.
+  properly. The libraries can be found in Conan's cache at ~/.conan2/p/.

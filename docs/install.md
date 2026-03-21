@@ -14,9 +14,9 @@ Minimum requirements:
 
 - [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
+- [conan](https://conan.io)
 - [make](https://www.gnu.org/software/make)
 - [ninja](https://github.com/ninja-build/ninja)
-- [vcpkg](https://github.com/microsoft/vcpkg)
 
 Build and install:
 

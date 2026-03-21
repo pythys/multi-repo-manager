@@ -1,8 +1,7 @@
 FROM debian:bookworm AS build
 
 ENV CMAKE_VERSION=4.2.1
-ENV VCPKG_ROOT=/usr/src/vcpkg
-ENV PATH=$PATH:$VCPKG_ROOT
+ENV CONAN_VERSION=2.26.2
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -20,7 +19,9 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN python3 -m pip install --no-cache-dir --break-system-packages cmakelang
+RUN python3 -m pip install --no-cache-dir --break-system-packages \
+    cmakelang \
+    conan==${CONAN_VERSION}
 
 RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
@@ -29,10 +30,6 @@ RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
     chmod +x ${CMAKE_FILE} && \
     ./${CMAKE_FILE} --skip-license --prefix=/usr/local && \
     rm ${CMAKE_FILE}
-
-RUN git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT && \
-    cd $VCPKG_ROOT && \
-    ./bootstrap-vcpkg.sh -disableMetrics
 
 COPY . /usr/src/mrm
 
