@@ -12,6 +12,8 @@ branches in sync, so you can switch devices or collaborate without setup drift.
 mrm is fast by default with parallel execution, and it ships with a beautiful
 interactive FTXUI interface backed by a native C++ runtime.
 
+![mrm screenshot](docs/assets/screenshot.png)
+
 Quick install:
 
 ```sh
