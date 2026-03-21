@@ -9,11 +9,11 @@ class MrmConan(ConanFile):
         "boost/1.90.0",
         "cli11/2.6.0",
         "ftxui/6.1.9",
+        "gtest/1.17.0",
         "libgit2/1.9.1",
         "onetbb/2022.3.0",
         "yaml-cpp/0.8.0",
     )
-    tool_requires = "gtest/1.17.0"
     generators = "CMakeDeps", "CMakeToolchain"
 
     def configure(self):

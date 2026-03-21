@@ -1,6 +1,5 @@
 FROM debian:bookworm AS build
 
-ENV CMAKE_VERSION=4.2.1
 ENV CONAN_VERSION=2.26.2
 
 RUN apt-get update && \
@@ -8,6 +7,7 @@ RUN apt-get update && \
     build-essential \
     clang \
     clang-format \
+    cmake \
     curl \
     git \
     ninja-build \
@@ -22,14 +22,6 @@ RUN apt-get update && \
 RUN python3 -m pip install --no-cache-dir --break-system-packages \
     cmakelang \
     conan==${CONAN_VERSION}
-
-RUN CMAKE_BASE=https://github.com/Kitware/CMake/releases/download/ && \
-    CMAKE_FILE=cmake-${CMAKE_VERSION}-linux-x86_64.sh && \
-    CMAKE_URL=${CMAKE_BASE}/v${CMAKE_VERSION}/${CMAKE_FILE} && \
-    curl -LO $CMAKE_URL && \
-    chmod +x ${CMAKE_FILE} && \
-    ./${CMAKE_FILE} --skip-license --prefix=/usr/local && \
-    rm ${CMAKE_FILE}
 
 COPY . /usr/src/mrm
 
