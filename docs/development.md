@@ -56,6 +56,23 @@ make build COMPILER=clang GENERATOR="Unix Makefiles"
 - Using gdb: `gdb build/mrm/mrm`
 - Using lldb: `lldb build/mrm/mrm`
 
+## versioning
+
+Single source of truth is `VERSION`. Update all versioned files with:
+
+```sh
+make version VERSION=1.2.3
+```
+
+This updates all versioned files including:
+
+- `VERSION`
+- `CMakeLists.txt`
+- `Doxyfile`
+- `vcpkg.json`
+- `docs/install.md`
+- `README.md`
+
 ## libraries
 
 All libraries fetched using vcpkg.
