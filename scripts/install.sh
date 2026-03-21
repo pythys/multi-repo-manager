@@ -90,16 +90,17 @@ fi
 
 tar -xzf "$DOWNLOAD_PATH" -C "$TMP_DIR"
 
-if [ ! -f "$TMP_DIR/$PROJECT_NAME" ]; then
-  die "expected $PROJECT_NAME binary at archive root"
+BIN_PATH="$TMP_DIR/bin/$PROJECT_NAME"
+if [ ! -f "$BIN_PATH" ]; then
+  die "expected $PROJECT_NAME binary at bin/"
 fi
 
 mkdir -p "$BIN_DIR"
 
 if command -v install >/dev/null 2>&1; then
-  install -m 755 "$TMP_DIR/$PROJECT_NAME" "$BIN_DIR/$PROJECT_NAME"
+  install -m 755 "$BIN_PATH" "$BIN_DIR/$PROJECT_NAME"
 else
-  cp "$TMP_DIR/$PROJECT_NAME" "$BIN_DIR/$PROJECT_NAME"
+  cp "$BIN_PATH" "$BIN_DIR/$PROJECT_NAME"
   chmod 755 "$BIN_DIR/$PROJECT_NAME"
 fi
 
