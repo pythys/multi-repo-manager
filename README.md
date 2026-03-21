@@ -12,6 +12,14 @@ branches in sync, so you can switch devices or collaborate without setup drift.
 mrm is fast by default with parallel execution, and it ships with a beautiful
 interactive FTXUI interface backed by a native C++ runtime.
 
+Quick install:
+
+```sh
+curl -fsSL https://git.pythys.com/taher/multi-repo-manager/raw/branch/main/scripts/install.sh | sh -s -- --version 1.0.0 --bin-dir "$HOME/.local/bin"
+```
+
+Example:
+
 ```sh
 mrm update --config myrepos.yml --jobs 15
 ```
