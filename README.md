@@ -20,7 +20,7 @@ Quick install:
 curl -fsSL https://git.pythys.com/taher/multi-repo-manager/raw/branch/main/scripts/install.sh | sh -s -- --version 0.1.0 --bin-dir "$HOME/.local/bin"
 ```
 
-Example:
+Example Command:
 
 ```sh
 mrm update --config myrepos.yml --jobs 15
