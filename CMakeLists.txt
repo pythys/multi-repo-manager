@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-if(POLICY CMP0167)
+if(POLICY CMP0167) # cmake >= 3.30
     cmake_policy(SET CMP0167 NEW) # FindBoost warning fix
 endif()
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" PROJECT_VERSION)
