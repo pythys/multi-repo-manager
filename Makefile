@@ -52,8 +52,6 @@ build: deps ## Compile and generate editor artifacts
 		-DCMAKE_BUILD_TYPE=$(BUILDTYPE)
 	@cmake --build build -j $(shell nproc)
 	@ln -sf build/compile_commands.json compile_commands.json
-	@ln -sf ../compile_commands.json build/mrm/compile_commands.json
-	@ln -sf ../../compile_commands.json build/mrm/lib/compile_commands.json
 
 .PHONY: test
 test: build ## Run all tests
