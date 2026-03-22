@@ -7,11 +7,11 @@ DEFAULT_BIN_DIR="$HOME/.local/bin"
 
 usage() {
   cat <<'EOF'
-Usage: install.sh [--version <version>] [--bin-dir <dir>]
+Usage: install.sh --version <version> [--bin-dir <dir>]
 
 Options:
   --version   Release version tag (required)
-  --bin-dir   Install directory (default: ~/.local/bin)
+  --bin-dir   Install directory (optional, default: ~/.local/bin)
   -h, --help  Show this help message
 EOF
 }
@@ -106,25 +106,42 @@ fi
 
 printf '%s\n' "Installed $PROJECT_NAME to $BIN_DIR/$PROJECT_NAME"
 
-case ":$PATH:" in
-  *":$BIN_DIR:"*)
-    ;;
-  *)
-    SHELL_NAME="$(basename "${SHELL:-}")"
-    PROFILE_FILE="$HOME/.profile"
-    case "$SHELL_NAME" in
-      zsh) PROFILE_FILE="$HOME/.zshrc" ;;
-      bash)
-        if [ "$OS_NAME" = "darwin" ]; then
-          PROFILE_FILE="$HOME/.bash_profile"
-        else
-          PROFILE_FILE="$HOME/.bashrc"
-        fi
-        ;;
-    esac
-
-    printf '%s\n' "Add $BIN_DIR to PATH with:"
-    printf '%s\n' "echo 'export PATH=\"$BIN_DIR:\$PATH\"' >> \"$PROFILE_FILE\""
-    printf '%s\n' "Then restart your shell: exec \$SHELL"
+SHELL_NAME="$(basename "${SHELL:-}")"
+PROFILE_FILE="$HOME/.profile"
+case "$SHELL_NAME" in
+  zsh) PROFILE_FILE="$HOME/.zshrc" ;;
+  bash)
+    if [ "$OS_NAME" = "darwin" ]; then
+      PROFILE_FILE="$HOME/.bash_profile"
+    else
+      PROFILE_FILE="$HOME/.bashrc"
+    fi
     ;;
 esac
+
+NEEDS_PATH=0
+case ":$PATH:" in
+  *":$BIN_DIR:"*) ;;
+  *) NEEDS_PATH=1 ;;
+esac
+
+NEEDS_COMPLETION=0
+case "$SHELL_NAME" in
+  zsh|bash) NEEDS_COMPLETION=1 ;;
+esac
+
+if [ "$NEEDS_PATH" -eq 1 ] || [ "$NEEDS_COMPLETION" -eq 1 ]; then
+  printf '\n%s\n' "To complete setup, run:"
+  printf '%s\n' "cat >> \"$PROFILE_FILE\" <<'SETUP_EOF'"
+  
+  if [ "$NEEDS_PATH" -eq 1 ]; then
+    printf '%s\n' "export PATH=\"$BIN_DIR:\$PATH\""
+  fi
+  
+  if [ "$NEEDS_COMPLETION" -eq 1 ]; then
+    printf '%s\n' "source <($PROJECT_NAME completion $SHELL_NAME)"
+  fi
+  
+  printf '%s\n' "SETUP_EOF"
+  printf '\n%s\n' "Then restart your shell: exec \$SHELL"
+fi
