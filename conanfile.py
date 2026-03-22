@@ -11,10 +11,9 @@ class MrmConan(ConanFile):
         "ftxui/6.1.9",
         "gtest/1.17.0",
         "libgit2/1.9.1",
-        "onetbb/2022.3.0",
         "yaml-cpp/0.8.0",
     )
     generators = "CMakeDeps", "CMakeToolchain"
-
-    def configure(self):
-        self.options["hwloc/*"].shared = True
+    default_options = {
+        "*:shared": False,  # Static linking
+    }

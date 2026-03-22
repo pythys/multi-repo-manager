@@ -1,6 +1,5 @@
 find_package(Boost REQUIRED)
 find_package(CLI11 CONFIG REQUIRED)
-find_package(TBB CONFIG REQUIRED)
 find_package(ftxui CONFIG REQUIRED)
 find_package(libgit2 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
@@ -27,7 +26,6 @@ target_sources(
 target_include_directories(mrm_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(mrm_core PRIVATE Boost::headers)
 target_link_libraries(mrm_core PUBLIC CLI11::CLI11)
-target_link_libraries(mrm_core PRIVATE TBB::tbb TBB::tbbmalloc)
 target_link_libraries(mrm_core PRIVATE ftxui::screen ftxui::dom
                                        ftxui::component)
 target_link_libraries(mrm_core PUBLIC libgit2::libgit2)

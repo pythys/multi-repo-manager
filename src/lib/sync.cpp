@@ -11,7 +11,6 @@
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <tbb/parallel_for_each.h>
 #include <vector>
 
 namespace asio = boost::asio;
