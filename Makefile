@@ -3,6 +3,7 @@ GENERATOR ?= "Ninja"
 BUILDTYPE ?= Release
 SCANMATCH = src/**/*.cpp src/**/*.hpp
 TESTTYPE ?=
+NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
 all: help
 
@@ -50,7 +51,7 @@ build: deps ## Compile and generate editor artifacts
 	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S . \
 		-DCMAKE_TOOLCHAIN_FILE=build/conan/conan_toolchain.cmake \
 		-DCMAKE_BUILD_TYPE=$(BUILDTYPE)
-	@cmake --build build -j $(shell nproc)
+	@cmake --build build -j $(NPROC)
 	@ln -sf build/compile_commands.json compile_commands.json
 
 .PHONY: test
