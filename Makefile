@@ -45,7 +45,7 @@ deps: ## Install dependencies with Conan
 	@conan install . --build=missing -of build/conan --lockfile=conanfile.lock -s build_type=$(BUILDTYPE)
 
 .PHONY: build
-build: deps ## Compile and generate editor artifacts
+build: deps ## Compile and generate artifacts
 	$(call check_bin, cmake)
 	@echo "Building project..."
 	@CXX=$(CXX) CC=$(CC) cmake -G "$(GENERATOR)" -B build -S . \
