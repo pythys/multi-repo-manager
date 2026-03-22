@@ -6,7 +6,6 @@
 
 ## Backlog
 
-
 - Package for major OSes and distros:
   - brew
   - deb
