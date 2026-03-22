@@ -118,3 +118,23 @@ Libraries are managed via `conan`. See `docs/development.md` for details.
 - The source code for libraries used in this project can be scanned to use them
   properly. The libraries can be found in Conan's cache at ~/.conan2/p/.
 - Prefer portable code that works across most linux distros, macos and windows.
+
+## Upgrade Testing
+
+The project has library and tool dependencies that impact behavior. Testing
+should be done against the following:
+
+- Newer versions of libraries in conanfile.py.
+- Newer versions of tools:
+  - clang
+  - clang-format
+  - clang-tidy
+  - cmake
+  - cmake-format
+  - conan
+  - docker
+  - doxygen
+  - gcc
+  - make
+  - ninja
+- Newer versions of above tools in Dockerfile.
