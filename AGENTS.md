@@ -116,3 +116,4 @@ Libraries are managed via `conan`. See `docs/development.md` for details.
   when they add clear value.
 - The source code for libraries used in this project can be scanned to use them
   properly. The libraries can be found in Conan's cache at ~/.conan2/p/.
+- Prefer portable code that works across most linux distros, macos and windows.
