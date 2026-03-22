@@ -27,11 +27,6 @@ else()
     add_link_options(-static-libgcc -static-libstdc++)
 endif()
 
-# Default build type
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
-endif()
-
 # Enable testing
 enable_testing()
 
