@@ -68,13 +68,14 @@ make SCANMATCH=src/main.cpp scan
 
 ## Project Layout
 
+- `build/` — CMake build output (generated)
+- `docs/` — documentation
+- `scripts/` - helper scripts for development and CI
 - `src/` — application/library source code
 - `tests/` — tests (driven by CTest)
-- `docs/` — documentation
-- `build/` — CMake build output (generated)
 - `CMakeLists.txt` — CMake entry point
-- `Makefile` — task orchestration (primary)
 - `Dockerfile`, `Doxyfile` — container and docs tooling
+- `Makefile` — task orchestration (primary)
 
 ## Tooling and Dependencies
 
