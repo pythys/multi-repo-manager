@@ -12,9 +12,12 @@ The installer prints a copy-pastable command to add the install directory to you
 
 Minimum requirements:
 
+note: both clang and gcc are needed for mrm and conan respectively.
+
 - [clang](https://clang.llvm.org/)
 - [cmake](https://cmake.org)
 - [conan](https://conan.io)
+- [gcc](https://gcc.gnu.org/)
 - [make](https://www.gnu.org/software/make)
 - [ninja](https://github.com/ninja-build/ninja)
 
