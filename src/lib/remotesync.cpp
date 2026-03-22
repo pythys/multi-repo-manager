@@ -24,6 +24,23 @@ struct RepoJob {
     std::string path;
 };
 
+std::vector<RepoJob> collect_git_repos(const std::vector<Tree> &config) {
+    std::vector<RepoJob> repo_jobs;
+    for (const auto &tree : config) {
+        for (const auto &repo : tree.repos) {
+            if (repo.type == RepoType::GIT) {
+                repo_jobs.push_back(
+                    RepoJob{
+                        .root = tree.root,
+                        .name = repo.name,
+                        .path = tree.root + "/" + repo.name,
+                    });
+            }
+        }
+    }
+    return repo_jobs;
+}
+
 bool sync_branch(
     Tracker &tracker,
     RepoManager *repo_manager,
@@ -105,6 +122,81 @@ bool sync_branch(
         return false;
     }
 }
+
+void process_repo_sync(
+    const RepoJob &repo_job,
+    Tracker &tracker,
+    const std::string &source_remote,
+    const std::string &target_remote,
+    const std::vector<std::string> &branches,
+    bool dry_run,
+    std::atomic_bool &has_operational_error) {
+    std::unique_ptr<RepoManager> repo_manager =
+        create_repo_manager(RepoType::GIT);
+    tracker.set_phase(
+        repo_job.root,
+        repo_job.name,
+        RepoPhase::RUNNING,
+        "Synchronizing remotes");
+    try {
+        if (!repo_manager->is_repo(repo_job.path)) {
+            tracker.set_phase(
+                repo_job.root,
+                repo_job.name,
+                RepoPhase::FAILED,
+                "Not a git repository",
+                MessageLevel::ERROR);
+            has_operational_error.store(true);
+            return;
+        }
+
+        const auto repo_branches = repo_manager->get_branches(repo_job.path);
+        const auto current_it =
+            std::ranges::find_if(repo_branches, [](const Branch &branch) {
+                return branch.is_current;
+            });
+        const std::string original_branch =
+            current_it == repo_branches.end() ? "" : current_it->name;
+
+        bool source_available = true;
+
+        bool repo_failed = false;
+        for (const auto &branch : branches) {
+            if (!sync_branch(
+                    tracker,
+                    repo_manager.get(),
+                    repo_job.root,
+                    repo_job.name,
+                    repo_job.path,
+                    source_remote,
+                    target_remote,
+                    branch,
+                    source_available,
+                    dry_run,
+                    has_operational_error)) {
+                repo_failed = true;
+            }
+        }
+        if (!original_branch.empty()) {
+            repo_manager->switch_branch(repo_job.path, original_branch);
+        }
+        if (!repo_failed) {
+            tracker.set_phase(
+                repo_job.root,
+                repo_job.name,
+                RepoPhase::SUCCEEDED,
+                "Remote sync finished");
+        }
+    } catch (const std::exception &e) {
+        tracker.set_phase(
+            repo_job.root,
+            repo_job.name,
+            RepoPhase::FAILED,
+            e.what(),
+            MessageLevel::ERROR);
+        has_operational_error.store(true);
+    }
+}
 } // namespace
 
 int run_remotesync(
@@ -122,19 +214,7 @@ int run_remotesync(
     auto view = create_output_view(detect_output_mode(), tracker);
     view->start();
 
-    std::vector<RepoJob> repo_jobs;
-    for (const auto &tree : config) {
-        for (const auto &repo : tree.repos) {
-            if (repo.type == RepoType::GIT) {
-                repo_jobs.push_back(
-                    RepoJob{
-                        .root = tree.root,
-                        .name = repo.name,
-                        .path = tree.root + "/" + repo.name,
-                    });
-            }
-        }
-    }
+    const std::vector<RepoJob> repo_jobs = collect_git_repos(config);
 
     std::atomic_bool has_operational_error{false};
     const auto effective_jobs =
@@ -144,71 +224,14 @@ int run_remotesync(
 
     for (const auto &repo_job : repo_jobs) {
         asio::post(pool, [&, repo_job]() {
-            std::unique_ptr<RepoManager> repo_manager =
-                create_repo_manager(RepoType::GIT);
-            tracker.set_phase(
-                repo_job.root,
-                repo_job.name,
-                RepoPhase::RUNNING,
-                "Synchronizing remotes");
-            try {
-                if (!repo_manager->is_repo(repo_job.path)) {
-                    tracker.set_phase(
-                        repo_job.root,
-                        repo_job.name,
-                        RepoPhase::FAILED,
-                        "Not a git repository",
-                        MessageLevel::ERROR);
-                    has_operational_error.store(true);
-                    return;
-                }
-
-                const auto repo_branches =
-                    repo_manager->get_branches(repo_job.path);
-                const auto current_it = std::ranges::find_if(
-                    repo_branches,
-                    [](const Branch &branch) { return branch.is_current; });
-                const std::string original_branch =
-                    current_it == repo_branches.end() ? "" : current_it->name;
-
-                bool source_available = true;
-
-                bool repo_failed = false;
-                for (const auto &branch : branches) {
-                    if (!sync_branch(
-                            tracker,
-                            repo_manager.get(),
-                            repo_job.root,
-                            repo_job.name,
-                            repo_job.path,
-                            source_remote,
-                            target_remote,
-                            branch,
-                            source_available,
-                            dry_run,
-                            has_operational_error)) {
-                        repo_failed = true;
-                    }
-                }
-                if (!original_branch.empty()) {
-                    repo_manager->switch_branch(repo_job.path, original_branch);
-                }
-                if (!repo_failed) {
-                    tracker.set_phase(
-                        repo_job.root,
-                        repo_job.name,
-                        RepoPhase::SUCCEEDED,
-                        "Remote sync finished");
-                }
-            } catch (const std::exception &e) {
-                tracker.set_phase(
-                    repo_job.root,
-                    repo_job.name,
-                    RepoPhase::FAILED,
-                    e.what(),
-                    MessageLevel::ERROR);
-                has_operational_error.store(true);
-            }
+            process_repo_sync(
+                repo_job,
+                tracker,
+                source_remote,
+                target_remote,
+                branches,
+                dry_run,
+                has_operational_error);
         });
     }
 
