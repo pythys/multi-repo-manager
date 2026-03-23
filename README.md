@@ -38,3 +38,7 @@ mrm update --config myrepos.yml --jobs 15
 
 Taher Alkhateeb
 https://github.com/pythys
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
