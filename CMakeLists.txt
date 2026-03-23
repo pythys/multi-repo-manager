@@ -27,14 +27,13 @@ else()
     add_link_options(-static-libgcc -static-libstdc++)
 endif()
 
-# Enable testing
 enable_testing()
 
 # Sub-projects
 add_subdirectory(src ${CMAKE_BINARY_DIR}/mrm)
 add_subdirectory(tests ${CMAKE_BINARY_DIR}/tests)
 
-# Packageing with cpack
+# Packageing
 if(WIN32)
     set(CPACK_GENERATOR "ZIP;NSIS")
 else()
