@@ -1,6 +1,7 @@
 #ifndef SRC_LIB_EXEC_HPP_
 #define SRC_LIB_EXEC_HPP_
 
+#include "command_options.hpp"
 #include "tree.hpp"
 #include <string>
 #include <vector>
@@ -20,10 +21,6 @@ ExecPlanResult plan_exec(
     const std::vector<Tree> &config,
     const std::string &repo_type);
 
-int run_exec(
-    const std::string &custom_command,
-    const std::string &config_file,
-    const std::string &repo_type,
-    const std::vector<std::string> &root_patterns = {});
+int run_exec(const ExecutionOptions &options);
 
 #endif // SRC_LIB_EXEC_HPP_

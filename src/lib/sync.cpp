@@ -294,21 +294,17 @@ void sync_repository(
     }
 }
 
-int run_sync(
-    const std::string &config_file,
-    int pool_size,
-    bool prune_remotes,
-    bool prune_branches,
-    const std::vector<std::string> &root_patterns) {
-    std::vector<Tree> config =
-        filter_trees_by_root(get_dependencies(config_file), root_patterns);
+int run_sync(const SyncOptions &options) {
+    std::vector<Tree> config = filter_trees_by_root(
+        get_dependencies(options.config_file),
+        options.root_patterns);
     Tracker tracker;
     tracker.populate(config);
     auto view = create_output_view(detect_output_mode(), tracker);
     view->start();
 
-    const auto effective_pool_size =
-        static_cast<std::size_t>(pool_size > 0 ? pool_size : SYNC_POOL_SIZE);
+    const auto effective_pool_size = static_cast<std::size_t>(
+        options.jobs > 0 ? options.jobs : SYNC_POOL_SIZE);
     asio::thread_pool pool(effective_pool_size);
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
@@ -317,8 +313,8 @@ int run_sync(
                 &repo,
                 &tracker,
                 &pool,
-                prune_remotes,
-                prune_branches);
+                options.prune_remotes,
+                options.prune_branches);
         }
     }
     pool.join();

@@ -8,11 +8,13 @@
 #include <string>
 #include <vector>
 
-int run_status(
-    const std::string &config_file,
-    const std::vector<std::string> &root_patterns) {
-    const std::vector<Tree> config =
-        filter_trees_by_root(get_config(config_file), root_patterns);
+int run_status(const StatusOptions &options) {
+    const auto config = load_trees(
+        options.selector.config_file,
+        options.selector.find_paths,
+        options.selector.root_patterns,
+        options.selector.name_patterns);
+
     Tracker tracker;
     tracker.populate(config);
     auto view = create_output_view(detect_output_mode(), tracker);

@@ -181,15 +181,15 @@ int execute_in_repo(
 }
 } // namespace
 
-int run_exec(
-    const std::string &custom_command,
-    const std::string &config_file,
-    const std::string &repo_type,
-    const std::vector<std::string> &root_patterns) {
-    const std::vector<Tree> config =
-        filter_trees_by_root(get_config(config_file), root_patterns);
+int run_exec(const ExecutionOptions &options) {
+    const auto trees = load_trees(
+        options.selector.config_file,
+        options.selector.find_paths,
+        options.selector.root_patterns,
+        options.selector.name_patterns);
 
-    const ExecPlanResult plan = plan_exec(custom_command, config, repo_type);
+    const ExecPlanResult plan =
+        plan_exec(options.command, trees, options.repository_type);
     if (!plan.error.empty()) {
         std::cerr << plan.error << "\n";
         return 1;

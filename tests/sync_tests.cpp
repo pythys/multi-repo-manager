@@ -1,3 +1,4 @@
+#include "command_options.hpp"
 #include "config.hpp"
 #include "find.hpp"
 #include "git_guard.hpp"
@@ -17,15 +18,25 @@ namespace fs = std::filesystem;
 const GitGuard git_guard;
 
 int sync(const std::string &filename) {
-    return run_sync(std::string(TEST_RESOURCES_DIR) + "/" + filename);
+    return run_sync(
+        SyncOptions{
+            .config_file = std::string(TEST_RESOURCES_DIR) + "/" + filename,
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .jobs = 0,
+        });
 }
 
 int sync(const std::string &filename, bool prune_remotes, bool prune_branches) {
     return run_sync(
-        std::string(TEST_RESOURCES_DIR) + "/" + filename,
-        0,
-        prune_remotes,
-        prune_branches);
+        SyncOptions{
+            .config_file = std::string(TEST_RESOURCES_DIR) + "/" + filename,
+            .root_patterns = {},
+            .prune_remotes = prune_remotes,
+            .prune_branches = prune_branches,
+            .jobs = 0,
+        });
 }
 
 namespace {
@@ -192,7 +203,14 @@ TEST(SyncTests, ExistingBranchesDoNotRequireFetch) {
 
     testing::internal::CaptureStdout();
     testing::internal::CaptureStderr();
-    run_sync(config.string());
+    run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .jobs = 0,
+        });
     const std::string stdout_text = testing::internal::GetCapturedStdout();
     const std::string stderr_text = testing::internal::GetCapturedStderr();
 
@@ -222,12 +240,26 @@ TEST(SyncTests, PruneRemotesIsOptIn) {
     const fs::path config = temp.path() / "config.yml";
     write_main_only_config(config, root, remote);
 
-    run_sync(config.string());
+    run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .jobs = 0,
+        });
     auto repos = find_repos(root.string());
     ASSERT_EQ(1, repos.size());
     EXPECT_TRUE(has_remote(repos[0], "upstream"));
 
-    run_sync(config.string(), 0, true, false);
+    run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = true,
+            .prune_branches = false,
+            .jobs = 0,
+        });
     repos = find_repos(root.string());
     ASSERT_EQ(1, repos.size());
     EXPECT_FALSE(has_remote(repos[0], "upstream"));
@@ -257,7 +289,14 @@ TEST(SyncTests, PruneBranchesRemovesNonCurrentBranches) {
     const fs::path config = temp.path() / "config.yml";
     write_main_only_config(config, root, remote);
 
-    run_sync(config.string(), 0, false, true);
+    run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = true,
+            .jobs = 0,
+        });
     auto repos = find_repos(root.string());
     ASSERT_EQ(1, repos.size());
     EXPECT_NE(find_branch(repos[0], "main"), nullptr);
@@ -287,7 +326,14 @@ TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
     const fs::path config = temp.path() / "config.yml";
     write_main_only_config(config, root, remote);
 
-    run_sync(config.string(), 0, false, true);
+    run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = true,
+            .jobs = 0,
+        });
     auto repos = find_repos(root.string());
     ASSERT_EQ(1, repos.size());
     const Branch *main = find_branch(repos[0], "main");

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+std::string normalize_path(const std::string &path);
+
 std::vector<Repo> find_repos(const std::string &path);
 
 int run_find(

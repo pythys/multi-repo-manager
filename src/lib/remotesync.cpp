@@ -199,26 +199,23 @@ void process_repo_sync(
 }
 } // namespace
 
-int run_remotesync(
-    const std::string &config_file,
-    const std::string &source_remote,
-    const std::string &target_remote,
-    const std::vector<std::string> &branches,
-    bool dry_run,
-    const std::vector<std::string> &root_patterns,
-    int jobs) {
-    const std::vector<Tree> config =
-        filter_trees_by_root(get_config(config_file), root_patterns);
+int run_remotesync(const RemoteSyncOptions &options) {
+    const auto trees = load_trees(
+        options.selector.config_file,
+        options.selector.find_paths,
+        options.selector.root_patterns,
+        options.selector.name_patterns);
+
     Tracker tracker;
-    tracker.populate(config);
+    tracker.populate(trees);
     auto view = create_output_view(detect_output_mode(), tracker);
     view->start();
 
-    const std::vector<RepoJob> repo_jobs = collect_git_repos(config);
+    const std::vector<RepoJob> repo_jobs = collect_git_repos(trees);
 
     std::atomic_bool has_operational_error{false};
-    const auto effective_jobs =
-        static_cast<std::size_t>(jobs > 0 ? jobs : SYNC_POOL_SIZE);
+    const auto effective_jobs = static_cast<std::size_t>(
+        options.jobs > 0 ? options.jobs : SYNC_POOL_SIZE);
 
     asio::thread_pool pool(effective_jobs);
 
@@ -227,10 +224,10 @@ int run_remotesync(
             process_repo_sync(
                 repo_job,
                 tracker,
-                source_remote,
-                target_remote,
-                branches,
-                dry_run,
+                options.source_remote,
+                options.target_remote,
+                options.branches,
+                options.dry_run,
                 has_operational_error);
         });
     }

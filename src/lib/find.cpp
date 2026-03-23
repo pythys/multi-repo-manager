@@ -47,6 +47,12 @@ std::optional<RepoType> find_repo_type(const fs::path &dir) {
 }
 } // namespace
 
+std::string normalize_path(const std::string &path) {
+    const fs::path fsp(path);
+    const std::string normalized = fsp.lexically_normal().string();
+    return normalized.starts_with("./") ? normalized.substr(2) : normalized;
+}
+
 std::vector<Repo> find_repos(const std::string &path) {
     std::vector<Repo> repos;
     const fs::path root(path);
@@ -101,12 +107,6 @@ std::vector<Repo> find_repos(const std::string &path) {
     });
 
     return repos;
-}
-
-std::string normalize_path(const std::string &path) {
-    const fs::path fsp(path);
-    const std::string normalized = fsp.lexically_normal().string();
-    return normalized.starts_with("./") ? normalized.substr(2) : normalized;
 }
 
 int run_find(

@@ -6,8 +6,6 @@
 
 ## Backlog
 
-- mrm find can have filters and an exec applied on found repos.
-- Similar to --root, filter repos by --name.
 - mrm list to show which repos are managed.
 - Ability to pass SSH keys to allow for CI integration.
 - Add `--recurse` to `find`, and default to not recursing for performance or

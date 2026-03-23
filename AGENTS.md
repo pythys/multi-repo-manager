@@ -92,6 +92,8 @@ Libraries are managed via `conan`. See `docs/development.md` for details.
 
 ## Notes for Agents
 
+- The user might modify your code in between runs. Check user changes before
+  applying patches.
 - Prefer using Makefile targets over calling tools directly.
 - Do not run `make clean build` as it leads to a race condition in directory
   deletion and creation. Run the clean target in isolation first then combine.
@@ -113,6 +115,9 @@ Libraries are managed via `conan`. See `docs/development.md` for details.
 - Prefer terse, efficient code over verbose implementations.
 - Prefer modern C++ constructs where they improve clarity and correctness.
 - Prefer functional style (free functions, algorithms, lambdas) when practical.
+- Avoid useless comments in code that describe something which should be
+  understood by reading the code. Limit comments to actual useful information
+  that cannot be understood clearly or easily from the code.
 - Avoid unnecessary OO layering; use polymorphism and class hierarchies only
   when they add clear value.
 - The source code for libraries used in this project can be scanned to use them

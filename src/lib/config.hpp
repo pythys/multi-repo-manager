@@ -19,4 +19,14 @@ std::vector<Tree> filter_trees_by_root(
     const std::vector<Tree> &trees,
     const std::vector<std::string> &root_patterns);
 
+std::vector<Tree> filter_trees_by_name(
+    const std::vector<Tree> &trees,
+    const std::vector<std::string> &name_patterns);
+
+std::vector<Tree> load_trees(
+    const std::string &config_file,
+    const std::vector<std::string> &find_paths,
+    const std::vector<std::string> &root_patterns,
+    const std::vector<std::string> &name_patterns);
+
 #endif // SRC_LIB_CONFIG_HPP_

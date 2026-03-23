@@ -1,5 +1,7 @@
 #include "cli.hpp"
+#include "command_options.hpp"
 #include "completion.hpp"
+#include "config.hpp"
 #include "exec.hpp"
 #include "find.hpp"
 #include "remotesync.hpp"
@@ -43,24 +45,59 @@ int parse_cli(int argc, char **argv) {
     CLI::App *status = app.add_subcommand("status", "Show repository status");
     status->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
+    std::vector<std::string> status_find_paths;
+    status
+        ->add_option(
+            "--find,-f",
+            status_find_paths,
+            "find repositories in paths")
+        ->type_name("dir");
     std::vector<std::string> status_root_patterns;
     status->add_option("--root,-r", status_root_patterns, "root tree pattern")
+        ->type_name("pattern");
+    std::vector<std::string> status_name_patterns;
+    status
+        ->add_option(
+            "--name,-n",
+            status_name_patterns,
+            "filter by repository name pattern")
         ->type_name("pattern");
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
     update->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
+    std::vector<std::string> update_find_paths;
+    update
+        ->add_option(
+            "--find,-f",
+            update_find_paths,
+            "find repositories in paths")
+        ->type_name("dir");
     int update_jobs = 0;
     update->add_option("--jobs,-j", update_jobs, "number of jobs")
         ->type_name("N");
     std::vector<std::string> update_root_patterns;
     update->add_option("--root,-r", update_root_patterns, "root tree pattern")
         ->type_name("pattern");
+    std::vector<std::string> update_name_patterns;
+    update
+        ->add_option(
+            "--name,-n",
+            update_name_patterns,
+            "filter by repository name pattern")
+        ->type_name("pattern");
 
     CLI::App *remotesync =
         app.add_subcommand("remotesync", "Sync between remotes");
     remotesync->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
+    std::vector<std::string> remotesync_find_paths;
+    remotesync
+        ->add_option(
+            "--find,-f",
+            remotesync_find_paths,
+            "find repositories in paths")
+        ->type_name("dir");
     std::string remotesync_source;
     remotesync->add_option("--source,-s", remotesync_source, "source remote")
         ->required()
@@ -75,7 +112,7 @@ int parse_cli(int argc, char **argv) {
         ->type_name("name");
     bool remotesync_dry_run = false;
     remotesync->add_flag(
-        "--dry-run,-n",
+        "--dry-run,-d",
         remotesync_dry_run,
         "perform a dry run");
     int remotesync_jobs = 0;
@@ -84,6 +121,13 @@ int parse_cli(int argc, char **argv) {
     std::vector<std::string> remotesync_root_patterns;
     remotesync
         ->add_option("--root,-r", remotesync_root_patterns, "root tree pattern")
+        ->type_name("pattern");
+    std::vector<std::string> remotesync_name_patterns;
+    remotesync
+        ->add_option(
+            "--name,-n",
+            remotesync_name_patterns,
+            "filter by repository name pattern")
         ->type_name("pattern");
 
     CLI::App *exec =
@@ -98,8 +142,17 @@ int parse_cli(int argc, char **argv) {
         ->check(CLI::IsMember({"all", "git", "svn", "hg"}));
     exec->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
+    std::vector<std::string> exec_find_paths;
+    exec->add_option("--find,-f", exec_find_paths, "find repositories in paths")
+        ->type_name("dir");
     std::vector<std::string> exec_root_patterns;
     exec->add_option("--root,-r", exec_root_patterns, "root tree pattern")
+        ->type_name("pattern");
+    std::vector<std::string> exec_name_patterns;
+    exec->add_option(
+            "--name,-n",
+            exec_name_patterns,
+            "filter by repository name pattern")
         ->type_name("pattern");
 
     CLI::App *completion =
@@ -119,26 +172,38 @@ int parse_cli(int argc, char **argv) {
         return app.exit(e);
     }
 
-    const bool needs_config =
+    const bool needs_input =
         *sync || *status || *update || *remotesync || *exec;
+
+    const bool has_find =
+        !status_find_paths.empty() || !update_find_paths.empty() ||
+        !remotesync_find_paths.empty() || !exec_find_paths.empty();
+
+    if (*sync && has_find) {
+        std::cerr << "Error: sync command does not support --find.\n";
+        std::cerr << "Use --config instead.\n";
+        return 1;
+    }
+
     std::error_code error;
     const bool has_config_file = std::filesystem::exists(config_file, error);
-    if (needs_config && !has_config_file) {
+    if (needs_input && !has_find && !has_config_file) {
         std::cerr << "Config file not found: " << config_file << "\n";
-        std::cerr << "Use --config <file> or run `mrm find --save` to "
-                     "create one.\n";
+        std::cerr << "Use --config <file>, --find <paths>, or run `mrm find "
+                     "--save` to create one.\n";
         return 1;
     }
 
     if (*sync) {
         const bool should_prune_remotes = prune_all || prune_remotes;
         const bool should_prune_branches = prune_all || prune_branches;
-        return run_sync(
-            config_file,
-            sync_jobs,
-            should_prune_remotes,
-            should_prune_branches,
-            sync_root_patterns);
+        SyncOptions options{
+            .config_file = config_file,
+            .root_patterns = sync_root_patterns,
+            .prune_remotes = should_prune_remotes,
+            .prune_branches = should_prune_branches,
+            .jobs = sync_jobs};
+        return run_sync(options);
     }
 
     if (*find) {
@@ -149,30 +214,51 @@ int parse_cli(int argc, char **argv) {
     }
 
     if (*status) {
-        return run_status(config_file, status_root_patterns);
+        StatusOptions options{
+            .selector = {
+                .config_file = config_file,
+                .find_paths = status_find_paths,
+                .root_patterns = status_root_patterns,
+                .name_patterns = status_name_patterns}};
+        return run_status(options);
     }
 
     if (*update) {
-        return run_update(config_file, update_jobs, update_root_patterns);
+        UpdateOptions options{
+            .selector =
+                {.config_file = config_file,
+                 .find_paths = update_find_paths,
+                 .root_patterns = update_root_patterns,
+                 .name_patterns = update_name_patterns},
+            .jobs = update_jobs};
+        return run_update(options);
     }
 
     if (*remotesync) {
-        return run_remotesync(
-            config_file,
-            remotesync_source,
-            remotesync_target,
-            remotesync_branches,
-            remotesync_dry_run,
-            remotesync_root_patterns,
-            remotesync_jobs);
+        RemoteSyncOptions options{
+            .selector =
+                {.config_file = config_file,
+                 .find_paths = remotesync_find_paths,
+                 .root_patterns = remotesync_root_patterns,
+                 .name_patterns = remotesync_name_patterns},
+            .source_remote = remotesync_source,
+            .target_remote = remotesync_target,
+            .branches = remotesync_branches,
+            .dry_run = remotesync_dry_run,
+            .jobs = remotesync_jobs};
+        return run_remotesync(options);
     }
 
     if (*exec) {
-        return run_exec(
-            custom_command,
-            config_file,
-            repo_type,
-            exec_root_patterns);
+        ExecutionOptions options{
+            .selector =
+                {.config_file = config_file,
+                 .find_paths = exec_find_paths,
+                 .root_patterns = exec_root_patterns,
+                 .name_patterns = exec_name_patterns},
+            .command = custom_command,
+            .repository_type = repo_type};
+        return run_exec(options);
     }
 
     if (*completion) {

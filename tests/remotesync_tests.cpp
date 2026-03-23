@@ -1,3 +1,4 @@
+#include "command_options.hpp"
 #include "git_guard.hpp"
 #include "git_test_utils.hpp"
 #include "remotesync.hpp"
@@ -95,8 +96,21 @@ TEST(RemoteSyncTests, DryRunReportsPlannedPush) {
     write_config(config, temp.path() / "root");
 
     testing::internal::CaptureStdout();
-    const int code =
-        run_remotesync(config.string(), "upstream", "origin", {"main"}, true);
+    const int code = run_remotesync(
+        RemoteSyncOptions{
+            .selector =
+                {
+                    .config_file = config.string(),
+                    .find_paths = {},
+                    .root_patterns = {},
+                    .name_patterns = {},
+                },
+            .source_remote = "upstream",
+            .target_remote = "origin",
+            .branches = {"main"},
+            .dry_run = true,
+            .jobs = 0,
+        });
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);
@@ -115,8 +129,21 @@ TEST(RemoteSyncTests, MissingTargetBranchIsCreated) {
     write_config(config, temp.path() / "root");
 
     testing::internal::CaptureStdout();
-    const int code =
-        run_remotesync(config.string(), "upstream", "origin", {"main"}, false);
+    const int code = run_remotesync(
+        RemoteSyncOptions{
+            .selector =
+                {
+                    .config_file = config.string(),
+                    .find_paths = {},
+                    .root_patterns = {},
+                    .name_patterns = {},
+                },
+            .source_remote = "upstream",
+            .target_remote = "origin",
+            .branches = {"main"},
+            .dry_run = false,
+            .jobs = 0,
+        });
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);
@@ -145,8 +172,21 @@ TEST(RemoteSyncTests, FallsBackToLocalWhenSourceFetchFails) {
     write_config(config, temp.path() / "root");
 
     testing::internal::CaptureStdout();
-    const int code =
-        run_remotesync(config.string(), "upstream", "origin", {"main"}, false);
+    const int code = run_remotesync(
+        RemoteSyncOptions{
+            .selector =
+                {
+                    .config_file = config.string(),
+                    .find_paths = {},
+                    .root_patterns = {},
+                    .name_patterns = {},
+                },
+            .source_remote = "upstream",
+            .target_remote = "origin",
+            .branches = {"main"},
+            .dry_run = false,
+            .jobs = 0,
+        });
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_EQ(0, code);

@@ -11,19 +11,20 @@
 
 namespace asio = boost::asio;
 
-int run_update(
-    const std::string &config_file,
-    int pool_size,
-    const std::vector<std::string> &root_patterns) {
-    const std::vector<Tree> config =
-        filter_trees_by_root(get_config(config_file), root_patterns);
+int run_update(const UpdateOptions &options) {
+    const auto config = load_trees(
+        options.selector.config_file,
+        options.selector.find_paths,
+        options.selector.root_patterns,
+        options.selector.name_patterns);
+
     Tracker tracker;
     tracker.populate(config);
     auto view = create_output_view(detect_output_mode(), tracker);
     view->start();
 
-    const auto effective_pool_size =
-        static_cast<std::size_t>(pool_size > 0 ? pool_size : SYNC_POOL_SIZE);
+    const auto effective_pool_size = static_cast<std::size_t>(
+        options.jobs > 0 ? options.jobs : SYNC_POOL_SIZE);
     asio::thread_pool pool(effective_pool_size);
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {

@@ -1,11 +1,14 @@
 #include "config.hpp"
+#include "find.hpp"
 #include "repo_type.hpp"
 #include <algorithm>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <system_error>
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
@@ -269,4 +272,65 @@ std::vector<Tree> filter_trees_by_root(
         }
     }
     return filtered;
+}
+
+std::vector<Tree> filter_trees_by_name(
+    const std::vector<Tree> &trees,
+    const std::vector<std::string> &name_patterns) {
+    if (name_patterns.empty()) {
+        return trees;
+    }
+
+    std::vector<Tree> filtered;
+    for (const auto &tree : trees) {
+        Tree filtered_tree = tree;
+        filtered_tree.repos.clear();
+
+        for (const auto &repo : tree.repos) {
+            const bool matches = std::ranges::any_of(
+                name_patterns,
+                [&](const std::string &pattern) {
+                    return root_matches_pattern(repo.name, pattern);
+                });
+            if (matches) {
+                filtered_tree.repos.push_back(repo);
+            }
+        }
+
+        if (!filtered_tree.repos.empty()) {
+            filtered.push_back(filtered_tree);
+        }
+    }
+
+    return filtered;
+}
+
+std::vector<Tree> load_trees(
+    const std::string &config_file,
+    const std::vector<std::string> &find_paths,
+    const std::vector<std::string> &root_patterns,
+    const std::vector<std::string> &name_patterns) {
+    std::vector<Tree> trees;
+
+    if (!find_paths.empty()) {
+        for (const auto &path : find_paths) {
+            std::error_code ec;
+            if (!std::filesystem::exists(path, ec) || ec) {
+                throw std::runtime_error("Path not found: " + path);
+            }
+        }
+
+        for (const auto &path : find_paths) {
+            std::string normalized = normalize_path(path);
+            trees.push_back(
+                Tree{.root = normalized, .repos = find_repos(normalized)});
+        }
+    } else {
+        trees = get_config(config_file);
+    }
+
+    trees = filter_trees_by_root(trees, root_patterns);
+    trees = filter_trees_by_name(trees, name_patterns);
+
+    return trees;
 }

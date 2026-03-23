@@ -1,11 +1,8 @@
 #ifndef SRC_LIB_STATUS_HPP_
 #define SRC_LIB_STATUS_HPP_
 
-#include <string>
-#include <vector>
+#include "command_options.hpp"
 
-int run_status(
-    const std::string &config_file,
-    const std::vector<std::string> &root_patterns = {});
+int run_status(const StatusOptions &options);
 
 #endif // SRC_LIB_STATUS_HPP_

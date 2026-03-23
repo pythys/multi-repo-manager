@@ -25,7 +25,7 @@ If `--save` is omitted entirely, output is printed to stdout.
 
 Recommended workflow:
 - make changes in repositories first (remotes, branches, layout)
-- regenerate config with `mrm find`
+- regenerate config with `mrm find -s`
 
 ## sync repos from config
 
@@ -53,10 +53,12 @@ Prune options (all opt-in):
 Target options:
 - `--root <pattern>` (`-r`): apply command only to matching tree roots (supports
   `*`, `?`, repeatable)
+- `--name <pattern>` (`-n`): filter individual repos by name pattern (supports
+  `*`, `?`, repeatable)
 
 Common short flags: `-c` (`--config`), `-j` (`--jobs`), `-p` (`--prune`), `-R`
-(`--prune-remotes`), `-B` (`--prune-branches`), `-r` (`--root`), `-n`
-(`--dry-run`).
+(`--prune-remotes`), `-B` (`--prune-branches`), `-r` (`--root`), `-d`
+(`--dry-run`), `-n` (`--name`).
 
 If `--config` is omitted, `mrm.yml` is used.
 
@@ -68,6 +70,7 @@ When pruning branches, the current branch is never deleted.
 mrm status
 mrm status --config myrepos.yml
 mrm status --config myrepos.yml --root "fork*"
+mrm status --config myrepos.yml --name "*frontend*"
 ```
 
 Status output is based on libgit2 `git_status_list` and includes:
@@ -82,6 +85,7 @@ mrm update
 mrm update --config myrepos.yml
 mrm update --config myrepos.yml --jobs 12
 mrm update --config myrepos.yml --root "client*"
+mrm update --config myrepos.yml --name "*backend*"
 ```
 
 ## sync branches between remotes
@@ -107,6 +111,7 @@ mrm remotesync --config myrepos.yml --source upstream --target origin --branch m
 mrm exec --command "remote get-url origin"
 mrm exec --config myrepos.yml --type git --command "remote get-url origin"
 mrm exec --config myrepos.yml --root "client*" --command "status -sb"
+mrm exec --config myrepos.yml --name "*api*" --command "log --oneline -5"
 ```
 
 `exec` runs the command in each targeted repository path from config.
@@ -115,6 +120,50 @@ mrm exec --config myrepos.yml --root "client*" --command "status -sb"
   commands.
 - when the repo CLI exists (for example `git`), mrm prefixes it for you unless
   your command already starts with it.
+
+## adhoc commands
+
+For one-off operations, use `--find` instead of `--config` to scan directories
+for repositories on the fly:
+
+```sh
+mrm status --find ~/projects
+mrm update --find ~/work ~/personal --jobs 8
+mrm remotesync --find ~/forks --source upstream --target origin --branch main
+mrm exec --find . --command "status -s"
+```
+
+`--find` behavior:
+- scans specified paths for repositories (`.git`, `.hg`, etc directories)
+- creates an in-memory structure equivalent to a config file
+- mutually exclusive with `--config` (use one or the other)
+- works with `status`, `update`, `remotesync`, and `exec` commands
+- NOT supported on `sync` command (requires parent/child dependencies from config)
+
+Multiple `--find` paths create multiple tree roots, just like multiple roots in
+a config file.
+
+Adhoc commands support all filtering options:
+
+```sh
+# Filter by repo name
+mrm status --find ~/projects --name "*frontend*"
+
+# Filter by tree root and repo name
+mrm update --find ~/work ~/personal --root "*work" --name "*api*"
+
+# Multiple patterns (OR logic)
+mrm exec --find ~/forks --name "*react*" --name "*vue*" --command "fetch --all"
+```
+
+Filtering:
+- `--root <pattern>` filters at tree level (top-level directories)
+- `--name <pattern>` filters at repo level (individual repos within trees)
+- both use glob patterns: `*` (any chars), `?` (single char)
+- both are repeatable and combine with OR logic
+- both are case-sensitive
+- filters apply sequentially: `--root` first, then `--name`, then prune empty
+  trees
 
 ## concurrency
 

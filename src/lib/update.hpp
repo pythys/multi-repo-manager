@@ -1,12 +1,8 @@
 #ifndef SRC_LIB_UPDATE_HPP_
 #define SRC_LIB_UPDATE_HPP_
 
-#include <string>
-#include <vector>
+#include "command_options.hpp"
 
-int run_update(
-    const std::string &config_file,
-    int pool_size = 0,
-    const std::vector<std::string> &root_patterns = {});
+int run_update(const UpdateOptions &options);
 
 #endif // SRC_LIB_UPDATE_HPP_
