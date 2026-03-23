@@ -45,6 +45,7 @@ struct SyncOptions {
 
 struct ListOptions {
     RepositorySelector selector;
+    bool summary_mode = false;
 };
 
 #endif // SRC_LIB_COMMAND_OPTIONS_HPP_

@@ -49,6 +49,11 @@ int parse_cli(int argc, char **argv) {
             list_name_patterns,
             "filter by repository name pattern")
         ->type_name("pattern");
+    bool list_summary_mode = false;
+    list->add_flag(
+        "--summary,-s",
+        list_summary_mode,
+        "display summary of trees with repository counts");
 
     CLI::App *find = app.add_subcommand("find", "Find repositories");
     std::vector<std::string> find_paths;
@@ -226,11 +231,12 @@ int parse_cli(int argc, char **argv) {
 
     if (*list) {
         ListOptions options{
-            .selector = {
-                .config_file = config_file,
-                .find_paths = list_find_paths,
-                .root_patterns = list_root_patterns,
-                .name_patterns = list_name_patterns}};
+            .selector =
+                {.config_file = config_file,
+                 .find_paths = list_find_paths,
+                 .root_patterns = list_root_patterns,
+                 .name_patterns = list_name_patterns},
+            .summary_mode = list_summary_mode};
         return run_list(options);
     }
 

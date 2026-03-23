@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <memory>
 
-enum class DisplayFormat : std::uint8_t { PROGRESS, TABLE };
+enum class DisplayFormat : std::uint8_t { PROGRESS, TABLE, SUMMARY };
 
 class OutputView {
   public:

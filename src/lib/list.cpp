@@ -25,15 +25,21 @@ int run_list(const ListOptions &options) {
         options.selector.name_patterns);
 
     if (config.empty() || all_repos_empty(config)) {
-        std::cout << "No repositories found.\n";
+        if (options.summary_mode) {
+            std::cout << "No trees found.\n";
+        } else {
+            std::cout << "No repositories found.\n";
+        }
         return 0;
     }
+
+    const DisplayFormat format =
+        options.summary_mode ? DisplayFormat::SUMMARY : DisplayFormat::TABLE;
 
     Tracker tracker;
     tracker.populate(config);
 
-    auto view =
-        create_output_view(detect_output_mode(), DisplayFormat::TABLE, tracker);
+    auto view = create_output_view(detect_output_mode(), format, tracker);
     view->start();
 
     for (const auto &tree : config) {

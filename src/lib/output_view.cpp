@@ -16,21 +16,11 @@
 #include <vector>
 
 namespace {
-constexpr std::size_t kSingleStepLines = 1;
-constexpr std::size_t kWheelStepLines = 3;
 
-void restore_terminal_state() {
-    // Reset cursor style to terminal default and disable mouse tracking modes.
-    std::cout << "\x1b[0 q"
-              << "\x1b[?1000l"
-              << "\x1b[?1002l"
-              << "\x1b[?1003l"
-              << "\x1b[?1006l"
-              << "\x1b[?1015l";
-    std::cout.flush();
-}
+constexpr std::size_t kScrollSingleStep = 1;
+constexpr std::size_t kScrollWheelStep = 3;
 
-std::string phase_to_string(RepoPhase phase) {
+std::string convert_phase_to_string(RepoPhase phase) {
     switch (phase) {
     case RepoPhase::QUEUED:
         return "QUEUED";
@@ -44,7 +34,7 @@ std::string phase_to_string(RepoPhase phase) {
     return "UNKNOWN";
 }
 
-ftxui::Color phase_to_color(RepoPhase phase) {
+ftxui::Color convert_phase_to_color(RepoPhase phase) {
     switch (phase) {
     case RepoPhase::QUEUED:
         return ftxui::Color::GrayLight;
@@ -58,7 +48,7 @@ ftxui::Color phase_to_color(RepoPhase phase) {
     return ftxui::Color::White;
 }
 
-ftxui::Color type_to_color(RepoType type) {
+ftxui::Color convert_type_to_color(RepoType type) {
     switch (type) {
     case RepoType::GIT:
         return ftxui::Color::Green;
@@ -71,7 +61,7 @@ ftxui::Color type_to_color(RepoType type) {
     }
 }
 
-std::string get_current_branch(const std::vector<Branch> &branches) {
+std::string extract_current_branch(const std::vector<Branch> &branches) {
     for (const auto &branch : branches) {
         if (branch.is_current) {
             return branch.name;
@@ -80,7 +70,25 @@ std::string get_current_branch(const std::vector<Branch> &branches) {
     return "";
 }
 
-void flatten_repo_lines(
+std::string apply_padding(
+    const std::string &str,
+    std::size_t width,
+    bool align_right = false) {
+    if (str.length() >= width) {
+        return str;
+    }
+    const std::size_t padding = width - str.length();
+    if (align_right) {
+        return std::string(padding, ' ') + str;
+    }
+    return str + std::string(padding, ' ');
+}
+
+std::string create_separator(std::size_t width) {
+    return std::string(width, '-');
+}
+
+void build_progress_tui_lines(
     const std::string &root,
     const std::vector<Repo> &repos,
     std::vector<ftxui::Element> &lines) {
@@ -92,9 +100,9 @@ void flatten_repo_lines(
     for (const auto &repo : repos) {
         const std::string path =
             (std::filesystem::path(root) / repo.name).string();
-        const std::string phase = phase_to_string(repo.phase);
+        const std::string phase = convert_phase_to_string(repo.phase);
         lines.push_back(hbox({
-            text(phase) | color(phase_to_color(repo.phase)),
+            text(phase) | color(convert_phase_to_color(repo.phase)),
             separator(),
             text(path),
         }));
@@ -102,26 +110,27 @@ void flatten_repo_lines(
             lines.push_back(
                 text("  " + message) | color(ftxui::Color::GrayLight));
         }
-        flatten_repo_lines(root, repo.children, lines);
+        build_progress_tui_lines(root, repo.children, lines);
     }
 }
 
-void flatten_repo_lines_text(
+void build_progress_text_lines(
     const std::string &root,
     const std::vector<Repo> &repos,
     std::vector<std::string> &lines) {
     for (const auto &repo : repos) {
         const std::string path =
             (std::filesystem::path(root) / repo.name).string();
-        lines.push_back("[" + phase_to_string(repo.phase) + "] " + path);
+        lines.push_back(
+            "[" + convert_phase_to_string(repo.phase) + "] " + path);
         for (const auto &message : repo.messages) {
             lines.push_back("  - " + message);
         }
-        flatten_repo_lines_text(root, repo.children, lines);
+        build_progress_text_lines(root, repo.children, lines);
     }
 }
 
-struct ColumnWidths {
+struct TableColumnWidths {
     std::size_t root;
     std::size_t name;
     std::size_t type;
@@ -130,20 +139,22 @@ struct ColumnWidths {
     std::size_t current;
 };
 
-ColumnWidths calculate_column_widths(const std::vector<Tree> &trees) {
+TableColumnWidths compute_table_column_widths(const std::vector<Tree> &trees) {
     constexpr std::size_t kMinRootWidth = 4;
     constexpr std::size_t kMinNameWidth = 4;
     constexpr std::size_t kMinTypeWidth = 4;
     constexpr std::size_t kMinRemotesWidth = 7;
     constexpr std::size_t kMinBranchesWidth = 8;
     constexpr std::size_t kMinCurrentWidth = 7;
-    ColumnWidths widths{
+
+    TableColumnWidths widths{
         .root = kMinRootWidth,
         .name = kMinNameWidth,
         .type = kMinTypeWidth,
         .remotes = kMinRemotesWidth,
         .branches = kMinBranchesWidth,
         .current = kMinCurrentWidth};
+
     for (const auto &tree : trees) {
         widths.root = std::max(widths.root, tree.root.length());
         for (const auto &repo : tree.repos) {
@@ -155,83 +166,45 @@ ColumnWidths calculate_column_widths(const std::vector<Tree> &trees) {
             const std::string branches_str =
                 std::to_string(repo.branches.size());
             widths.branches = std::max(widths.branches, branches_str.length());
-            const std::string current = get_current_branch(repo.branches);
+            const std::string current = extract_current_branch(repo.branches);
             widths.current = std::max(widths.current, current.length());
         }
     }
     return widths;
 }
 
-std::string pad_string(
-    const std::string &str,
-    std::size_t width,
-    bool right_align = false) {
-    if (str.length() >= width) {
-        return str;
-    }
-    const std::size_t padding = width - str.length();
-    if (right_align) {
-        return std::string(padding, ' ') + str;
-    }
-    return str + std::string(padding, ' ');
-}
-
-std::string format_table_row(
-    const std::vector<std::string> &cells,
-    const ColumnWidths &widths) {
-    constexpr std::size_t kExpectedColumnCount = 6;
-    constexpr std::size_t kRootIndex = 0;
-    constexpr std::size_t kNameIndex = 1;
-    constexpr std::size_t kTypeIndex = 2;
-    constexpr std::size_t kRemotesIndex = 3;
-    constexpr std::size_t kBranchesIndex = 4;
-    constexpr std::size_t kCurrentIndex = 5;
-    std::ostringstream oss;
-    if (cells.size() >= kExpectedColumnCount) {
-        oss << pad_string(cells[kRootIndex], widths.root) << "  "
-            << pad_string(cells[kNameIndex], widths.name) << "  "
-            << pad_string(cells[kTypeIndex], widths.type) << "  "
-            << pad_string(cells[kRemotesIndex], widths.remotes, true) << "  "
-            << pad_string(cells[kBranchesIndex], widths.branches, true) << "  "
-            << pad_string(cells[kCurrentIndex], widths.current);
-    }
-    return oss.str();
-}
-
-std::string format_separator(const ColumnWidths &widths) {
-    constexpr std::size_t kColumnSpacing = 10;
-    const std::size_t total_width = widths.root + widths.name + widths.type +
-                                    widths.remotes + widths.branches +
-                                    widths.current + kColumnSpacing;
-    return std::string(total_width, '-');
-}
-
-void flatten_repo_table_lines(
+void build_table_tui_lines(
     const std::vector<Tree> &trees,
-    std::vector<ftxui::Element> &lines,
-    const ColumnWidths &widths) {
+    std::vector<ftxui::Element> &lines) {
     using namespace ftxui;
 
     if (trees.empty()) {
         return;
     }
 
+    const TableColumnWidths widths = compute_table_column_widths(trees);
+
     lines.push_back(
         hbox({
-            text(pad_string("ROOT", widths.root)) | bold,
+            text(apply_padding("ROOT", widths.root)) | bold,
             text("  "),
-            text(pad_string("NAME", widths.name)) | bold,
+            text(apply_padding("NAME", widths.name)) | bold,
             text("  "),
-            text(pad_string("TYPE", widths.type)) | bold,
+            text(apply_padding("TYPE", widths.type)) | bold,
             text("  "),
-            text(pad_string("REMOTES", widths.remotes, true)) | bold,
+            text(apply_padding("REMOTES", widths.remotes, true)) | bold,
             text("  "),
-            text(pad_string("BRANCHES", widths.branches, true)) | bold,
+            text(apply_padding("BRANCHES", widths.branches, true)) | bold,
             text("  "),
-            text(pad_string("CURRENT", widths.current)) | bold,
+            text(apply_padding("CURRENT", widths.current)) | bold,
         }) |
         color(Color::White));
-    lines.push_back(text(format_separator(widths)));
+
+    constexpr std::size_t kColumnSpacing = 10;
+    const std::size_t separator_width =
+        widths.root + widths.name + widths.type + widths.remotes +
+        widths.branches + widths.current + kColumnSpacing;
+    lines.push_back(text(create_separator(separator_width)));
 
     for (const auto &tree : trees) {
         for (const auto &repo : tree.repos) {
@@ -239,47 +212,76 @@ void flatten_repo_table_lines(
             const std::string remotes_str = std::to_string(repo.remotes.size());
             const std::string branches_str =
                 std::to_string(repo.branches.size());
-            const std::string current = get_current_branch(repo.branches);
+            const std::string current = extract_current_branch(repo.branches);
 
             lines.push_back(hbox({
-                text(pad_string(tree.root, widths.root)) | color(Color::Cyan),
+                text(apply_padding(tree.root, widths.root)) |
+                    color(Color::Cyan),
                 text("  "),
-                text(pad_string(repo.name, widths.name)),
+                text(apply_padding(repo.name, widths.name)),
                 text("  "),
-                text(pad_string(type_str, widths.type)) |
-                    color(type_to_color(repo.type)),
+                text(apply_padding(type_str, widths.type)) |
+                    color(convert_type_to_color(repo.type)),
                 text("  "),
-                text(pad_string(remotes_str, widths.remotes, true)),
+                text(apply_padding(remotes_str, widths.remotes, true)),
                 text("  "),
-                text(pad_string(branches_str, widths.branches, true)),
+                text(apply_padding(branches_str, widths.branches, true)),
                 text("  "),
-                text(pad_string(current, widths.current)) |
+                text(apply_padding(current, widths.current)) |
                     color(Color::Yellow),
             }));
         }
     }
 }
 
-void flatten_repo_table_lines_text(
+std::string format_table_text_row(
+    const std::vector<std::string> &cells,
+    const TableColumnWidths &widths) {
+    constexpr std::size_t kExpectedColumnCount = 6;
+    constexpr std::size_t kRootIndex = 0;
+    constexpr std::size_t kNameIndex = 1;
+    constexpr std::size_t kTypeIndex = 2;
+    constexpr std::size_t kRemotesIndex = 3;
+    constexpr std::size_t kBranchesIndex = 4;
+    constexpr std::size_t kCurrentIndex = 5;
+
+    std::ostringstream oss;
+    if (cells.size() >= kExpectedColumnCount) {
+        oss << apply_padding(cells[kRootIndex], widths.root) << "  "
+            << apply_padding(cells[kNameIndex], widths.name) << "  "
+            << apply_padding(cells[kTypeIndex], widths.type) << "  "
+            << apply_padding(cells[kRemotesIndex], widths.remotes, true) << "  "
+            << apply_padding(cells[kBranchesIndex], widths.branches, true)
+            << "  " << apply_padding(cells[kCurrentIndex], widths.current);
+    }
+    return oss.str();
+}
+
+void build_table_text_lines(
     const std::vector<Tree> &trees,
     std::vector<std::string> &lines) {
     if (trees.empty()) {
         return;
     }
 
-    const ColumnWidths widths = calculate_column_widths(trees);
+    const TableColumnWidths widths = compute_table_column_widths(trees);
 
-    lines.push_back(format_table_row(
+    lines.push_back(format_table_text_row(
         {"ROOT", "NAME", "TYPE", "REMOTES", "BRANCHES", "CURRENT"},
         widths));
-    lines.push_back(format_separator(widths));
+
+    constexpr std::size_t kColumnSpacing = 10;
+    const std::size_t separator_width =
+        widths.root + widths.name + widths.type + widths.remotes +
+        widths.branches + widths.current + kColumnSpacing;
+    lines.push_back(create_separator(separator_width));
 
     for (const auto &tree : trees) {
         for (const auto &repo : tree.repos) {
             const std::string type_str = repo_type_to_string(repo.type);
-            const std::string current = get_current_branch(repo.branches);
+            const std::string current = extract_current_branch(repo.branches);
 
-            lines.push_back(format_table_row(
+            lines.push_back(format_table_text_row(
                 {tree.root,
                  repo.name,
                  type_str,
@@ -291,19 +293,111 @@ void flatten_repo_table_lines_text(
     }
 }
 
+struct SummaryColumnWidths {
+    std::size_t root;
+    std::size_t repos;
+};
+
+SummaryColumnWidths
+compute_summary_column_widths(const std::vector<Tree> &trees) {
+    constexpr std::size_t kMinRootWidth = 4;
+    constexpr std::size_t kMinReposWidth = 5;
+
+    SummaryColumnWidths widths{.root = kMinRootWidth, .repos = kMinReposWidth};
+
+    for (const auto &tree : trees) {
+        widths.root = std::max(widths.root, tree.root.length());
+        const std::string repos_str = std::to_string(tree.repos.size());
+        widths.repos = std::max(widths.repos, repos_str.length());
+    }
+    return widths;
+}
+
+void build_summary_tui_lines(
+    const std::vector<Tree> &trees,
+    std::vector<ftxui::Element> &lines) {
+    using namespace ftxui;
+
+    if (trees.empty()) {
+        return;
+    }
+
+    const SummaryColumnWidths widths = compute_summary_column_widths(trees);
+
+    lines.push_back(
+        hbox({
+            text(apply_padding("ROOT", widths.root)) | bold,
+            text("  "),
+            text(apply_padding("REPOS", widths.repos, true)) | bold,
+        }) |
+        color(Color::White));
+
+    constexpr std::size_t kColumnSpacing = 2;
+    const std::size_t separator_width =
+        widths.root + widths.repos + kColumnSpacing;
+    lines.push_back(text(create_separator(separator_width)));
+
+    for (const auto &tree : trees) {
+        const std::string repos_str = std::to_string(tree.repos.size());
+        lines.push_back(hbox({
+            text(apply_padding(tree.root, widths.root)) | color(Color::Cyan),
+            text("  "),
+            text(apply_padding(repos_str, widths.repos, true)),
+        }));
+    }
+}
+
+void build_summary_text_lines(
+    const std::vector<Tree> &trees,
+    std::vector<std::string> &lines) {
+    if (trees.empty()) {
+        return;
+    }
+
+    const SummaryColumnWidths widths = compute_summary_column_widths(trees);
+
+    std::ostringstream header;
+    header << apply_padding("ROOT", widths.root) << "  "
+           << apply_padding("REPOS", widths.repos, true);
+    lines.push_back(header.str());
+
+    constexpr std::size_t kColumnSpacing = 2;
+    const std::size_t separator_width =
+        widths.root + widths.repos + kColumnSpacing;
+    lines.push_back(create_separator(separator_width));
+
+    for (const auto &tree : trees) {
+        std::ostringstream row;
+        row << apply_padding(tree.root, widths.root) << "  "
+            << apply_padding(
+                   std::to_string(tree.repos.size()),
+                   widths.repos,
+                   true);
+        lines.push_back(row.str());
+    }
+}
+
 std::vector<ftxui::Element>
-build_tui_lines(const std::vector<Tree> &trees, DisplayFormat format) {
+build_tui_output(const std::vector<Tree> &trees, DisplayFormat format) {
     using ftxui::bold;
     using ftxui::hbox;
     using ftxui::separator;
     using ftxui::text;
+
     std::vector<ftxui::Element> lines;
 
     if (format == DisplayFormat::TABLE) {
         lines.push_back(hbox({text("mrm"), separator(), text("list")}) | bold);
         lines.push_back(ftxui::separator());
-        const ColumnWidths widths = calculate_column_widths(trees);
-        flatten_repo_table_lines(trees, lines, widths);
+        build_table_tui_lines(trees, lines);
+        return lines;
+    }
+
+    if (format == DisplayFormat::SUMMARY) {
+        lines.push_back(
+            hbox({text("mrm"), separator(), text("list summary")}) | bold);
+        lines.push_back(ftxui::separator());
+        build_summary_tui_lines(trees, lines);
         return lines;
     }
 
@@ -312,27 +406,41 @@ build_tui_lines(const std::vector<Tree> &trees, DisplayFormat format) {
     lines.push_back(ftxui::separator());
     for (const auto &tree : trees) {
         lines.push_back(text(tree.root) | bold);
-        flatten_repo_lines(tree.root, tree.repos, lines);
+        build_progress_tui_lines(tree.root, tree.repos, lines);
         lines.push_back(text(""));
     }
     return lines;
 }
 
-void print_final_report(const Tracker &tracker, DisplayFormat format) {
-    const std::vector<Tree> trees = tracker.snapshot();
-    std::vector<std::string> lines;
+void build_text_output(
+    const std::vector<Tree> &trees,
+    DisplayFormat format,
+    std::vector<std::string> &lines) {
 
     if (format == DisplayFormat::TABLE) {
         lines.emplace_back("mrm list");
-        flatten_repo_table_lines_text(trees, lines);
-    } else {
-        lines.emplace_back("mrm report");
-        for (const auto &tree : trees) {
-            lines.emplace_back("");
-            lines.emplace_back(tree.root);
-            flatten_repo_lines_text(tree.root, tree.repos, lines);
-        }
+        build_table_text_lines(trees, lines);
+        return;
     }
+
+    if (format == DisplayFormat::SUMMARY) {
+        lines.emplace_back("mrm list");
+        build_summary_text_lines(trees, lines);
+        return;
+    }
+
+    lines.emplace_back("mrm report");
+    for (const auto &tree : trees) {
+        lines.emplace_back("");
+        lines.emplace_back(tree.root);
+        build_progress_text_lines(tree.root, tree.repos, lines);
+    }
+}
+
+void render_text_output(const Tracker &tracker, DisplayFormat format) {
+    const std::vector<Tree> trees = tracker.snapshot();
+    std::vector<std::string> lines;
+    build_text_output(trees, format, lines);
 
     for (const auto &line : lines) {
         std::cout << line << '\n';
@@ -340,14 +448,17 @@ void print_final_report(const Tracker &tracker, DisplayFormat format) {
     std::cout.flush();
 }
 
-void print_final_tui_report(const Tracker &tracker, DisplayFormat format) {
+void render_tui_output(const Tracker &tracker, DisplayFormat format) {
     using ftxui::vbox;
+
     const std::vector<Tree> trees = tracker.snapshot();
-    auto lines = build_tui_lines(trees, format);
+    auto lines = build_tui_output(trees, format);
     const std::size_t line_count = lines.size();
+
     const auto size = ftxui::Terminal::Size();
     const int width = size.dimx > 0 ? size.dimx : 80;
     const int height = line_count > 0 ? static_cast<int>(line_count) : 1;
+
     auto screen = ftxui::Screen::Create(
         ftxui::Dimension::Fixed(width),
         ftxui::Dimension::Fixed(height));
@@ -356,17 +467,30 @@ void print_final_tui_report(const Tracker &tracker, DisplayFormat format) {
     std::cout.flush();
 }
 
+void reset_terminal_state() {
+    std::cout << "\x1b[0 q"
+              << "\x1b[?1000l"
+              << "\x1b[?1002l"
+              << "\x1b[?1003l"
+              << "\x1b[?1006l"
+              << "\x1b[?1015l";
+    std::cout.flush();
+}
+
 class TextView final : public OutputView {
   public:
     explicit TextView(Tracker &tracker, DisplayFormat format)
         : tracker_(tracker), format_(format) {}
+
     ~TextView() override = default;
+
     void start() override {}
+
     void stop() override {
         if (stopped_.exchange(true)) {
             return;
         }
-        print_final_report(tracker_, format_);
+        render_text_output(tracker_, format_);
     }
 
   private:
@@ -379,9 +503,11 @@ class TuiView final : public OutputView {
   public:
     explicit TuiView(Tracker &tracker, DisplayFormat format)
         : tracker_(tracker), format_(format) {}
+
     ~TuiView() override {
         stop();
     }
+
     void start() override {
         if (started_.exchange(true)) {
             return;
@@ -390,24 +516,8 @@ class TuiView final : public OutputView {
             std::scoped_lock<std::mutex> lock(data_mutex_);
             trees_ = tracker_.snapshot();
         }
-        ui_thread_ = std::thread([this] { run_ui(); });
-        event_thread_ = std::thread([this] {
-            TrackerEvent event;
-            while (tracker_.wait_next_event(event)) {
-                {
-                    std::scoped_lock<std::mutex> lock(data_mutex_);
-                    trees_ = tracker_.snapshot();
-                }
-                std::function<void()> post;
-                {
-                    std::scoped_lock<std::mutex> lock(screen_mutex_);
-                    post = post_refresh_;
-                }
-                if (post) {
-                    post();
-                }
-            }
-        });
+        ui_thread_ = std::thread([this] { run_ui_loop(); });
+        event_thread_ = std::thread([this] { process_tracker_events(); });
     }
 
     void stop() override {
@@ -415,21 +525,25 @@ class TuiView final : public OutputView {
             return;
         }
         tracker_.close();
+
         if (event_thread_.joinable()) {
             event_thread_.join();
         }
-        std::function<void()> exit;
+
+        std::function<void()> exit_handler;
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
-            exit = exit_loop_;
+            exit_handler = exit_loop_;
         }
-        if (exit) {
-            exit();
+        if (exit_handler) {
+            exit_handler();
         }
+
         if (ui_thread_.joinable()) {
             ui_thread_.join();
         }
-        print_final_tui_report(tracker_, format_);
+
+        render_tui_output(tracker_, format_);
     }
 
   private:
@@ -454,41 +568,44 @@ class TuiView final : public OutputView {
         selected_line_ += lines;
     }
 
-    bool on_event(ftxui::Event event) {
+    bool handle_input_event(ftxui::Event event) {
         if (event == ftxui::Event::ArrowUp) {
-            scroll_up(kSingleStepLines);
+            scroll_up(kScrollSingleStep);
             return true;
         }
         if (event == ftxui::Event::ArrowDown) {
-            scroll_down(kSingleStepLines);
+            scroll_down(kScrollSingleStep);
             return true;
         }
         if (event.is_mouse()) {
             const auto button = event.mouse().button;
             if (button == ftxui::Mouse::WheelUp) {
-                scroll_up(kWheelStepLines);
+                scroll_up(kScrollWheelStep);
                 return true;
             }
             if (button == ftxui::Mouse::WheelDown) {
-                scroll_down(kWheelStepLines);
+                scroll_down(kScrollWheelStep);
                 return true;
             }
         }
         return false;
     }
 
-    ftxui::Element render() {
+    ftxui::Element render_ui() {
         using ftxui::flex;
         using ftxui::frame;
         using ftxui::vbox;
         using ftxui::vscroll_indicator;
+
         std::vector<Tree> trees;
         {
             std::scoped_lock<std::mutex> lock(data_mutex_);
             trees = trees_;
         }
-        auto lines = build_tui_lines(trees, format_);
+
+        auto lines = build_tui_output(trees, format_);
         line_count_ = lines.size();
+
         if (line_count_ == 0) {
             selected_line_ = 0;
         } else if (selected_line_ >= line_count_) {
@@ -497,11 +614,30 @@ class TuiView final : public OutputView {
         } else {
             lines.at(selected_line_) = lines.at(selected_line_) | ftxui::focus;
         }
+
         return vbox(
             {vbox(std::move(lines)) | vscroll_indicator | frame | flex});
     }
 
-    void run_ui() {
+    void process_tracker_events() {
+        TrackerEvent event;
+        while (tracker_.wait_next_event(event)) {
+            {
+                std::scoped_lock<std::mutex> lock(data_mutex_);
+                trees_ = tracker_.snapshot();
+            }
+            std::function<void()> refresh_handler;
+            {
+                std::scoped_lock<std::mutex> lock(screen_mutex_);
+                refresh_handler = post_refresh_;
+            }
+            if (refresh_handler) {
+                refresh_handler();
+            }
+        }
+    }
+
+    void run_ui_loop() {
         auto screen = ftxui::ScreenInteractive::Fullscreen();
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
@@ -510,13 +646,16 @@ class TuiView final : public OutputView {
                 screen.PostEvent(ftxui::Event::Custom);
             };
         }
-        auto renderer = ftxui::Renderer([this] { return render(); });
+
+        auto renderer = ftxui::Renderer([this] { return render_ui(); });
         auto component =
             ftxui::CatchEvent(renderer, [this](ftxui::Event event) {
-                return on_event(std::move(event));
+                return handle_input_event(std::move(event));
             });
+
         screen.Loop(component);
-        restore_terminal_state();
+        reset_terminal_state();
+
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             post_refresh_ = {};
@@ -537,6 +676,7 @@ class TuiView final : public OutputView {
     std::size_t selected_line_ = 0;
     std::size_t line_count_ = 0;
 };
+
 } // namespace
 
 std::unique_ptr<OutputView>

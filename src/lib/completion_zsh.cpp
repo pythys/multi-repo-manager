@@ -94,9 +94,14 @@ std::string option_description(const OptionSpec &option) {
 
 std::string format_option_entry(const OptionSpec &option) {
     std::ostringstream out;
-    out << "'(" << join_flags_space(option.flags) << ")'";
-    out << "{" << join_flags_comma(option.flags) << "}";
-    out << "'[" << option_description(option) << "]";
+    if (option.flags.size() > 1) {
+        out << "'(" << join_flags_space(option.flags) << ")'";
+        out << "{" << join_flags_comma(option.flags) << "}";
+        out << "'[" << option_description(option) << "]";
+    } else {
+        out << "'" << option.flags.front() << "[" << option_description(option)
+            << "]";
+    }
 
     if (option.takes_value) {
         const std::string label = option_value_label(option);
