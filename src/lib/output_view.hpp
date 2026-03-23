@@ -3,7 +3,10 @@
 
 #include "runtime.hpp"
 #include "tracker.hpp"
+#include <cstdint>
 #include <memory>
+
+enum class DisplayFormat : std::uint8_t { PROGRESS, TABLE };
 
 class OutputView {
   public:
@@ -13,6 +16,6 @@ class OutputView {
 };
 
 std::unique_ptr<OutputView>
-create_output_view(OutputMode mode, Tracker &tracker);
+create_output_view(OutputMode mode, DisplayFormat format, Tracker &tracker);
 
 #endif // SRC_LIB_OUTPUT_VIEW_HPP_

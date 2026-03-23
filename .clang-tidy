@@ -9,6 +9,7 @@ Checks: >
     -cppcoreguidelines-special-member-functions,
     -cppcoreguidelines-pro-bounds-avoid-unchecked-container-access,
   modernize-*,
+    -modernize-return-braced-init-list,
     -modernize-use-nodiscard,
     -modernize-use-trailing-return-type,
   performance-*,

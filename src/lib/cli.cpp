@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "exec.hpp"
 #include "find.hpp"
+#include "list.hpp"
 #include "remotesync.hpp"
 #include "status.hpp"
 #include "sync.hpp"
@@ -155,6 +156,22 @@ int parse_cli(int argc, char **argv) {
             "filter by repository name pattern")
         ->type_name("pattern");
 
+    CLI::App *list = app.add_subcommand("list", "List repositories");
+    list->add_option("--config,-c", config_file, "config file")
+        ->type_name("file");
+    std::vector<std::string> list_find_paths;
+    list->add_option("--find,-f", list_find_paths, "find repositories in paths")
+        ->type_name("dir");
+    std::vector<std::string> list_root_patterns;
+    list->add_option("--root,-r", list_root_patterns, "root tree pattern")
+        ->type_name("pattern");
+    std::vector<std::string> list_name_patterns;
+    list->add_option(
+            "--name,-n",
+            list_name_patterns,
+            "filter by repository name pattern")
+        ->type_name("pattern");
+
     CLI::App *completion =
         app.add_subcommand("completion", "Generate completion");
     std::string completion_shell;
@@ -173,11 +190,12 @@ int parse_cli(int argc, char **argv) {
     }
 
     const bool needs_input =
-        *sync || *status || *update || *remotesync || *exec;
+        *sync || *status || *update || *remotesync || *exec || *list;
 
-    const bool has_find =
-        !status_find_paths.empty() || !update_find_paths.empty() ||
-        !remotesync_find_paths.empty() || !exec_find_paths.empty();
+    const bool has_find = !status_find_paths.empty() ||
+                          !update_find_paths.empty() ||
+                          !remotesync_find_paths.empty() ||
+                          !exec_find_paths.empty() || !list_find_paths.empty();
 
     if (*sync && has_find) {
         std::cerr << "Error: sync command does not support --find.\n";
@@ -259,6 +277,16 @@ int parse_cli(int argc, char **argv) {
             .command = custom_command,
             .repository_type = repo_type};
         return run_exec(options);
+    }
+
+    if (*list) {
+        ListOptions options{
+            .selector = {
+                .config_file = config_file,
+                .find_paths = list_find_paths,
+                .root_patterns = list_root_patterns,
+                .name_patterns = list_name_patterns}};
+        return run_list(options);
     }
 
     if (*completion) {

@@ -7,7 +7,9 @@ mrm --help
 mrm <command> --help
 ```
 
-## create config from existing repos
+## find
+
+Scan directories for repositories and generate config.
 
 ```sh
 mrm find myrepos
@@ -19,15 +21,21 @@ mrm find myrepos > myrepos.yml
 mrm find client fork personal --save myrepos.yml
 ```
 
-Each `find` path becomes one `tree.root` in the generated config. If `--save` is
-provided without a file, output is saved to `mrm.yml` in the current directory.
-If `--save` is omitted entirely, output is printed to stdout.
+Behavior:
+- scans specified paths for repositories (`.git`, `.hg`, etc directories)
+- outputs YAML config to stdout or saves to file
+- each path becomes one `tree.root` in the generated config
+
+Options:
+- `--save` (`-s`): save to file instead of stdout (default: `mrm.yml`)
 
 Recommended workflow:
 - make changes in repositories first (remotes, branches, layout)
 - regenerate config with `mrm find -s`
 
-## sync repos from config
+## sync
+
+Clone and synchronize repositories from config.
 
 ```sh
 mrm sync
@@ -37,48 +45,94 @@ mrm sync --config myrepos.yml --prune
 mrm sync --config myrepos.yml --root "client*"
 ```
 
-`sync` behavior:
+Behavior:
 - clone missing repos
 - reconcile remotes
 - reconcile branches
 - align current branch when configured
 - process nested dependencies
 
-Prune options (all opt-in):
+Options:
+- `--config <file>` (`-c`): config file (default: `mrm.yml`), see [source
+  options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--jobs <n>` (`-j`): max concurrent operations, see
+  [concurrency](#concurrency)
 - `--prune-remotes` (`-R`): remove remotes not declared in config
 - `--prune-branches` (`-B`): remove local tracked branches not declared in
   config
 - `--prune` (`-p`): enable both `--prune-remotes` and `--prune-branches`
 
-Target options:
-- `--root <pattern>` (`-r`): apply command only to matching tree roots (supports
-  `*`, `?`, repeatable)
-- `--name <pattern>` (`-n`): filter individual repos by name pattern (supports
-  `*`, `?`, repeatable)
+Notes:
+- all prune options are opt-in
+- when pruning branches, the current branch is never deleted
+- does not support `--find` (requires parent/child dependencies from config)
 
-Common short flags: `-c` (`--config`), `-j` (`--jobs`), `-p` (`--prune`), `-R`
-(`--prune-remotes`), `-B` (`--prune-branches`), `-r` (`--root`), `-d`
-(`--dry-run`), `-n` (`--name`).
+See [output modes](#output-modes) for terminal-specific formatting.
 
-If `--config` is omitted, `mrm.yml` is used.
+## status
 
-When pruning branches, the current branch is never deleted.
-
-## status of repos from config
+Show working tree status for repositories.
 
 ```sh
 mrm status
 mrm status --config myrepos.yml
 mrm status --config myrepos.yml --root "fork*"
 mrm status --config myrepos.yml --name "*frontend*"
+mrm status --find ~/projects
 ```
 
-Status output is based on libgit2 `git_status_list` and includes:
+Behavior:
+- reports uncommitted changes in each repository
+- shows staged changes ready for commit
+- shows unstaged changes in working tree
+- highlights conflicted files
+
+Output includes:
 - staged: new, modified, deleted, renamed, type-changed
-- worktree: new, modified, deleted, renamed, type-changed
+- unstaged: new, modified, deleted, renamed, type-changed
 - conflicted
 
-## update repos from config
+Options:
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+
+See [output modes](#output-modes) for terminal-specific formatting.
+
+## list
+
+Display repositories in table format.
+
+```sh
+mrm list
+mrm list --config myrepos.yml
+mrm list --config myrepos.yml --root "fork*"
+mrm list --config myrepos.yml --name "*frontend*"
+mrm list --find myrepos
+```
+
+Output columns:
+- ROOT: tree root path
+- NAME: repository name
+- TYPE: repository type (git, svn, hg)
+- REMOTES: count of configured remotes
+- BRANCHES: count of local branches
+- CURRENT: currently checked-out branch name
+
+Options:
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+
+See [output modes](#output-modes) for terminal-specific formatting.
+
+## update
+
+Pull latest changes for repositories.
 
 ```sh
 mrm update
@@ -86,103 +140,187 @@ mrm update --config myrepos.yml
 mrm update --config myrepos.yml --jobs 12
 mrm update --config myrepos.yml --root "client*"
 mrm update --config myrepos.yml --name "*backend*"
+mrm update --find ~/projects
 ```
 
-## sync branches between remotes
+Behavior:
+- pulls latest changes from tracking branch
+- operates on current branch in each repository
+
+Options:
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--jobs <n>` (`-j`): max concurrent operations, see
+  [concurrency](#concurrency)
+
+See [output modes](#output-modes) for terminal-specific formatting.
+
+## remotesync
+
+Synchronize branches between remotes.
 
 ```sh
 mrm remotesync --source upstream --target origin --branch master
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --jobs 12
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --branch develop --dry-run
-mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --root "client*"
+mrm remotesync --find ~/forks --source upstream --target origin --branch main
 ```
 
-`remotesync` behavior:
+Behavior:
 - syncs only explicitly selected `--branch` values
 - pulls the source remote branch into the local branch before pushing
 - if source branch is missing, tries local branch fallback; otherwise skips
 - pushes the local branch to the target remote (creates if missing)
-- `--dry-run` (`-n`) reports what would be pushed without changing remotes
 
-## exec custom command in repos
+Options:
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--jobs <n>` (`-j`): max concurrent operations, see
+  [concurrency](#concurrency)
+- `--source <remote>` (`-s`): source remote name (required)
+- `--target <remote>` (`-t`): target remote name (required)
+- `--branch <name>` (`-b`): branch to sync (repeatable, required)
+- `--dry-run` (`-d`): report what would be pushed without changing remotes
+
+See [output modes](#output-modes) for terminal-specific formatting.
+
+## exec
+
+Execute custom command in repositories.
 
 ```sh
 mrm exec --command "remote get-url origin"
 mrm exec --config myrepos.yml --type git --command "remote get-url origin"
 mrm exec --config myrepos.yml --root "client*" --command "status -sb"
-mrm exec --config myrepos.yml --name "*api*" --command "log --oneline -5"
+mrm exec --find ~/projects --name "*api*" --command "log --oneline -5"
 ```
 
-`exec` runs the command in each targeted repository path from config.
+Behavior:
+- runs command in each targeted repository path
+- when repo CLI exists (for example `git`), mrm prefixes it automatically unless
+  your command already starts with it
 
-- `--type all` (default) targets all repo types in config. Only works for shared
-  commands.
-- when the repo CLI exists (for example `git`), mrm prefixes it for you unless
-  your command already starts with it.
+Options:
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--command <cmd>`: command to execute (required)
+- `--type <type>`: repo type filter (`git`, `svn`, `hg`, or `all` - default:
+  `all`)
 
-## adhoc commands
+See [output modes](#output-modes) for terminal-specific formatting.
 
-For one-off operations, use `--find` instead of `--config` to scan directories
-for repositories on the fly:
+## source options
+
+Commands that operate on repositories support two mutually exclusive source
+options:
+
+### --config (default)
+
+```sh
+mrm status --config myrepos.yml
+mrm update  # uses mrm.yml by default
+```
+
+Load repository configuration from YAML file:
+- default: `mrm.yml` in current directory
+- short form: `-c`
+- supports [filtering](#filtering) to target subset of repos
+
+### --find (adhoc)
 
 ```sh
 mrm status --find ~/projects
 mrm update --find ~/work ~/personal --jobs 8
-mrm remotesync --find ~/forks --source upstream --target origin --branch main
-mrm exec --find . --command "status -s"
 ```
 
-`--find` behavior:
+Discover repositories by scanning directories:
 - scans specified paths for repositories (`.git`, `.hg`, etc directories)
-- creates an in-memory structure equivalent to a config file
-- mutually exclusive with `--config` (use one or the other)
-- works with `status`, `update`, `remotesync`, and `exec` commands
-- NOT supported on `sync` command (requires parent/child dependencies from config)
+- creates in-memory structure equivalent to config file
+- each path becomes one tree root
+- repeatable: `--find ~/work --find ~/personal`
+- short form: `-f`
+- supports [filtering](#filtering) to target subset of repos
+- `sync` command does not support it as it requires a yaml file
 
-Multiple `--find` paths create multiple tree roots, just like multiple roots in
-a config file.
+## filtering
 
-Adhoc commands support all filtering options:
+Most commands support filtering to target specific repositories:
 
 ```sh
-# Filter by repo name
-mrm status --find ~/projects --name "*frontend*"
+# Filter by tree root
+mrm status --config myrepos.yml --root "client*"
 
-# Filter by tree root and repo name
-mrm update --find ~/work ~/personal --root "*work" --name "*api*"
+# Filter by repo name
+mrm update --config myrepos.yml --name "*frontend*"
+
+# Combine filters
+mrm status --find ~/work ~/personal --root "*work" --name "*api*"
 
 # Multiple patterns (OR logic)
-mrm exec --find ~/forks --name "*react*" --name "*vue*" --command "fetch --all"
+mrm exec --config myrepos.yml --name "*react*" --name "*vue*" --command "fetch --all"
 ```
 
-Filtering:
-- `--root <pattern>` filters at tree level (top-level directories)
-- `--name <pattern>` filters at repo level (individual repos within trees)
-- both use glob patterns: `*` (any chars), `?` (single char)
-- both are repeatable and combine with OR logic
-- both are case-sensitive
-- filters apply sequentially: `--root` first, then `--name`, then prune empty
-  trees
+Filter options:
+- `--root <pattern>` (`-r`): filter by tree root (top-level directories)
+- `--name <pattern>` (`-n`): filter by repository name
+
+Pattern syntax:
+- `*`: matches any characters
+- `?`: matches single character
+- case-sensitive matching
+- both options are repeatable and combine with OR logic
+
+Filter behavior:
+- filters apply sequentially: `--root` first, then `--name`
+- empty trees are pruned after filtering
+- no match results in empty operation (not an error)
 
 ## concurrency
 
-Use `--jobs` (or `-j`) on `sync`, `update`, and `remotesync` to control max
-concurrent repo operations.
+Commands that perform network operations support the `--jobs` flag:
 
-- `--jobs 0` (default) uses the built-in fallback value.
-- larger values can speed up network-bound runs but may increase load on
-  disk/network.
+```sh
+mrm sync --jobs 12
+mrm update --config myrepos.yml --jobs 8
+mrm remotesync --find ~/forks --source upstream --target origin --branch main --jobs 4
+```
+
+Options:
+- `--jobs <n>` (`-j`): max concurrent repository operations
+- `--jobs 0` (default): uses built-in fallback value
+
+Notes:
+- larger values can speed up network-bound operations
+- may increase load on disk/network resources
+- applies to: `sync`, `update`, `remotesync`
 
 ## output modes
 
-`sync` and `update` auto-select output mode:
-- interactive terminal: FTXUI live TUI
-- non-terminal (redirect/script): final plain-text summary report
+Commands auto-select output mode based on terminal state:
 
-TUI notes:
-- scroll with arrow keys or mouse wheel
-- after completion, a final plain-text report is printed
+Interactive terminal (TTY):
+- `sync`, `update`, `remotesync`: live TUI with progress tracking (FTXUI)
+- `status`: colored phase and message output
+- `list`: colored table output
+- `exec`: colored command output
+
+Non-interactive (piped/redirected):
+- `sync`, `update`, `remotesync`: plain text summary report at completion
+- `status`: plain text phase and message output
+- `list`: plain text table output
+- `exec`: plain text command output
+
+TUI controls:
+- arrow keys: scroll up/down
+- mouse wheel: scroll up/down
+- after completion, final plain text report is printed
 
 ## SSH authentication
 

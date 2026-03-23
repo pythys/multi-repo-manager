@@ -15,6 +15,7 @@ target_sources(
             config.cpp
             exec.cpp
             find.cpp
+            list.cpp
             repo_type.cpp
             remotesync.cpp
             repo_factory.cpp
@@ -22,6 +23,7 @@ target_sources(
             status.cpp
             sync.cpp
             tracker.cpp
+            tree.cpp
             update.cpp)
 target_include_directories(mrm_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(mrm_core PRIVATE Boost::headers)

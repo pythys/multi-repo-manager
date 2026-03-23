@@ -20,7 +20,10 @@ int run_update(const UpdateOptions &options) {
 
     Tracker tracker;
     tracker.populate(config);
-    auto view = create_output_view(detect_output_mode(), tracker);
+    auto view = create_output_view(
+        detect_output_mode(),
+        DisplayFormat::PROGRESS,
+        tracker);
     view->start();
 
     const auto effective_pool_size = static_cast<std::size_t>(

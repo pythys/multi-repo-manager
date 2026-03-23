@@ -1,7 +1,9 @@
 #include "exec.hpp"
 #include "config.hpp"
+#include "output_view.hpp"
 #include "repo_type.hpp"
 #include "runtime.hpp"
+#include "tracker.hpp"
 #include "tree.hpp"
 #include <cstdlib>
 #include <filesystem>
@@ -102,19 +104,6 @@ bool command_exists(const std::string &command) {
     return false;
 }
 
-std::string repo_cli(RepoType type) {
-    switch (type) {
-    case RepoType::GIT:
-        return "git";
-    case RepoType::SVN:
-        return "svn";
-    case RepoType::HG:
-        return "hg";
-    default:
-        return "";
-    }
-}
-
 bool starts_with_command(
     const std::vector<std::string> &command,
     const std::string &prefix_command) {
@@ -127,7 +116,7 @@ build_command_for_repo(const std::string &custom_command, RepoType type) {
     if (command_parts.empty()) {
         return {};
     }
-    const std::string cli = repo_cli(type);
+    const std::string cli = repo_type_to_string(type);
     if (!cli.empty() && command_exists(cli) &&
         !starts_with_command(command_parts, cli)) {
         command_parts.insert(command_parts.begin(), cli);
@@ -179,6 +168,18 @@ int execute_in_repo(
     }
     return 1;
 }
+
+std::pair<std::string, std::string>
+parse_repo_path(const std::vector<Tree> &trees, const std::string &repo_path) {
+    for (const auto &tree : trees) {
+        const std::string prefix = tree.root + "/";
+        if (repo_path.starts_with(prefix)) {
+            const std::string repo_name = repo_path.substr(prefix.length());
+            return {tree.root, repo_name};
+        }
+    }
+    return {"", repo_path};
+}
 } // namespace
 
 int run_exec(const ExecutionOptions &options) {
@@ -195,17 +196,47 @@ int run_exec(const ExecutionOptions &options) {
         return 1;
     }
 
+    Tracker tracker;
+    tracker.populate(trees);
+
+    auto view = create_output_view(
+        detect_output_mode(),
+        DisplayFormat::PROGRESS,
+        tracker);
+    view->start();
+
     int return_code = 0;
     for (const auto &item : plan.items) {
+        const auto [root, repo_name] = parse_repo_path(trees, item.repo_path);
+
+        tracker.set_phase(
+            root,
+            repo_name,
+            RepoPhase::RUNNING,
+            "Executing command");
+
         const int command_code =
             execute_in_repo(item.repo_path, item.command_parts);
+
         if (command_code != 0) {
-            std::cerr << "Command failed in " << item.repo_path << ": "
-                      << command_code << "\n";
+            tracker.set_phase(
+                root,
+                repo_name,
+                RepoPhase::FAILED,
+                "Command failed with code " + std::to_string(command_code),
+                MessageLevel::ERROR);
             return_code = 1;
+        } else {
+            tracker.set_phase(
+                root,
+                repo_name,
+                RepoPhase::SUCCEEDED,
+                "Command completed successfully");
         }
     }
 
+    tracker.close();
+    view->stop();
     return return_code;
 }
 

@@ -208,7 +208,10 @@ int run_remotesync(const RemoteSyncOptions &options) {
 
     Tracker tracker;
     tracker.populate(trees);
-    auto view = create_output_view(detect_output_mode(), tracker);
+    auto view = create_output_view(
+        detect_output_mode(),
+        DisplayFormat::PROGRESS,
+        tracker);
     view->start();
 
     const std::vector<RepoJob> repo_jobs = collect_git_repos(trees);

@@ -43,4 +43,8 @@ struct SyncOptions {
     int jobs = 0;
 };
 
+struct ListOptions {
+    RepositorySelector selector;
+};
+
 #endif // SRC_LIB_COMMAND_OPTIONS_HPP_

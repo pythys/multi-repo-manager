@@ -34,4 +34,6 @@ struct Tree {
     std::vector<Repo> repos;
 };
 
+std::string repo_type_to_string(RepoType type);
+
 #endif // SRC_LIB_TREE_HPP_

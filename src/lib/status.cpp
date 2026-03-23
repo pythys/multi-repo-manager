@@ -17,7 +17,10 @@ int run_status(const StatusOptions &options) {
 
     Tracker tracker;
     tracker.populate(config);
-    auto view = create_output_view(detect_output_mode(), tracker);
+    auto view = create_output_view(
+        detect_output_mode(),
+        DisplayFormat::PROGRESS,
+        tracker);
     view->start();
 
     for (const auto &tree : config) {

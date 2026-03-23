@@ -6,7 +6,6 @@
 
 ## Backlog
 
-- mrm list to show which repos are managed.
 - Ability to pass SSH keys to allow for CI integration.
 - Add `--recurse` to `find`, and default to not recursing for performance or
   possibly an inverse flag to disable recursing.
