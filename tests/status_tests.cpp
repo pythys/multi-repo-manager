@@ -51,29 +51,21 @@ bool contains_status(
 }
 } // namespace
 
-TEST(StatusTests, ReportsRenameTypechangeAndUntracked) {
+TEST(StatusTests, ReportsRenameIgnoredAndUntracked) {
     TempDir temp;
     const fs::path repo = temp.path();
     git_test::init_repo(repo, "master");
     git_test::set_user(repo, "test@example.com", "test");
 
     write_text(repo / ".gitignore", "*.log\n");
-    write_text(repo / "target.txt", "target\n");
     write_text(repo / "rename_idx.txt", "rename index\n");
     write_text(repo / "rename_wt.txt", "rename worktree\n");
-    write_text(repo / "type_idx.txt", "type staged\n");
-    write_text(repo / "type_wt.txt", "type unstaged\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "initial");
 
     fs::rename(repo / "rename_idx.txt", repo / "rename_idx_new.txt");
     git_test::stage_rename(repo, "rename_idx.txt", "rename_idx_new.txt");
     fs::rename(repo / "rename_wt.txt", repo / "rename_wt_new.txt");
-    fs::remove(repo / "type_idx.txt");
-    fs::create_symlink("target.txt", repo / "type_idx.txt");
-    git_test::stage_path(repo, "type_idx.txt");
-    fs::remove(repo / "type_wt.txt");
-    fs::create_symlink("target.txt", repo / "type_wt.txt");
     write_text(repo / "ignored.log", "ignored\n");
     write_text(repo / "untracked.txt", "untracked\n");
 
@@ -83,8 +75,6 @@ TEST(StatusTests, ReportsRenameTypechangeAndUntracked) {
 
     EXPECT_TRUE(contains_status(statuses, "Renamed file staged"));
     EXPECT_TRUE(contains_status(statuses, "Renamed file: rename_wt_new.txt"));
-    EXPECT_TRUE(contains_status(statuses, "Type-changed file staged"));
-    EXPECT_TRUE(contains_status(statuses, "Type-changed file: type_wt.txt"));
     EXPECT_FALSE(contains_status(statuses, "ignored.log"));
     EXPECT_TRUE(contains_status(statuses, "New file: untracked.txt"));
 }

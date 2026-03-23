@@ -67,13 +67,12 @@ class GitManager : public RepoManager {
     };
 
     static std::vector<std::filesystem::path> discover_ssh_keys() {
-        const auto home_dir = get_env("HOME");
+        const auto home_dir = get_home_directory();
         if (!home_dir) {
             return {};
         }
 
-        const std::filesystem::path ssh_dir =
-            std::filesystem::path(*home_dir) / ".ssh";
+        const std::filesystem::path ssh_dir = *home_dir / ".ssh";
         if (!std::filesystem::exists(ssh_dir)) {
             return {};
         }

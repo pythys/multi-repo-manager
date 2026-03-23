@@ -2,17 +2,17 @@
 #define SRC_LIB_RUNTIME_HPP_
 
 #include <cstdint>
+#include <filesystem>
 #include <optional>
 #include <string>
 
 enum class OutputMode : std::uint8_t { TUI, TEXT };
 
-OutputMode output_mode_from_terminal(bool terminal);
-
+// Environment variable access
 std::optional<std::string> get_env(const char *name);
+std::optional<std::filesystem::path> get_home_directory();
 
-bool is_terminal();
-
+// Output mode detection
 OutputMode detect_output_mode();
 
 #endif // SRC_LIB_RUNTIME_HPP_

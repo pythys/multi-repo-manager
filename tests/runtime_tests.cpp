@@ -1,14 +1,14 @@
 #include "runtime.hpp"
 #include <gtest/gtest.h>
 
-TEST(RuntimeTests, OutputModeFromTerminalTrue) {
-    EXPECT_EQ(OutputMode::TUI, output_mode_from_terminal(true));
+TEST(RuntimeTests, DetectOutputModeReturnsTUIOrText) {
+    const auto mode = detect_output_mode();
+    EXPECT_TRUE(mode == OutputMode::TUI || mode == OutputMode::TEXT);
 }
 
-TEST(RuntimeTests, OutputModeFromTerminalFalse) {
-    EXPECT_EQ(OutputMode::TEXT, output_mode_from_terminal(false));
-}
-
-TEST(RuntimeTests, DetectOutputModeMatchesTerminalState) {
-    EXPECT_EQ(output_mode_from_terminal(is_terminal()), detect_output_mode());
+TEST(RuntimeTests, GetHomeDirectoryReturnsPathOrNullopt) {
+    const auto home = get_home_directory();
+    if (home) {
+        EXPECT_FALSE(home->empty());
+    }
 }

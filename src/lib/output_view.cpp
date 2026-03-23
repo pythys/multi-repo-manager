@@ -90,7 +90,8 @@ void flatten_repo_lines(
     using ftxui::text;
 
     for (const auto &repo : repos) {
-        const std::string path = root + "/" + repo.name;
+        const std::string path =
+            (std::filesystem::path(root) / repo.name).string();
         const std::string phase = phase_to_string(repo.phase);
         lines.push_back(hbox({
             text(phase) | color(phase_to_color(repo.phase)),
@@ -110,7 +111,8 @@ void flatten_repo_lines_text(
     const std::vector<Repo> &repos,
     std::vector<std::string> &lines) {
     for (const auto &repo : repos) {
-        const std::string path = root + "/" + repo.name;
+        const std::string path =
+            (std::filesystem::path(root) / repo.name).string();
         lines.push_back("[" + phase_to_string(repo.phase) + "] " + path);
         for (const auto &message : repo.messages) {
             lines.push_back("  - " + message);

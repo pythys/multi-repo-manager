@@ -5,30 +5,16 @@
 #include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
+#include <boost/process/v1.hpp>
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <vector>
 
 namespace {
-constexpr int kExecFailureExitCode = 127;
-
-std::vector<std::string> split(const std::string &text, char delimiter) {
-    std::vector<std::string> items;
-    std::stringstream stream(text);
-    std::string item;
-    while (std::getline(stream, item, delimiter)) {
-        if (!item.empty()) {
-            items.push_back(item);
-        }
-    }
-    return items;
-}
 
 std::vector<std::string> split_command(const std::string &command) {
     std::vector<std::string> args;
@@ -80,28 +66,9 @@ std::vector<std::string> split_command(const std::string &command) {
 }
 
 bool command_exists(const std::string &command) {
-    const auto path_value = get_env("PATH");
-    if (!path_value) {
-        return false;
-    }
-
-    for (const auto &directory : split(*path_value, ':')) {
-        const std::filesystem::path candidate =
-            std::filesystem::path(directory) / command;
-        std::error_code ec;
-        const auto status = std::filesystem::status(candidate, ec);
-        if (ec || !std::filesystem::is_regular_file(status)) {
-            continue;
-        }
-        const auto permissions = status.permissions();
-        const auto executable_bits = std::filesystem::perms::owner_exec |
-                                     std::filesystem::perms::group_exec |
-                                     std::filesystem::perms::others_exec;
-        if ((permissions & executable_bits) != std::filesystem::perms::none) {
-            return true;
-        }
-    }
-    return false;
+    namespace bp = boost::process::v1;
+    const auto found = bp::search_path(command);
+    return !found.empty();
 }
 
 bool starts_with_command(
@@ -131,50 +98,32 @@ int execute_in_repo(
         return 1;
     }
 
-    std::vector<std::vector<char>> mutable_args;
-    mutable_args.reserve(command_parts.size());
-    for (const auto &part : command_parts) {
-        std::vector<char> buffer(part.begin(), part.end());
-        buffer.push_back('\0');
-        mutable_args.push_back(std::move(buffer));
-    }
-
-    std::vector<char *> argv;
-    argv.reserve(command_parts.size() + 1);
-    for (auto &part : mutable_args) {
-        argv.push_back(part.data());
-    }
-    argv.push_back(nullptr);
-
-    const pid_t child_pid = fork();
-    if (child_pid < 0) {
+    namespace bp = boost::process::v1;
+    try {
+        std::vector<std::string> args(
+            command_parts.begin() + 1,
+            command_parts.end());
+        bp::child process(
+            command_parts[0],
+            bp::args = args,
+            bp::start_dir = repo_path,
+            bp::std_out > bp::null,
+            bp::std_err > bp::null);
+        process.wait();
+        return process.exit_code();
+    } catch (const std::exception &) {
         return 1;
     }
-
-    if (child_pid == 0) {
-        if (chdir(repo_path.c_str()) != 0) {
-            _exit(kExecFailureExitCode);
-        }
-        execvp(argv.front(), argv.data());
-        _exit(kExecFailureExitCode);
-    }
-
-    int status = 0;
-    if (waitpid(child_pid, &status, 0) < 0) {
-        return 1;
-    }
-    if (WIFEXITED(status)) {
-        return WEXITSTATUS(status);
-    }
-    return 1;
 }
 
 std::pair<std::string, std::string>
 parse_repo_path(const std::vector<Tree> &trees, const std::string &repo_path) {
     for (const auto &tree : trees) {
-        const std::string prefix = tree.root + "/";
-        if (repo_path.starts_with(prefix)) {
-            const std::string repo_name = repo_path.substr(prefix.length());
+        const std::filesystem::path prefix =
+            std::filesystem::path(tree.root) / "";
+        const std::string prefix_str = prefix.string();
+        if (repo_path.starts_with(prefix_str)) {
+            const std::string repo_name = repo_path.substr(prefix_str.length());
             return {tree.root, repo_name};
         }
     }
@@ -262,7 +211,8 @@ ExecPlanResult plan_exec(
                 repo.type != *target_repo_type) {
                 continue;
             }
-            const std::string repo_path = tree.root + "/" + repo.name;
+            const std::string repo_path =
+                (std::filesystem::path(tree.root) / repo.name).string();
             const std::vector<std::string> command_parts =
                 build_command_for_repo(custom_command, repo.type);
             if (command_parts.empty()) {

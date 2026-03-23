@@ -162,7 +162,8 @@ void update_repository(
     tracker
         .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
     auto repo_manager = create_repo_manager(repo->type);
-    const std::string repo_path = root + "/" + repo->name;
+    const std::string repo_path =
+        (std::filesystem::path(root) / repo->name).string();
     auto remotes = repo_manager->get_remotes(repo_path);
     if (prune_remotes) {
         auto to_remove =
@@ -193,7 +194,9 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         return remote.name == "origin";
     });
     if (it != repo->remotes.end()) {
-        repo_manager->copy(it->url, root + "/" + repo->name);
+        repo_manager->copy(
+            it->url,
+            (std::filesystem::path(root) / repo->name).string());
     } else {
         throw std::runtime_error(
             "No remote found with name 'origin' for repo: " + repo->name);
@@ -202,14 +205,16 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         if (remote.name == "origin") {
             continue;
         }
-        repo_manager->add_remote(root + "/" + repo->name, remote);
+        repo_manager->add_remote(
+            (std::filesystem::path(root) / repo->name).string(),
+            remote);
     }
     sync_branches(
         tracker,
         root,
         repo->name,
         repo_manager.get(),
-        root + "/" + repo->name,
+        (std::filesystem::path(root) / repo->name).string(),
         repo->branches,
         false);
 }
@@ -286,7 +291,8 @@ void sync_repository(
         };
 
     auto repo_manager = create_repo_manager(repo->type);
-    auto is_repo = repo_manager->is_repo(root + "/" + repo->name);
+    auto is_repo = repo_manager->is_repo(
+        (std::filesystem::path(root) / repo->name).string());
     if (is_repo) {
         asio::post(*pool, update_action);
     } else {

@@ -33,7 +33,8 @@ std::vector<RepoJob> collect_git_repos(const std::vector<Tree> &config) {
                     RepoJob{
                         .root = tree.root,
                         .name = repo.name,
-                        .path = tree.root + "/" + repo.name,
+                        .path = (std::filesystem::path(tree.root) / repo.name)
+                                    .string(),
                     });
             }
         }

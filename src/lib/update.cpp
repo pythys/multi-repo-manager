@@ -33,7 +33,8 @@ int run_update(const UpdateOptions &options) {
         for (const auto &repo : tree.repos) {
             auto updater = [repo, tree, &tracker] {
                 auto repo_manager = create_repo_manager(repo.type);
-                auto repo_path = tree.root + "/" + repo.name;
+                auto repo_path =
+                    (std::filesystem::path(tree.root) / repo.name).string();
                 tracker.set_phase(
                     tree.root,
                     repo.name,

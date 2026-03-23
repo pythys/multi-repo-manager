@@ -26,7 +26,7 @@ target_sources(
             tree.cpp
             update.cpp)
 target_include_directories(mrm_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(mrm_core PRIVATE Boost::headers)
+target_link_libraries(mrm_core PRIVATE Boost::headers Boost::filesystem)
 target_link_libraries(mrm_core PUBLIC CLI11::CLI11)
 target_link_libraries(mrm_core PRIVATE ftxui::screen ftxui::dom
                                        ftxui::component)

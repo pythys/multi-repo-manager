@@ -26,7 +26,8 @@ int run_status(const StatusOptions &options) {
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
             auto repo_manager = create_repo_manager(repo.type);
-            auto repo_path = tree.root + "/" + repo.name;
+            auto repo_path =
+                (std::filesystem::path(tree.root) / repo.name).string();
             tracker.set_phase(
                 tree.root,
                 repo.name,
