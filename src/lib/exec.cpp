@@ -16,6 +16,30 @@
 
 namespace {
 
+std::string
+replace_all(std::string str, const std::string &from, const std::string &to) {
+    size_t pos = 0;
+    while ((pos = str.find(from, pos)) != std::string::npos) {
+        str.replace(pos, from.length(), to);
+        pos += to.length();
+    }
+    return str;
+}
+
+std::string substitute_placeholders(
+    const std::string &command,
+    const std::string &repo_path,
+    const std::string &repo_name,
+    const std::string &tree_root,
+    RepoType repo_type) {
+    std::string result = command;
+    result = replace_all(result, "{path}", repo_path);
+    result = replace_all(result, "{name}", repo_name);
+    result = replace_all(result, "{root}", tree_root);
+    result = replace_all(result, "{type}", repo_type_to_string(repo_type));
+    return result;
+}
+
 std::vector<std::string> split_command(const std::string &command) {
     std::vector<std::string> args;
     std::string current;
@@ -65,37 +89,31 @@ std::vector<std::string> split_command(const std::string &command) {
     return args;
 }
 
-bool command_exists(const std::string &command) {
-    namespace bp = boost::process::v1;
-    const auto found = bp::search_path(command);
-    return !found.empty();
+std::vector<std::string> build_command_for_repo(
+    const std::string &custom_command,
+    const std::string &repo_path,
+    const std::string &repo_name,
+    const std::string &tree_root,
+    RepoType repo_type) {
+    const std::string substituted = substitute_placeholders(
+        custom_command,
+        repo_path,
+        repo_name,
+        tree_root,
+        repo_type);
+    return split_command(substituted);
 }
 
-bool starts_with_command(
-    const std::vector<std::string> &command,
-    const std::string &prefix_command) {
-    return !command.empty() && command.front() == prefix_command;
-}
+struct ExecResult {
+    int exit_code;
+    std::vector<std::string> output_lines;
+};
 
-std::vector<std::string>
-build_command_for_repo(const std::string &custom_command, RepoType type) {
-    std::vector<std::string> command_parts = split_command(custom_command);
-    if (command_parts.empty()) {
-        return {};
-    }
-    const std::string cli = repo_type_to_string(type);
-    if (!cli.empty() && command_exists(cli) &&
-        !starts_with_command(command_parts, cli)) {
-        command_parts.insert(command_parts.begin(), cli);
-    }
-    return command_parts;
-}
-
-int execute_in_repo(
+ExecResult execute_in_repo(
     const std::string &repo_path,
     const std::vector<std::string> &command_parts) {
     if (command_parts.empty()) {
-        return 1;
+        return {.exit_code = 1, .output_lines = {}};
     }
 
     namespace bp = boost::process::v1;
@@ -103,16 +121,28 @@ int execute_in_repo(
         std::vector<std::string> args(
             command_parts.begin() + 1,
             command_parts.end());
+        bp::ipstream stdout_stream;
+        bp::ipstream stderr_stream;
         bp::child process(
             command_parts[0],
             bp::args = args,
             bp::start_dir = repo_path,
-            bp::std_out > bp::null,
-            bp::std_err > bp::null);
+            bp::std_out > stdout_stream,
+            bp::std_err > stderr_stream);
+
+        std::vector<std::string> output_lines;
+        std::string line;
+        while (std::getline(stdout_stream, line)) {
+            output_lines.push_back(line);
+        }
+        while (std::getline(stderr_stream, line)) {
+            output_lines.push_back(line);
+        }
+
         process.wait();
-        return process.exit_code();
+        return {.exit_code = process.exit_code(), .output_lines = output_lines};
     } catch (const std::exception &) {
-        return 1;
+        return {.exit_code = 1, .output_lines = {}};
     }
 }
 
@@ -164,15 +194,19 @@ int run_exec(const ExecutionOptions &options) {
             RepoPhase::RUNNING,
             "Executing command");
 
-        const int command_code =
+        const ExecResult result =
             execute_in_repo(item.repo_path, item.command_parts);
 
-        if (command_code != 0) {
+        for (const auto &line : result.output_lines) {
+            tracker.set_phase(root, repo_name, RepoPhase::RUNNING, line);
+        }
+
+        if (result.exit_code != 0) {
             tracker.set_phase(
                 root,
                 repo_name,
                 RepoPhase::FAILED,
-                "Command failed with code " + std::to_string(command_code),
+                "Command failed with code " + std::to_string(result.exit_code),
                 MessageLevel::ERROR);
             return_code = 1;
         } else {
@@ -214,7 +248,12 @@ ExecPlanResult plan_exec(
             const std::string repo_path =
                 (std::filesystem::path(tree.root) / repo.name).string();
             const std::vector<std::string> command_parts =
-                build_command_for_repo(custom_command, repo.type);
+                build_command_for_repo(
+                    custom_command,
+                    repo_path,
+                    repo.name,
+                    tree.root,
+                    repo.type);
             if (command_parts.empty()) {
                 return {
                     .items = {},

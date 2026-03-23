@@ -191,19 +191,32 @@ See [output modes](#output-modes) for terminal-specific formatting.
 
 ## exec
 
-Execute custom command in repositories.
+Execute arbitrary commands in repositories with context substitution.
 
 ```sh
-mrm exec --command "remote get-url origin"
-mrm exec --config myrepos.yml --type git --command "remote get-url origin"
-mrm exec --config myrepos.yml --root "client*" --command "status -sb"
-mrm exec --find ~/projects --name "*api*" --command "log --oneline -5"
+# VCS commands (must specify full command)
+mrm exec --command "git remote get-url origin"
+mrm exec --config myrepos.yml --type git --command "git status -sb"
+mrm exec --find ~/projects --name "*api*" --command "git log --oneline -5"
+
+# Arbitrary commands with placeholders
+mrm exec --command "echo {name}: {type} repo at {path}"
+mrm exec --command "du -sh {path}"
+mrm exec --command "find {path} -name '*.cpp' -type f"
+mrm exec --command "wc -l {path}/src/**/*.cpp"
+mrm exec --command "tar -czf /backup/{name}.tar.gz -C {root} {name}"
 ```
 
 Behavior:
 - runs command in each targeted repository path
-- when repo CLI exists (for example `git`), mrm prefixes it automatically unless
-  your command already starts with it
+- substitutes placeholders with repository context before execution
+- displays command output to stdout/stderr
+
+Placeholders:
+- `{path}`: full absolute path to repository (e.g., `/home/user/projects/my-app`)
+- `{name}`: repository name only (e.g., `my-app`)
+- `{root}`: tree root path (e.g., `/home/user/projects`)
+- `{type}`: repository type (e.g., `git`, `svn`, `hg`)
 
 Options:
 - `--config <file>` (`-c`): config file, see [source options](#source-options)
