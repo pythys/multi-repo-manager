@@ -58,7 +58,14 @@ make COMPILER=clang GENERATOR="Unix Makefiles" build
 
 ## versioning
 
-Single source of truth is `VERSION`. Update all versioned files with:
+Single source of truth is the `VERSION` file. To propagate the version to all
+other files:
+
+```sh
+make version
+```
+
+To update the version and propagate it:
 
 ```sh
 make VERSION=1.2.3 version

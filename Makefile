@@ -133,11 +133,12 @@ dockerize: ## Build docker image "mrm"
 
 .PHONY: version
 version: ## Update version across files (VERSION=1.2.3)
-	@if [ -z "$(VERSION)" ]; then \
-		echo "VERSION is required. Example: make VERSION=1.2.3 version"; \
-		exit 1; \
+	@if [ -n "$(VERSION)" ]; then \
+		echo "$(VERSION)" > VERSION; \
 	fi
-	@sh scripts/update-version.sh "$(VERSION)"
+	@version=$$(cat VERSION | tr -d '[:space:]'); \
+	echo "Updating version to $$version..."; \
+	sh scripts/update-version.sh "$$version"
 
 define target_help
 	awk 'BEGIN {FS = ":.*## "}; {printf "\033[36m%-16s\033[0m %s\n", $$1, $$2}'
@@ -158,3 +159,4 @@ help: ## Show this help
 	@echo "GENERATOR:       \"Ninja\", \"Unix Makefiles\" - default: \"Ninja\""
 	@echo "SCANMATCH:       <glob-pattern> - default: \"src/**/*.cpp src/**/*.hpp\""
 	@echo "TESTTYPE:        \"unit\", \"integration\" - default: all tests"
+	@echo "VERSION:         <version> - update VERSION file before propagating"
