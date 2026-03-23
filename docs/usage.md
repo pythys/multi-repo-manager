@@ -7,32 +7,6 @@ mrm --help
 mrm <command> --help
 ```
 
-## find
-
-Scan directories for repositories and generate config.
-
-```sh
-mrm find myrepos
-mrm find myrepos --save
-mrm find myrepos --save myrepos.yml
-# or
-mrm find myrepos > myrepos.yml
-# multiple roots in one config
-mrm find client fork personal --save myrepos.yml
-```
-
-Behavior:
-- scans specified paths for repositories (`.git`, `.hg`, etc directories)
-- outputs YAML config to stdout or saves to file
-- each path becomes one `tree.root` in the generated config
-
-Options:
-- `--save` (`-s`): save to file instead of stdout (default: `mrm.yml`)
-
-Recommended workflow:
-- make changes in repositories first (remotes, branches, layout)
-- regenerate config with `mrm find -s`
-
 ## sync
 
 Clone and synchronize repositories from config.
@@ -71,6 +45,60 @@ Notes:
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
+## list
+
+Display repositories in table format.
+
+```sh
+mrm list
+mrm list --config myrepos.yml
+mrm list --config myrepos.yml --root "fork*"
+mrm list --config myrepos.yml --name "*frontend*"
+mrm list --find myrepos
+```
+
+Output columns:
+- ROOT: tree root path
+- NAME: repository name
+- TYPE: repository type (git, svn, hg)
+- REMOTES: count of configured remotes
+- BRANCHES: count of local branches
+- CURRENT: currently checked-out branch name
+
+Options:
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
+- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
+- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+
+See [output modes](#output-modes) for terminal-specific formatting.
+
+## find
+
+Scan directories for repositories and generate config.
+
+```sh
+mrm find myrepos
+mrm find myrepos --save
+mrm find myrepos --save myrepos.yml
+# or
+mrm find myrepos > myrepos.yml
+# multiple roots in one config
+mrm find client fork personal --save myrepos.yml
+```
+
+Behavior:
+- scans specified paths for repositories (`.git`, `.hg`, etc directories)
+- outputs YAML config to stdout or saves to file
+- each path becomes one `tree.root` in the generated config
+
+Options:
+- `--save` (`-s`): save to file instead of stdout (default: `mrm.yml`)
+
+Recommended workflow:
+- make changes in repositories first (remotes, branches, layout)
+- regenerate config with `mrm find -s`
+
 ## status
 
 Show working tree status for repositories.
@@ -93,34 +121,6 @@ Output includes:
 - staged: new, modified, deleted, renamed, type-changed
 - unstaged: new, modified, deleted, renamed, type-changed
 - conflicted
-
-Options:
-- `--config <file>` (`-c`): config file, see [source options](#source-options)
-- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
-- `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
-- `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
-
-See [output modes](#output-modes) for terminal-specific formatting.
-
-## list
-
-Display repositories in table format.
-
-```sh
-mrm list
-mrm list --config myrepos.yml
-mrm list --config myrepos.yml --root "fork*"
-mrm list --config myrepos.yml --name "*frontend*"
-mrm list --find myrepos
-```
-
-Output columns:
-- ROOT: tree root path
-- NAME: repository name
-- TYPE: repository type (git, svn, hg)
-- REMOTES: count of configured remotes
-- BRANCHES: count of local branches
-- CURRENT: currently checked-out branch name
 
 Options:
 - `--config <file>` (`-c`): config file, see [source options](#source-options)
