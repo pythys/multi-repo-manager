@@ -57,32 +57,18 @@ int run_update(const UpdateOptions &options) {
                         throw std::runtime_error(
                             "Current branch has no remote in " + repo_path);
                     }
-                    const auto result = repo_manager->pull_branch(
+                    const auto summary_lines = repo_manager->pull_branch(
                         repo_path,
                         current->remote,
                         current->name,
                         current->name);
-                    if (result.up_to_date) {
+
+                    for (const auto &line : summary_lines) {
                         tracker.set_phase(
                             tree.root,
                             repo.name,
                             RepoPhase::RUNNING,
-                            "Already up to date",
-                            MessageLevel::OUTPUT);
-                    } else if (result.old_commit.empty()) {
-                        tracker.set_phase(
-                            tree.root,
-                            repo.name,
-                            RepoPhase::RUNNING,
-                            "New branch at " + result.new_commit,
-                            MessageLevel::OUTPUT);
-                    } else {
-                        tracker.set_phase(
-                            tree.root,
-                            repo.name,
-                            RepoPhase::RUNNING,
-                            "Updating " + result.old_commit + ".." +
-                                result.new_commit,
+                            line,
                             MessageLevel::OUTPUT);
                     }
                 } catch (const std::exception &e) {

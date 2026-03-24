@@ -44,6 +44,9 @@ using GitSignature = GitResource<git_signature, git_signature_free>;
 using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 using GitBranchIterator =
     GitResource<git_branch_iterator, git_branch_iterator_free>;
+using GitTree = GitResource<git_tree, git_tree_free>;
+using GitDiff = GitResource<git_diff, git_diff_free>;
+using GitDiffStats = GitResource<git_diff_stats, git_diff_stats_free>;
 
 class GitBuffer {
     git_buf buf_;
@@ -611,7 +614,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    PullResult pull_branch(
+    std::vector<std::string> pull_branch(
         const std::string &path,
         const std::string &remote_name,
         const std::string &remote_branch,
@@ -815,10 +818,86 @@ class GitManager : public RepoManager {
             std::string(new_oid_buf.data(), SHORT_COMMIT_HASH_LENGTH);
 
         const bool up_to_date = (old_commit_str == new_commit_str);
-        return PullResult{
-            .old_commit = old_commit_str,
-            .new_commit = new_commit_str,
-            .up_to_date = up_to_date};
+
+        std::vector<std::string> summary_lines;
+        if (up_to_date) {
+            summary_lines.emplace_back("Already up to date");
+        } else if (old_commit_str.empty()) {
+            summary_lines.emplace_back("New branch at " + new_commit_str);
+        } else {
+            summary_lines.emplace_back(
+                "Updating " + old_commit_str + ".." + new_commit_str);
+
+            const git_oid *old_oid = git_reference_target(local_ref.get());
+            if (old_oid) {
+                GitCommit old_commit;
+                check_error(
+                    git_commit_lookup(
+                        old_commit.get_address(),
+                        repo.get(),
+                        old_oid),
+                    "Failed to lookup old commit in " + path,
+                    repo.get());
+
+                GitCommit new_commit;
+                check_error(
+                    git_commit_lookup(
+                        new_commit.get_address(),
+                        repo.get(),
+                        target_oid),
+                    "Failed to lookup new commit in " + path,
+                    repo.get());
+
+                GitTree old_tree;
+                check_error(
+                    git_commit_tree(old_tree.get_address(), old_commit.get()),
+                    "Failed to get old tree in " + path,
+                    repo.get());
+
+                GitTree new_tree;
+                check_error(
+                    git_commit_tree(new_tree.get_address(), new_commit.get()),
+                    "Failed to get new tree in " + path,
+                    repo.get());
+
+                GitDiff diff;
+                check_error(
+                    git_diff_tree_to_tree(
+                        diff.get_address(),
+                        repo.get(),
+                        old_tree.get(),
+                        new_tree.get(),
+                        nullptr),
+                    "Failed to create diff in " + path,
+                    repo.get());
+
+                GitDiffStats diff_stats;
+                check_error(
+                    git_diff_get_stats(diff_stats.get_address(), diff.get()),
+                    "Failed to get diff stats in " + path,
+                    repo.get());
+
+                const size_t files_changed =
+                    git_diff_stats_files_changed(diff_stats.get());
+                const size_t insertions =
+                    git_diff_stats_insertions(diff_stats.get());
+                const size_t deletions =
+                    git_diff_stats_deletions(diff_stats.get());
+
+                if (files_changed > 0) {
+                    const std::string stats_line =
+                        " " + std::to_string(files_changed) + " file" +
+                        (files_changed != 1 ? "s" : "") + " changed, " +
+                        std::to_string(insertions) + " insertion" +
+                        (insertions != 1 ? "s" : "") + "(+), " +
+                        std::to_string(deletions) + " deletion" +
+                        (deletions != 1 ? "s" : "") + "(-)";
+                    summary_lines.emplace_back(stats_line);
+                }
+            }
+        }
+
+        return summary_lines;
     }
 
     void push_branch(
