@@ -40,7 +40,8 @@ int run_status(const StatusOptions &options) {
                         tree.root,
                         repo.name,
                         RepoPhase::RUNNING,
-                        status);
+                        status,
+                        MessageLevel::OUTPUT);
                 }
             } catch (const std::exception &e) {
                 tracker.set_phase(

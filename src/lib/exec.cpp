@@ -198,7 +198,12 @@ int run_exec(const ExecutionOptions &options) {
             execute_in_repo(item.repo_path, item.command_parts);
 
         for (const auto &line : result.output_lines) {
-            tracker.set_phase(root, repo_name, RepoPhase::RUNNING, line);
+            tracker.set_phase(
+                root,
+                repo_name,
+                RepoPhase::RUNNING,
+                line,
+                MessageLevel::OUTPUT);
         }
 
         if (result.exit_code != 0) {

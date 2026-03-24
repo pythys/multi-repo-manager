@@ -30,7 +30,7 @@ TEST(TrackerTests, SetPhaseUpdatesSnapshotAndMessage) {
     ASSERT_EQ(1, snapshot[0].repos.size());
     EXPECT_EQ(RepoPhase::RUNNING, snapshot[0].repos[0].phase);
     ASSERT_EQ(1, snapshot[0].repos[0].messages.size());
-    EXPECT_EQ("starting", snapshot[0].repos[0].messages[0]);
+    EXPECT_EQ("starting", snapshot[0].repos[0].messages[0].text);
 }
 
 TEST(TrackerTests, WaitNextEventReturnsPublishedEvent) {

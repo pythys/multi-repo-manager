@@ -9,8 +9,6 @@
 #include <string>
 #include <vector>
 
-enum class MessageLevel : std::uint8_t { INFO, WARNING, ERROR };
-
 struct TrackerEvent {
     std::string root;
     std::string repo;

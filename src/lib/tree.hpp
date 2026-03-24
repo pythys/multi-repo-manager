@@ -7,6 +7,12 @@
 
 enum class RepoType : std::uint8_t { GIT, SVN, HG, UNKNOWN };
 enum class RepoPhase : std::uint8_t { QUEUED, RUNNING, SUCCEEDED, FAILED };
+enum class MessageLevel : std::uint8_t { INFO, WARNING, ERROR, OUTPUT };
+
+struct Message {
+    std::string text;
+    MessageLevel level;
+};
 
 struct Remote {
     std::string name;
@@ -26,7 +32,7 @@ struct Repo {
     std::vector<Remote> remotes;
     std::vector<Branch> branches;
     std::vector<Repo> children;
-    std::vector<std::string> messages;
+    std::vector<Message> messages;
 };
 
 struct Tree {

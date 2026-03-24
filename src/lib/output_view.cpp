@@ -49,6 +49,20 @@ ftxui::Color convert_phase_to_color(RepoPhase phase) {
     return ftxui::Color::White;
 }
 
+ftxui::Color convert_level_to_color(MessageLevel level) {
+    switch (level) {
+    case MessageLevel::INFO:
+        return ftxui::Color::GrayLight;
+    case MessageLevel::WARNING:
+        return ftxui::Color::Yellow;
+    case MessageLevel::ERROR:
+        return ftxui::Color::Red;
+    case MessageLevel::OUTPUT:
+        return ftxui::Color::White;
+    }
+    return ftxui::Color::White;
+}
+
 ftxui::Color convert_type_to_color(RepoType type) {
     switch (type) {
     case RepoType::GIT:
@@ -109,7 +123,8 @@ void build_progress_tui_lines(
         }));
         for (const auto &message : repo.messages) {
             lines.push_back(
-                text("  " + message) | color(ftxui::Color::GrayLight));
+                text("  " + message.text) |
+                color(convert_level_to_color(message.level)));
         }
         build_progress_tui_lines(root, repo.children, lines);
     }
@@ -125,7 +140,7 @@ void build_progress_text_lines(
         lines.push_back(
             "[" + convert_phase_to_string(repo.phase) + "] " + path);
         for (const auto &message : repo.messages) {
-            lines.push_back("  - " + message);
+            lines.push_back("  - " + message.text);
         }
         build_progress_text_lines(root, repo.children, lines);
     }

@@ -100,7 +100,8 @@ bool sync_branch(
                 repo_name,
                 RepoPhase::RUNNING,
                 "[" + branch + "] DRY-RUN would push " + source_label + " to " +
-                    target_remote + "/" + branch);
+                    target_remote + "/" + branch,
+                MessageLevel::OUTPUT);
             return true;
         }
 
@@ -110,7 +111,8 @@ bool sync_branch(
             root,
             repo_name,
             RepoPhase::RUNNING,
-            "[" + branch + "] Synced");
+            "[" + branch + "] Synced",
+            MessageLevel::OUTPUT);
         return true;
     } catch (const std::exception &e) {
         tracker.set_phase(

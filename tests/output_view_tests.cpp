@@ -21,7 +21,7 @@ std::vector<Tree> make_test_trees() {
                      .remote = "origin",
                      .is_current = false}},
             .children = {},
-            .messages = {"Success"}}}}};
+            .messages = {{.text = "Success", .level = MessageLevel::INFO}}}}}};
 }
 } // namespace
 

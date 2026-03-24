@@ -20,7 +20,7 @@ void Tracker::set_phase(
     Repo &target = get_repo_locked(root, repo);
     target.phase = phase;
     if (!message.empty()) {
-        target.messages.push_back(message);
+        target.messages.push_back({.text = message, .level = level});
     }
     events_.push_back(
         TrackerEvent{
