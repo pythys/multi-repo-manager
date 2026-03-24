@@ -13,6 +13,12 @@ enum class BranchSyncState : std::uint8_t {
     SOURCE_AHEAD,
 };
 
+struct PullResult {
+    std::string old_commit;
+    std::string new_commit;
+    bool up_to_date;
+};
+
 class RepoManager {
   public:
     virtual bool is_repo(const std::string &path) = 0;
@@ -40,7 +46,7 @@ class RepoManager {
     virtual void
     switch_branch(const std::string &path, const std::string &branch_name) = 0;
 
-    virtual void pull_branch(
+    virtual PullResult pull_branch(
         const std::string &path,
         const std::string &remote_name,
         const std::string &remote_branch,

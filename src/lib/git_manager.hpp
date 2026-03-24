@@ -11,6 +11,8 @@
 #include <string>
 #include <vector>
 
+constexpr size_t SHORT_COMMIT_HASH_LENGTH = 7;
+
 template <typename T, void (*free_resource)(T *)> class GitResource {
     T *resource_;
 
@@ -609,7 +611,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void pull_branch(
+    PullResult pull_branch(
         const std::string &path,
         const std::string &remote_name,
         const std::string &remote_branch,
@@ -641,6 +643,17 @@ class GitManager : public RepoManager {
                 local_lookup,
                 "Failed to lookup branch in " + path,
                 repo.get());
+        }
+
+        std::string old_commit_str;
+        if (local_exists) {
+            const git_oid *old_oid = git_reference_target(local_ref.get());
+            if (old_oid) {
+                std::array<char, GIT_OID_HEXSZ + 1> oid_buf{};
+                git_oid_tostr(oid_buf.data(), oid_buf.size(), old_oid);
+                old_commit_str =
+                    std::string(oid_buf.data(), SHORT_COMMIT_HASH_LENGTH);
+            }
         }
 
         bool is_current = false;
@@ -794,6 +807,18 @@ class GitManager : public RepoManager {
                 "Failed to pop stash in " + path,
                 repo.get());
         }
+
+        std::string new_commit_str;
+        std::array<char, GIT_OID_HEXSZ + 1> new_oid_buf{};
+        git_oid_tostr(new_oid_buf.data(), new_oid_buf.size(), target_oid);
+        new_commit_str =
+            std::string(new_oid_buf.data(), SHORT_COMMIT_HASH_LENGTH);
+
+        const bool up_to_date = (old_commit_str == new_commit_str);
+        return PullResult{
+            .old_commit = old_commit_str,
+            .new_commit = new_commit_str,
+            .up_to_date = up_to_date};
     }
 
     void push_branch(
