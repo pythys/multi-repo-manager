@@ -118,17 +118,21 @@ ExecResult execute_in_repo(
 
     namespace bp = boost::process::v1;
     try {
-        std::vector<std::string> args(
-            command_parts.begin() + 1,
-            command_parts.end());
+        std::ostringstream command_stream;
+        command_stream << command_parts[0];
+        for (size_t i = 1; i < command_parts.size(); ++i) {
+            command_stream << " " << command_parts[i];
+        }
+        const std::string full_command = command_stream.str();
+
         bp::ipstream stdout_stream;
         bp::ipstream stderr_stream;
         bp::child process(
-            command_parts[0],
-            bp::args = args,
+            full_command,
             bp::start_dir = repo_path,
             bp::std_out > stdout_stream,
-            bp::std_err > stderr_stream);
+            bp::std_err > stderr_stream,
+            bp::shell);
 
         std::vector<std::string> output_lines;
         std::string line;
