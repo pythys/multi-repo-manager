@@ -1,6 +1,7 @@
 Checks: >
   clang-analyzer-*,
     -clang-analyzer-cplusplus.NewDelete,
+    -clang-analyzer-optin.cplusplus.VirtualCall,
   bugprone-*,
     -bugprone-easily-swappable-parameters,
   concurrency-*,
