@@ -10,6 +10,7 @@
 #include <functional>
 #include <iostream>
 #include <mutex>
+#include <numeric>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -313,6 +314,14 @@ compute_summary_column_widths(const std::vector<Tree> &trees) {
     return widths;
 }
 
+std::size_t compute_total_repos(const std::vector<Tree> &trees) {
+    return std::accumulate(
+        trees.begin(),
+        trees.end(),
+        0UL,
+        [](std::size_t sum, const Tree &t) { return sum + t.repos.size(); });
+}
+
 void build_summary_tui_lines(
     const std::vector<Tree> &trees,
     std::vector<ftxui::Element> &lines) {
@@ -345,6 +354,15 @@ void build_summary_tui_lines(
             text(apply_padding(repos_str, widths.repos, true)),
         }));
     }
+
+    const std::size_t total = compute_total_repos(trees);
+
+    lines.push_back(text(create_separator(separator_width)));
+    lines.push_back(hbox({
+        text(apply_padding("TOTAL", widths.root)) | bold,
+        text("  "),
+        text(apply_padding(std::to_string(total), widths.repos, true)) | bold,
+    }));
 }
 
 void build_summary_text_lines(
@@ -375,6 +393,15 @@ void build_summary_text_lines(
                    true);
         lines.push_back(row.str());
     }
+
+    const std::size_t total = compute_total_repos(trees);
+
+    lines.push_back(create_separator(separator_width));
+
+    std::ostringstream total_row;
+    total_row << apply_padding("TOTAL", widths.root) << "  "
+              << apply_padding(std::to_string(total), widths.repos, true);
+    lines.push_back(total_row.str());
 }
 
 std::vector<ftxui::Element>
