@@ -77,12 +77,8 @@ ftxui::Color convert_type_to_color(RepoType type) {
 }
 
 std::string extract_current_branch(const std::vector<Branch> &branches) {
-    for (const auto &branch : branches) {
-        if (branch.is_current) {
-            return branch.name;
-        }
-    }
-    return "";
+    const Branch *current = find_current_branch(branches);
+    return current ? current->name : "";
 }
 
 std::string apply_padding(

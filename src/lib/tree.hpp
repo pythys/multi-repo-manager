@@ -42,4 +42,6 @@ struct Tree {
 
 std::string repo_type_to_string(RepoType type);
 
+const Branch *find_current_branch(const std::vector<Branch> &branches);
+
 #endif // SRC_LIB_TREE_HPP_

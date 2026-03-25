@@ -5,6 +5,7 @@
 #include "repo_factory.hpp"
 #include "runtime.hpp"
 #include "tracker.hpp"
+#include "tree.hpp"
 #include <boost/asio.hpp>
 #include <string>
 #include <vector>
@@ -42,13 +43,7 @@ int run_update(const UpdateOptions &options) {
                     "Updating repository");
                 try {
                     const auto branches = repo_manager->get_branches(repo_path);
-                    const Branch *current = nullptr;
-                    for (const auto &branch : branches) {
-                        if (branch.is_current) {
-                            current = &branch;
-                            break;
-                        }
-                    }
+                    const Branch *current = find_current_branch(branches);
                     if (!current) {
                         throw std::runtime_error(
                             "No tracked current branch in " + repo_path);

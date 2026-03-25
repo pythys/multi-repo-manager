@@ -178,7 +178,14 @@ void write_config(
     const std::string &config_file) {
     const std::string config = make_config(trees);
     std::ofstream file(config_file);
+    if (!file.is_open()) {
+        throw std::runtime_error(
+            "Failed to open file for writing: " + config_file);
+    }
     file << config;
+    if (file.fail()) {
+        throw std::runtime_error("Failed to write to file: " + config_file);
+    }
     file.close();
 }
 

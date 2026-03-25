@@ -18,13 +18,6 @@ namespace asio = boost::asio;
 namespace {
 enum class MatchType : std::uint8_t { TO_REMOVE, TO_ADD };
 
-const Branch *find_current_branch(const std::vector<Branch> &branches) {
-    auto it = std::ranges::find_if(branches, [](const Branch &branch) {
-        return branch.is_current;
-    });
-    return it == branches.end() ? nullptr : &(*it);
-}
-
 std::vector<Remote> find_remotes(
     const std::vector<Remote> &conf_remotes,
     const std::vector<Remote> &repo_remotes,
