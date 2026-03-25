@@ -66,7 +66,6 @@ class GitBuffer {
 
 class GitManager : public RepoManager {
   private:
-
     static void check_error(
         int error_code,
         const std::string &message,
@@ -754,13 +753,12 @@ class GitManager : public RepoManager {
                 continue;
             }
             const std::string remote_name = remote_name_buf.get_ptr();
-            GitReference head_ref;
+            const int is_head_result = git_branch_is_head(next_branch.get());
             check_error(
-                git_repository_head(head_ref.get_address(), repo.get()),
-                "Failed to retrieve HEAD in " + path,
+                is_head_result < 0 ? is_head_result : 0,
+                "Failed to check if branch is HEAD in " + path,
                 repo.get());
-            const bool is_current =
-                git_reference_cmp(head_ref.get(), next_branch.get()) == 0;
+            const bool is_current = is_head_result == 1;
             branches.push_back(
                 Branch{
                     .name = branch_name,
