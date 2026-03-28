@@ -40,6 +40,11 @@ struct Tree {
     std::vector<Repo> repos;
 };
 
+struct RepoStatus {
+    std::vector<std::string> messages;
+    bool has_changes = false;
+};
+
 std::string repo_type_to_string(RepoType type);
 
 const Branch *find_current_branch(const std::vector<Branch> &branches);

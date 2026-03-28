@@ -84,6 +84,11 @@ int parse_cli(int argc, char **argv) {
             status_name_patterns,
             "filter by repository name pattern")
         ->type_name("pattern");
+    bool status_modified_only = false;
+    status->add_flag(
+        "--modified,-m",
+        status_modified_only,
+        "show only modified repositories");
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
     update->add_option("--config,-c", config_file, "config file")
@@ -249,11 +254,12 @@ int parse_cli(int argc, char **argv) {
 
     if (*status) {
         StatusOptions options{
-            .selector = {
-                .config_file = config_file,
-                .find_paths = status_find_paths,
-                .root_patterns = status_root_patterns,
-                .name_patterns = status_name_patterns}};
+            .selector =
+                {.config_file = config_file,
+                 .find_paths = status_find_paths,
+                 .root_patterns = status_root_patterns,
+                 .name_patterns = status_name_patterns},
+            .modified_only = status_modified_only};
         return run_status(options);
     }
 

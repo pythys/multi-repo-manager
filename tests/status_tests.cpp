@@ -70,13 +70,14 @@ TEST(StatusTests, ReportsRenameIgnoredAndUntracked) {
     write_text(repo / "untracked.txt", "untracked\n");
 
     auto repo_manager = create_repo_manager(RepoType::GIT);
-    const std::vector<std::string> statuses =
-        repo_manager->get_status(repo.string());
+    const RepoStatus status = repo_manager->get_status(repo.string());
 
-    EXPECT_TRUE(contains_status(statuses, "Renamed file staged"));
-    EXPECT_TRUE(contains_status(statuses, "Renamed file: rename_wt_new.txt"));
-    EXPECT_FALSE(contains_status(statuses, "ignored.log"));
-    EXPECT_TRUE(contains_status(statuses, "New file: untracked.txt"));
+    EXPECT_TRUE(status.has_changes);
+    EXPECT_TRUE(contains_status(status.messages, "Renamed file staged"));
+    EXPECT_TRUE(
+        contains_status(status.messages, "Renamed file: rename_wt_new.txt"));
+    EXPECT_FALSE(contains_status(status.messages, "ignored.log"));
+    EXPECT_TRUE(contains_status(status.messages, "New file: untracked.txt"));
 }
 
 TEST(StatusTests, ReportsConflictedFiles) {
@@ -101,7 +102,8 @@ TEST(StatusTests, ReportsConflictedFiles) {
     EXPECT_FALSE(git_test::merge_branch(repo, "feature"));
 
     auto repo_manager = create_repo_manager(RepoType::GIT);
-    const std::vector<std::string> statuses =
-        repo_manager->get_status(repo.string());
-    EXPECT_TRUE(contains_status(statuses, "Conflicted file: conflict.txt"));
+    const RepoStatus status = repo_manager->get_status(repo.string());
+    EXPECT_TRUE(status.has_changes);
+    EXPECT_TRUE(
+        contains_status(status.messages, "Conflicted file: conflict.txt"));
 }

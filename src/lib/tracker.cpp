@@ -1,4 +1,5 @@
 #include "tracker.hpp"
+#include <algorithm>
 #include <stdexcept>
 
 void Tracker::populate(const std::vector<Tree> &initial) {
@@ -53,6 +54,22 @@ void Tracker::close() {
     std::scoped_lock<std::mutex> lock(mutex_);
     closed_ = true;
     condition_.notify_all();
+}
+
+void Tracker::remove_repo(const std::string &root, const std::string &name) {
+    std::scoped_lock<std::mutex> lock(mutex_);
+    for (auto &tree : trees_) {
+        if (tree.root != root) {
+            continue;
+        }
+        auto it = std::ranges::remove_if(tree.repos, [&name](const Repo &repo) {
+            return repo.name == name;
+        });
+        if (it.begin() != tree.repos.end()) {
+            tree.repos.erase(it.begin(), tree.repos.end());
+            return;
+        }
+    }
 }
 
 Repo *

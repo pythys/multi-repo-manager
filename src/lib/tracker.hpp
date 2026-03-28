@@ -34,6 +34,8 @@ class Tracker {
 
     void close();
 
+    void remove_repo(const std::string &root, const std::string &name);
+
   private:
     Repo *recursive_find(const std::string &name, std::vector<Repo> &repos);
     Repo &get_repo_locked(const std::string &root, const std::string &name);

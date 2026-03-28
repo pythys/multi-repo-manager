@@ -1041,7 +1041,7 @@ class GitManager : public RepoManager {
         return BranchSyncState::SOURCE_AHEAD;
     }
 
-    std::vector<std::string> get_status(const std::string &path) override {
+    RepoStatus get_status(const std::string &path) override {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -1065,20 +1065,21 @@ class GitManager : public RepoManager {
             repo.get());
 
         const size_t count = git_status_list_entrycount(status_list.get());
-        std::vector<std::string> status_lines;
+        RepoStatus result;
+        result.has_changes = count > 0;
         for (size_t i = 0; i < count; ++i) {
             const git_status_entry *entry =
                 git_status_byindex(status_list.get(), i);
             if (!entry) {
                 continue;
             }
-            append_status_lines(*entry, status_lines);
+            append_status_lines(*entry, result.messages);
         }
 
-        if (status_lines.empty()) {
-            status_lines.emplace_back("No changes detected");
+        if (result.messages.empty()) {
+            result.messages.emplace_back("No changes detected");
         }
-        return status_lines;
+        return result;
     }
 };
 

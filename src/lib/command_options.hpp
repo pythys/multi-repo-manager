@@ -13,6 +13,7 @@ struct RepositorySelector {
 
 struct StatusOptions {
     RepositorySelector selector;
+    bool modified_only = false;
 };
 
 struct UpdateOptions {

@@ -57,7 +57,7 @@ class RepoManager {
         const std::string &source_branch,
         const std::string &target_branch) = 0;
 
-    virtual std::vector<std::string> get_status(const std::string &path) = 0;
+    virtual RepoStatus get_status(const std::string &path) = 0;
 
     virtual ~RepoManager() = default;
 };

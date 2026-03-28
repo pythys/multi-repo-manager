@@ -34,14 +34,22 @@ int run_status(const StatusOptions &options) {
                 RepoPhase::RUNNING,
                 "Collecting status");
             try {
-                const auto statuses = repo_manager->get_status(repo_path);
-                for (const auto &status : statuses) {
+                const auto status = repo_manager->get_status(repo_path);
+                for (const auto &message : status.messages) {
                     tracker.set_phase(
                         tree.root,
                         repo.name,
                         RepoPhase::RUNNING,
-                        status,
+                        message,
                         MessageLevel::OUTPUT);
+                }
+                tracker.set_phase(
+                    tree.root,
+                    repo.name,
+                    RepoPhase::SUCCEEDED,
+                    "Status collected");
+                if (options.modified_only && !status.has_changes) {
+                    tracker.remove_repo(tree.root, repo.name);
                 }
             } catch (const std::exception &e) {
                 tracker.set_phase(
@@ -52,11 +60,6 @@ int run_status(const StatusOptions &options) {
                     MessageLevel::ERROR);
                 continue;
             }
-            tracker.set_phase(
-                tree.root,
-                repo.name,
-                RepoPhase::SUCCEEDED,
-                "Status collected");
         }
     }
 
