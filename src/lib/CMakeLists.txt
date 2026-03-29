@@ -15,6 +15,7 @@ target_sources(
             config.cpp
             exec.cpp
             find.cpp
+            init.cpp
             list.cpp
             repo_type.cpp
             remotesync.cpp

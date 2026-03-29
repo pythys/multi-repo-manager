@@ -1,7 +1,7 @@
 #include "config.hpp"
 #include "find.hpp"
 #include "git_guard.hpp"
-#include <chrono>
+#include "test_utils.hpp"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
@@ -11,40 +11,8 @@ namespace fs = std::filesystem;
 const GitGuard git_guard;
 
 namespace {
-class TempDir {
-  public:
-    TempDir() {
-        const auto unique = std::to_string(
-            std::chrono::steady_clock::now().time_since_epoch().count());
-        path_ = fs::temp_directory_path() / ("mrm-find-tests-" + unique);
-        fs::create_directories(path_);
-    }
-
-    ~TempDir() {
-        std::error_code ec;
-        fs::remove_all(path_, ec);
-    }
-
-    const fs::path &path() const {
-        return path_;
-    }
-
-  private:
-    fs::path path_;
-};
-
-class CurrentPathGuard {
-  public:
-    CurrentPathGuard() : saved_(fs::current_path()) {}
-
-    ~CurrentPathGuard() {
-        std::error_code ec;
-        fs::current_path(saved_, ec);
-    }
-
-  private:
-    fs::path saved_;
-};
+using test_utils::CurrentPathGuard;
+using test_utils::TempDir;
 } // namespace
 
 TEST(FindTests, MultiplePathsBecomeMultipleTrees) {

@@ -2,7 +2,7 @@
 #include "git_guard.hpp"
 #include "git_test_utils.hpp"
 #include "remotesync.hpp"
-#include <chrono>
+#include "test_utils.hpp"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -12,28 +12,7 @@ namespace fs = std::filesystem;
 
 namespace {
 const GitGuard git_guard;
-
-class TempDir {
-  public:
-    TempDir() {
-        const auto unique = std::to_string(
-            std::chrono::steady_clock::now().time_since_epoch().count());
-        path_ = fs::temp_directory_path() / ("mrm-remotesync-tests-" + unique);
-        fs::create_directories(path_);
-    }
-
-    ~TempDir() {
-        std::error_code ec;
-        fs::remove_all(path_, ec);
-    }
-
-    const fs::path &path() const {
-        return path_;
-    }
-
-  private:
-    fs::path path_;
-};
+using test_utils::TempDir;
 
 void write_config(const fs::path &config, const fs::path &root) {
     std::ofstream out(config);

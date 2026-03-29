@@ -2,7 +2,7 @@
 #include "find.hpp"
 #include "git_guard.hpp"
 #include "git_test_utils.hpp"
-#include <chrono>
+#include "test_utils.hpp"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
@@ -20,28 +20,7 @@ std::vector<Tree> parse_dependencies(const std::string &filename) {
 
 namespace {
 const GitGuard git_guard;
-
-class TempDir {
-  public:
-    TempDir() {
-        const auto unique = std::to_string(
-            std::chrono::steady_clock::now().time_since_epoch().count());
-        path_ = fs::temp_directory_path() / ("mrm-config-tests-" + unique);
-        fs::create_directories(path_);
-    }
-
-    ~TempDir() {
-        std::error_code ec;
-        fs::remove_all(path_, ec);
-    }
-
-    const fs::path &path() const {
-        return path_;
-    }
-
-  private:
-    fs::path path_;
-};
+using test_utils::TempDir;
 
 Repo make_test_repo(const std::string &name) {
     return Repo{

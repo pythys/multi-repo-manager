@@ -5,7 +5,7 @@
 #include "git_test_utils.hpp"
 #include "runtime.hpp"
 #include "sync.hpp"
-#include <chrono>
+#include "test_utils.hpp"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -40,32 +40,8 @@ int sync(const std::string &filename, bool prune_remotes, bool prune_branches) {
 }
 
 namespace {
-class TempDir {
-  public:
-    TempDir() {
-        const auto unique = std::to_string(
-            std::chrono::steady_clock::now().time_since_epoch().count());
-        path_ = fs::temp_directory_path() / ("mrm-sync-tests-" + unique);
-        fs::create_directories(path_);
-    }
-
-    ~TempDir() {
-        std::error_code ec;
-        fs::remove_all(path_, ec);
-    }
-
-    const fs::path &path() const {
-        return path_;
-    }
-
-  private:
-    fs::path path_;
-};
-
-void write_text(const fs::path &path, const std::string &content) {
-    std::ofstream out(path);
-    out << content;
-}
+using test_utils::TempDir;
+using test_utils::write_file;
 
 void write_main_only_config(
     const fs::path &path,
@@ -178,7 +154,7 @@ TEST(SyncTests, ExistingBranchesDoNotRequireFetch) {
     git_test::init_repo(repo, "main");
     git_test::set_user(repo, "test@example.com", "test");
 
-    write_text(repo / "README.md", "hello\n");
+    write_file(repo / "README.md", "hello\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "init");
     git_test::add_remote(repo, "origin", remote);
@@ -230,7 +206,7 @@ TEST(SyncTests, PruneRemotesIsOptIn) {
     git_test::init_repo(upstream, "main", true);
     git_test::init_repo(repo, "main");
     git_test::set_user(repo, "test@example.com", "test");
-    write_text(repo / "README.md", "hello\n");
+    write_file(repo / "README.md", "hello\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "init");
     git_test::add_remote(repo, "origin", remote);
@@ -274,13 +250,13 @@ TEST(SyncTests, PruneBranchesRemovesNonCurrentBranches) {
     git_test::init_repo(remote, "main", true);
     git_test::init_repo(repo, "main");
     git_test::set_user(repo, "test@example.com", "test");
-    write_text(repo / "README.md", "hello\n");
+    write_file(repo / "README.md", "hello\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "init");
     git_test::add_remote(repo, "origin", remote);
     git_test::push_branch(repo, "origin", "main", true);
     git_test::create_and_checkout_branch(repo, "feature");
-    write_text(repo / "feature.txt", "feature\n");
+    write_file(repo / "feature.txt", "feature\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "feature");
     git_test::push_branch(repo, "origin", "feature", true);
@@ -312,13 +288,13 @@ TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
     git_test::init_repo(remote, "main", true);
     git_test::init_repo(repo, "main");
     git_test::set_user(repo, "test@example.com", "test");
-    write_text(repo / "README.md", "hello\n");
+    write_file(repo / "README.md", "hello\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "init");
     git_test::add_remote(repo, "origin", remote);
     git_test::push_branch(repo, "origin", "main", true);
     git_test::create_and_checkout_branch(repo, "feature");
-    write_text(repo / "feature.txt", "feature\n");
+    write_file(repo / "feature.txt", "feature\n");
     git_test::stage_all(repo);
     git_test::commit(repo, "feature");
     git_test::push_branch(repo, "origin", "feature", true);

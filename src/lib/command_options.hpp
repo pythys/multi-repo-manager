@@ -49,4 +49,8 @@ struct ListOptions {
     bool summary_mode = false;
 };
 
+struct InitOptions {
+    std::string repos_path;
+};
+
 #endif // SRC_LIB_COMMAND_OPTIONS_HPP_

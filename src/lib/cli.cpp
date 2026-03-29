@@ -4,6 +4,7 @@
 #include "config.hpp"
 #include "exec.hpp"
 #include "find.hpp"
+#include "init.hpp"
 #include "list.hpp"
 #include "remotesync.hpp"
 #include "status.hpp"
@@ -182,6 +183,11 @@ int parse_cli(int argc, char **argv) {
             "filter by repository name pattern")
         ->type_name("pattern");
 
+    CLI::App *init = app.add_subcommand("init", "Initialize workspace");
+    std::string repos_path = "r";
+    init->add_option("--repos-path", repos_path, "repositories directory")
+        ->type_name("path");
+
     CLI::App *completion =
         app.add_subcommand("completion", "Generate completion");
     std::string completion_shell;
@@ -309,6 +315,11 @@ int parse_cli(int argc, char **argv) {
             return 1;
         }
         return 0;
+    }
+
+    if (*init) {
+        InitOptions options{.repos_path = repos_path};
+        return run_init(options);
     }
 
     return 0;

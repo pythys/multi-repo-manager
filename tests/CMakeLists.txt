@@ -12,7 +12,7 @@ foreach(test_src ${UNIT_TESTS})
     gtest_discover_tests(${test_name} PROPERTIES LABELS unit)
 endforeach()
 set(INTEGRATION_TESTS sync_tests.cpp status_tests.cpp exec_tests.cpp
-                      remotesync_tests.cpp)
+                      remotesync_tests.cpp init_tests.cpp)
 foreach(test_src ${INTEGRATION_TESTS})
     get_filename_component(test_name ${test_src} NAME_WE)
     add_executable(${test_name} ${test_src})

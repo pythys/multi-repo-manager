@@ -229,6 +229,39 @@ Options:
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
+## init
+
+Initialize a new mrm workspace with recommended structure.
+
+```sh
+mkdir my-repos
+cd my-repos
+mrm init
+```
+
+Behavior:
+- creates `README.md` with workspace documentation
+- creates empty `mrm.yml` with usage instructions
+- creates repositories directory (default: `r/`)
+- initializes git repository
+- adds repositories directory to `.gitignore`
+- requires empty directory (no existing `mrm.yml` or `.git`)
+
+Options:
+- `--repos-path <path>`: repositories directory name (default: `r`)
+
+Errors:
+- fails if `mrm.yml` already exists
+- fails if `.git` already exists
+- fails if git command is not available
+
+After initialization:
+1. Clone repositories into the repos directory
+2. Run `mrm find <repos-path> --save` to generate config
+3. Commit `mrm.yml` to track your workspace
+
+See [quick start](guides/quickstart.md) for a complete workflow example.
+
 ## source options
 
 Commands that operate on repositories support two mutually exclusive source

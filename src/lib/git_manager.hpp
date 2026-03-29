@@ -516,6 +516,24 @@ class GitManager : public RepoManager {
         return error_code == 0;
     }
 
+    void init(const std::string &path, const std::string &branch) override {
+        git_repository_init_options opts;
+        check_error(
+            git_repository_init_options_init(
+                &opts,
+                GIT_REPOSITORY_INIT_OPTIONS_VERSION),
+            "Failed to initialize git init options");
+
+        opts.flags = GIT_REPOSITORY_INIT_MKPATH;
+        opts.initial_head = branch.c_str();
+
+        GitRepository repo;
+        check_error(
+            git_repository_init_ext(repo.get_address(), path.c_str(), &opts),
+            "Failed to initialize repository in " + path,
+            repo.get());
+    }
+
     void
     copy(const std::string &source, const std::string &destination) override {
         GitRepository repo;
