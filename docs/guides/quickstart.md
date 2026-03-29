@@ -40,6 +40,7 @@ git commit -m "Add initial repos"
 mrm list
 mrm status
 mrm update
+mrm exec -m "echo repo is: {name}"
 ```
 
 ## 6. add more repos later
