@@ -3,11 +3,12 @@
 **mrm (multi-repo-manager)** helps you manage many repositories as one using a
 YAML repository list.
 
-List repos once, then run one command across all of them to turn hours of
-repetitive maintenance into minutes.
+Define your repositories once in a YAML file, then run a single command across
+all of them to turn hours of repetitive maintenance into minutes.
 
-Track one YAML file across multiple computers to keep repositories, remotes, and
-branches in sync, so you can switch devices or collaborate without setup drift.
+Track one YAML file across multiple machines to ensure your repositories,
+remotes, and branches stay in sync, so you can switch devices or collaborate
+without setting up everything from scratch.
 
 mrm is fast by default with parallel execution, and it ships with a beautiful
 interactive FTXUI interface backed by a native C++ runtime.
