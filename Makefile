@@ -1,7 +1,7 @@
 COMPILER ?= clang
 GENERATOR ?= "Ninja"
 BUILDTYPE ?= Release
-SCANMATCH = src/**/*.cpp src/**/*.hpp
+SCANMATCH = src/lib/*.cpp src/lib/*.hpp tests/*.cpp tests/*.hpp
 TESTTYPE ?=
 NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
@@ -157,6 +157,6 @@ help: ## Show this help
 	@echo "BUILDTYPE:       \"Debug\", \"Release\" - default: \"Release\""
 	@echo "COMPILER:        \"clang\", \"gcc\" - default: \"clang\""
 	@echo "GENERATOR:       \"Ninja\", \"Unix Makefiles\" - default: \"Ninja\""
-	@echo "SCANMATCH:       <glob-pattern> - default: \"src/**/*.cpp src/**/*.hpp\""
+	@echo "SCANMATCH:       <glob-pattern> - default: \"src/lib/*.cpp src/lib/*.hpp tests/*.cpp tests/*.hpp\""
 	@echo "TESTTYPE:        \"unit\", \"integration\" - default: all tests"
 	@echo "VERSION:         <version> - update VERSION file before propagating"
