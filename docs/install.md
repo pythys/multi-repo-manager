@@ -34,15 +34,15 @@ sudo make install
 
 Once completed an image called "mrm" will be available on the machine. To use:
 
-`docker run -it --rm -v $PWD:/tree mrm --help`
+`docker run -it --rm -v $PWD:/repos mrm --help`
 
 To alias the docker command
 
-`alias mrm='docker run -it --rm --user $(id -u):$(id -g) -v $PWD:/tree mrm'`
+`alias mrm='docker run -it --rm --user $(id -u):$(id -g) -v $PWD:/repos mrm'`
 
 Example usage:
 
-`mrm find /tree`
+`mrm find .`
 
 To rebuild the Docker image without cache:
 

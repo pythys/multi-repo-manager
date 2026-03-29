@@ -35,4 +35,6 @@ FROM gcr.io/distroless/cc-debian12
 
 COPY --from=build /usr/local/bin/mrm /usr/local/bin/mrm
 
+WORKDIR /repos
+
 ENTRYPOINT ["/usr/local/bin/mrm"]
