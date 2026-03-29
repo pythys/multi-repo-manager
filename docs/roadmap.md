@@ -39,6 +39,7 @@
   commits, diverged branches)
 - Add `--skip-dirty` flag to skip repos with uncommitted changes
 - Support dependency ordering in YAML for cross-repo builds
+- Support git worktrees
 
 ### Discovery & Filtering
 - Add `--max-depth` / `--min-depth` to `find` command
