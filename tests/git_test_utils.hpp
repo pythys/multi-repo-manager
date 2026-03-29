@@ -1,6 +1,7 @@
 #ifndef TESTS_GIT_TEST_UTILS_HPP_
 #define TESTS_GIT_TEST_UTILS_HPP_
 
+#include <array>
 #include <filesystem>
 #include <git2.h>
 #include <stdexcept>
@@ -174,7 +175,7 @@ commit(const std::filesystem::path &repo_path, const std::string &message) {
         check(
             git_commit_lookup(parent.out(), repo.get(), &parent_oid),
             "lookup parent");
-        const git_commit *parents[] = {parent.get()};
+        std::array<const git_commit *, 1> parents = {parent.get()};
         git_oid commit_oid;
         check(
             git_commit_create(
@@ -187,7 +188,7 @@ commit(const std::filesystem::path &repo_path, const std::string &message) {
                 message.c_str(),
                 tree.get(),
                 1,
-                parents),
+                parents.data()),
             "commit");
         return;
     }

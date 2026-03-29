@@ -1,11 +1,13 @@
 #include "tracker.hpp"
+#include "tree.hpp"
+#include <chrono>
 #include <future>
 #include <gtest/gtest.h>
-#include <string>
-#include <thread>
 #include <vector>
 
 namespace {
+constexpr int WAITER_SLEEP_MS = 10;
+
 std::vector<Tree> make_trees() {
     return {Tree{
         .root = "root",
@@ -55,7 +57,7 @@ TEST(TrackerTests, CloseUnblocksWaiter) {
         return tracker.wait_next_event(event);
     });
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(WAITER_SLEEP_MS));
     tracker.close();
 
     EXPECT_FALSE(waiter.get());

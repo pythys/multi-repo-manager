@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 
 class TempDir {
   public:
-    TempDir(const std::string &prefix = "mrm-test") {
+    explicit TempDir(const std::string &prefix = "mrm-test") {
         const auto unique = std::to_string(
             std::chrono::steady_clock::now().time_since_epoch().count());
         path_ = fs::temp_directory_path() / (prefix + "-" + unique);

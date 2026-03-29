@@ -27,7 +27,7 @@ bool contains_status(
 
 TEST(StatusTests, ReportsRenameIgnoredAndUntracked) {
     TempDir temp;
-    const fs::path repo = temp.path();
+    const fs::path &repo = temp.path();
     git_test::init_repo(repo, "master");
     git_test::set_user(repo, "test@example.com", "test");
 
@@ -56,7 +56,7 @@ TEST(StatusTests, ReportsRenameIgnoredAndUntracked) {
 
 TEST(StatusTests, ReportsConflictedFiles) {
     TempDir temp;
-    const fs::path repo = temp.path();
+    const fs::path &repo = temp.path();
     git_test::init_repo(repo, "master");
     git_test::set_user(repo, "test@example.com", "test");
 
