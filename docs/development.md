@@ -89,5 +89,4 @@ All libraries fetched using Conan.
 - [ftxui](https://github.com/ArthurSonzogni/FTXUI)
 - [googletest](https://github.com/google/googletest)
 - [libgit2](https://github.com/libgit2/libgit2)
-- [tbb](https://github.com/oneapi-src/oneTBB)
 - [yaml-cpp](https://github.com/jbeder/yaml-cpp)
