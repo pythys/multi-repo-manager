@@ -160,6 +160,13 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *exec =
         app.add_subcommand("exec", "Execute command in repositories");
+    exec->footer(R"(
+
+Available placeholders:
+{path}  -  full absolute path to repository
+{name}  -  repository name
+{root}  -  tree root path
+{type}  -  repository type (git, svn, hg))");
     std::string custom_command;
     exec->add_option("--command,-m", custom_command, "command to run")
         ->required()
