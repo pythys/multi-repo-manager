@@ -1,6 +1,7 @@
 FROM debian:bookworm AS build
 
 ENV CONAN_VERSION=2.26.2
+ENV MAKEFLAGS="-j$(nproc)"
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
