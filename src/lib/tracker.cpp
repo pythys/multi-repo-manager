@@ -62,11 +62,12 @@ void Tracker::remove_repo(const std::string &root, const std::string &name) {
         if (tree.root != root) {
             continue;
         }
-        auto it = std::ranges::remove_if(tree.repos, [&name](const Repo &repo) {
-            return repo.name == name;
-        });
-        if (it.begin() != tree.repos.end()) {
-            tree.repos.erase(it.begin(), tree.repos.end());
+        auto it = std::remove_if(
+            tree.repos.begin(),
+            tree.repos.end(),
+            [&name](const Repo &repo) { return repo.name == name; });
+        if (it != tree.repos.end()) {
+            tree.repos.erase(it, tree.repos.end());
             return;
         }
     }
