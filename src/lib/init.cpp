@@ -99,24 +99,6 @@ substitute_repos_path(std::string_view tmpl, const std::string &repos_path) {
     return result;
 }
 
-bool file_or_dir_exists(const fs::path &path) {
-    std::error_code ec;
-    return fs::exists(path, ec);
-}
-
-void append_to_gitignore(const std::string &repos_path) {
-    std::ofstream file(".gitignore", std::ios::app);
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open .gitignore for writing");
-    }
-
-    file << "\n# mrm repositories\n" << repos_path << "/\n";
-    if (file.fail()) {
-        throw std::runtime_error("Failed to write to .gitignore");
-    }
-    file.close();
-}
-
 void create_gitignore_with_repos(const std::string &repos_path) {
     std::ofstream file(".gitignore");
     if (!file.is_open()) {
@@ -136,26 +118,20 @@ int run_init(const InitOptions &options) {
     try {
         const std::string &repos_path = options.repos_path;
 
-        if (file_or_dir_exists("mrm.yml")) {
-            std::cerr << "Error: mrm.yml already exists in current directory\n";
-            std::cerr << "This appears to be an existing mrm workspace.\n";
-            return 1;
-        }
-
-        if (file_or_dir_exists(".git")) {
-            std::cerr << "Error: .git already exists in current directory\n";
-            std::cerr << "This directory is already a git repository.\n";
-            return 1;
-        }
-
-        if (file_or_dir_exists(repos_path)) {
-            std::cerr << "Error: " << repos_path
-                      << " already exists in current directory\n";
-            std::cerr << "Please choose a different path with --repos-path\n";
-            return 1;
-        }
-
+        // Check that current directory is completely empty
         std::error_code ec;
+        if (!fs::is_empty(".", ec)) {
+            if (ec) {
+                std::cerr << "Error: Failed to check directory: "
+                          << ec.message() << '\n';
+            } else {
+                std::cerr << "Error: Directory is not empty\n";
+                std::cerr << "The init command requires a completely empty "
+                             "directory.\n";
+            }
+            return 1;
+        }
+
         if (!fs::create_directories(repos_path, ec) || ec) {
             std::cerr << "Error: Failed to create directory " << repos_path
                       << '\n';
@@ -190,11 +166,7 @@ int run_init(const InitOptions &options) {
         }
         config_file.close();
 
-        if (file_or_dir_exists(".gitignore")) {
-            append_to_gitignore(repos_path);
-        } else {
-            create_gitignore_with_repos(repos_path);
-        }
+        create_gitignore_with_repos(repos_path);
 
         GitManager git_manager;
         git_manager.init(".", "main");

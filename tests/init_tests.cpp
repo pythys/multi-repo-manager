@@ -53,64 +53,18 @@ TEST(InitTests, CustomReposPathSubstitutedInAllFiles) {
     EXPECT_TRUE(contains(gitignore, "custom-repos/"));
 }
 
-TEST(InitTests, FailsIfMrmYmlAlreadyExists) {
+TEST(InitTests, FailsIfDirectoryNotEmpty) {
     TempDir temp("mrm-init-tests");
     CurrentPathGuard cwd_guard;
     fs::current_path(temp.path());
 
-    std::ofstream existing("mrm.yml");
-    existing << "existing content\n";
+    // Create a file to make directory non-empty
+    std::ofstream existing("some_file.txt");
+    existing << "content\n";
     existing.close();
 
     InitOptions options;
     options.repos_path = "repos";
 
     EXPECT_EQ(1, run_init(options));
-}
-
-TEST(InitTests, FailsIfGitAlreadyExists) {
-    TempDir temp("mrm-init-tests");
-    CurrentPathGuard cwd_guard;
-    fs::current_path(temp.path());
-
-    fs::create_directory(".git");
-
-    InitOptions options;
-    options.repos_path = "repos";
-
-    EXPECT_EQ(1, run_init(options));
-}
-
-TEST(InitTests, FailsIfReposPathAlreadyExists) {
-    TempDir temp("mrm-init-tests");
-    CurrentPathGuard cwd_guard;
-    fs::current_path(temp.path());
-
-    fs::create_directory("repos");
-
-    InitOptions options;
-    options.repos_path = "repos";
-
-    EXPECT_EQ(1, run_init(options));
-}
-
-TEST(InitTests, AppendsToExistingGitignore) {
-    TempDir temp("mrm-init-tests");
-    CurrentPathGuard cwd_guard;
-    fs::current_path(temp.path());
-
-    std::ofstream existing(".gitignore");
-    existing << "# Existing content\n";
-    existing << "*.log\n";
-    existing.close();
-
-    InitOptions options;
-    options.repos_path = "repos";
-
-    ASSERT_EQ(0, run_init(options));
-
-    const std::string gitignore = read_file(".gitignore");
-    EXPECT_TRUE(contains(gitignore, "# Existing content"));
-    EXPECT_TRUE(contains(gitignore, "*.log"));
-    EXPECT_TRUE(contains(gitignore, "repos/"));
 }
