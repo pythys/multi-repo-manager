@@ -21,14 +21,12 @@ For most code changes follow this sequence:
 - If the environment does not have clang-tidy installed, then skip `make scan`
 - `make scan` reports a massive warning count in external code. Ignore it and
   only react to reported warnings that affect project code.
-- `make scan` take a long time. Do not time out before at least 5 minutes.
+- `make scan` take a long time. Do not time out before at least 10 minutes.
 
 ## Notes for Agents
 
-- The user might modify your code in between runs. Check user changes before
-  applying patches.
 - Do not run `make clean build` as it leads to a race condition in directory
-  deletion and creation. Run the clean target in isolation first then combine.
+  deletion and creation. Run the clean target in isolation first.
 - Multiple repository types are supported in the design like git, subversion
   etc, so always keep the abstraction and don't break it with improper names
   or designs that assume a git-only implementation.
