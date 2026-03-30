@@ -5,8 +5,9 @@ ENV CONAN_VERSION=2.26.2
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     build-essential \
-    clang \
-    clang-format \
+    clang-16 \
+    clang-format-16 \
+    clang-tidy-16 \
     cmake \
     curl \
     git \
@@ -16,6 +17,10 @@ RUN apt-get update && \
     python3-pip \
     unzip \
     zip && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 100 && \
+    update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-16 100 && \
+    update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-16 100 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
