@@ -114,13 +114,6 @@ docs: ## Generate doxygen documentation
 	$(call check_bin, doxygen)
 	@doxygen
 
-.PHONY: completion
-completion: build ## Generate shell completion scripts
-	@echo "Generating completion scripts..."
-	@mkdir -p build/completions
-	@build/mrm/mrm completion bash > build/completions/mrm-completions.sh
-	@build/mrm/mrm completion zsh > build/completions/_mrm
-
 .PHONY: package
 package: build ## Package code to various formats
 	$(call check_bin, cpack)
