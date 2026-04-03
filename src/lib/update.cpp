@@ -6,6 +6,7 @@
 #include "tracker.hpp"
 #include "tree.hpp"
 #include "utils.hpp"
+#include <atomic>
 #include <boost/asio.hpp>
 #include <string>
 #include <vector>
@@ -22,10 +23,11 @@ int run_update(const UpdateOptions &options) {
     TrackedOperation op(config, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();
 
+    std::atomic_bool has_error{false};
     auto pool = create_thread_pool(options.jobs);
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
-            auto updater = [repo, tree, &tracker] {
+            auto updater = [repo, tree, &tracker, &has_error] {
                 auto repo_manager = create_repo_manager(repo.type);
                 auto repo_path = construct_repo_path(tree.root, repo.name);
                 tracker.set_phase(
@@ -65,6 +67,7 @@ int run_update(const UpdateOptions &options) {
                         RepoPhase::FAILED,
                         e.what(),
                         MessageLevel::ERROR);
+                    has_error.store(true);
                     return;
                 }
                 tracker.set_phase(
@@ -77,5 +80,5 @@ int run_update(const UpdateOptions &options) {
         }
     }
     pool.join();
-    return 0;
+    return has_error.load() ? 1 : 0;
 }

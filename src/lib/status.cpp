@@ -18,6 +18,7 @@ int run_status(const StatusOptions &options) {
     TrackedOperation op(config, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();
 
+    bool has_error = false;
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
             auto repo_manager = create_repo_manager(repo.type);
@@ -52,10 +53,11 @@ int run_status(const StatusOptions &options) {
                     RepoPhase::FAILED,
                     e.what(),
                     MessageLevel::ERROR);
+                has_error = true;
                 continue;
             }
         }
     }
 
-    return 0;
+    return has_error ? 1 : 0;
 }

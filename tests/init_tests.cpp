@@ -58,7 +58,6 @@ TEST(InitTests, FailsIfDirectoryNotEmpty) {
     CurrentPathGuard cwd_guard;
     fs::current_path(temp.path());
 
-    // Create a file to make directory non-empty
     std::ofstream existing("some_file.txt");
     existing << "content\n";
     existing.close();

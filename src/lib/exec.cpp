@@ -5,9 +5,11 @@
 #include "tracker.hpp"
 #include "tree.hpp"
 #include "utils.hpp"
+#include <boost/asio.hpp>
 #include <boost/process/v1.hpp>
 #include <cstdlib>
 #include <filesystem>
+#include <future>
 #include <iostream>
 #include <optional>
 #include <sstream>
@@ -125,16 +127,25 @@ ExecResult execute_in_repo(
         }
         const std::string full_command = command_stream.str();
 
-        bp::ipstream stdout_stream;
-        bp::ipstream stderr_stream;
+        boost::asio::io_context ioc;
+        std::future<std::string> stdout_data;
+        std::future<std::string> stderr_data;
+
         bp::child process(
             full_command,
             bp::start_dir = repo_path,
-            bp::std_out > stdout_stream,
-            bp::std_err > stderr_stream,
-            bp::shell);
+            bp::std_out > stdout_data,
+            bp::std_err > stderr_data,
+            bp::shell,
+            ioc);
+
+        ioc.run();
+        process.wait();
 
         std::vector<std::string> output_lines;
+        std::istringstream stdout_stream(stdout_data.get());
+        std::istringstream stderr_stream(stderr_data.get());
+
         std::string line;
         while (std::getline(stdout_stream, line)) {
             output_lines.push_back(line);
@@ -143,7 +154,6 @@ ExecResult execute_in_repo(
             output_lines.push_back(line);
         }
 
-        process.wait();
         return {.exit_code = process.exit_code(), .output_lines = output_lines};
     } catch (const std::exception &) {
         return {.exit_code = 1, .output_lines = {}};

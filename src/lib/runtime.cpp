@@ -16,8 +16,6 @@
 #define FILENO fileno
 #endif
 
-// Environment variable access
-
 std::optional<std::string> get_env(const char *name) {
     const char *value = std::getenv(name); // NOLINT(concurrency-mt-unsafe)
     if (value == nullptr || *value == '\0') {
@@ -46,8 +44,6 @@ std::optional<std::filesystem::path> get_home_directory() {
     return std::nullopt;
 #endif
 }
-
-// Output mode detection
 
 OutputMode detect_output_mode() {
     const auto stream_is_terminal = [](FILE *stream) {

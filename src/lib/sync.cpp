@@ -7,6 +7,7 @@
 #include "tree.hpp"
 #include "utils.hpp"
 #include <algorithm>
+#include <atomic>
 #include <boost/asio.hpp>
 #include <memory>
 #include <stdexcept>
@@ -204,70 +205,85 @@ void sync_repository(
     Tracker *tracker,
     asio::thread_pool *pool,
     bool prune_remotes,
-    bool prune_branches) {
+    bool prune_branches,
+    std::atomic_bool &has_error) {
 
-    auto update_action =
-        [root, repo, tracker, pool, prune_remotes, prune_branches]() {
-            try {
-                update_repository(
-                    root,
-                    repo,
-                    *tracker,
-                    prune_remotes,
-                    prune_branches);
-                tracker->set_phase(
-                    root,
-                    repo->name,
-                    RepoPhase::SUCCEEDED,
-                    "Repository synced");
-            } catch (const std::exception &e) {
-                tracker->set_phase(
-                    root,
-                    repo->name,
-                    RepoPhase::FAILED,
-                    e.what(),
-                    MessageLevel::ERROR);
-                return;
-            }
-            for (auto &child : repo->children) {
-                sync_repository(
-                    root,
-                    &child,
-                    tracker,
-                    pool,
-                    prune_remotes,
-                    prune_branches);
-            }
-        };
+    auto update_action = [root,
+                          repo,
+                          tracker,
+                          pool,
+                          prune_remotes,
+                          prune_branches,
+                          &has_error]() {
+        try {
+            update_repository(
+                root,
+                repo,
+                *tracker,
+                prune_remotes,
+                prune_branches);
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::SUCCEEDED,
+                "Repository synced");
+        } catch (const std::exception &e) {
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::FAILED,
+                e.what(),
+                MessageLevel::ERROR);
+            has_error.store(true);
+            return;
+        }
+        for (auto &child : repo->children) {
+            sync_repository(
+                root,
+                &child,
+                tracker,
+                pool,
+                prune_remotes,
+                prune_branches,
+                has_error);
+        }
+    };
 
-    auto clone_action =
-        [root, repo, tracker, pool, prune_remotes, prune_branches]() {
-            try {
-                clone_repository(root, repo, *tracker);
-                tracker->set_phase(
-                    root,
-                    repo->name,
-                    RepoPhase::SUCCEEDED,
-                    "Repository synced");
-            } catch (const std::exception &e) {
-                tracker->set_phase(
-                    root,
-                    repo->name,
-                    RepoPhase::FAILED,
-                    e.what(),
-                    MessageLevel::ERROR);
-                return;
-            }
-            for (auto &child : repo->children) {
-                sync_repository(
-                    root,
-                    &child,
-                    tracker,
-                    pool,
-                    prune_remotes,
-                    prune_branches);
-            }
-        };
+    auto clone_action = [root,
+                         repo,
+                         tracker,
+                         pool,
+                         prune_remotes,
+                         prune_branches,
+                         &has_error]() {
+        try {
+            clone_repository(root, repo, *tracker);
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::SUCCEEDED,
+                "Repository synced");
+        } catch (const std::exception &e) {
+            tracker->set_phase(
+                root,
+                repo->name,
+                RepoPhase::FAILED,
+                e.what(),
+                MessageLevel::ERROR);
+            has_error.store(true);
+            return;
+        }
+        for (auto &child : repo->children) {
+            sync_repository(
+                root,
+                &child,
+                tracker,
+                pool,
+                prune_remotes,
+                prune_branches,
+                has_error);
+        }
+    };
 
     auto repo_manager = create_repo_manager(repo->type);
     auto is_repo = repo_manager->is_repo(
@@ -286,6 +302,7 @@ int run_sync(const SyncOptions &options) {
     TrackedOperation op(config, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();
 
+    std::atomic_bool has_error{false};
     auto pool = create_thread_pool(options.jobs);
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
@@ -295,9 +312,10 @@ int run_sync(const SyncOptions &options) {
                 &tracker,
                 &pool,
                 options.prune_remotes,
-                options.prune_branches);
+                options.prune_branches,
+                has_error);
         }
     }
     pool.join();
-    return 0;
+    return has_error.load() ? 1 : 0;
 }
