@@ -25,7 +25,8 @@ target_sources(
             sync.cpp
             tracker.cpp
             tree.cpp
-            update.cpp)
+            update.cpp
+            utils.cpp)
 target_include_directories(mrm_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(mrm_core PRIVATE Boost::headers Boost::filesystem)
 target_link_libraries(mrm_core PUBLIC CLI11::CLI11)

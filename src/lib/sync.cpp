@@ -3,9 +3,9 @@
 #include "constants.hpp"
 #include "output_view.hpp"
 #include "repo_factory.hpp"
-#include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
 #include <algorithm>
 #include <boost/asio.hpp>
 #include <memory>
@@ -18,77 +18,63 @@ namespace asio = boost::asio;
 namespace {
 enum class MatchType : std::uint8_t { TO_REMOVE, TO_ADD };
 
-std::vector<Remote> find_remotes(
-    const std::vector<Remote> &conf_remotes,
-    const std::vector<Remote> &repo_remotes,
-    MatchType match_type) {
+template <typename T, typename CompareFunc>
+std::vector<T> find_differences(
+    const std::vector<T> &source,
+    const std::vector<T> &target,
+    MatchType match_type,
+    CompareFunc compare) {
 
-    std::vector<Remote> result;
-
-    auto compare_by_name = [](const Remote &a, const Remote &b) {
-        return a.name == b.name;
-    };
+    std::vector<T> result;
 
     if (match_type == MatchType::TO_REMOVE) {
-        for (const auto &repo_remote : repo_remotes) {
-            auto it = std::ranges::find_if(
-                conf_remotes,
-                [&](const Remote &tree_remote) {
-                    return compare_by_name(tree_remote, repo_remote);
-                });
-            if (it == conf_remotes.end()) {
-                result.push_back(repo_remote);
+        for (const auto &target_item : target) {
+            auto it = std::ranges::find_if(source, [&](const T &source_item) {
+                return compare(source_item, target_item);
+            });
+            if (it == source.end()) {
+                result.push_back(target_item);
             }
         }
     } else if (match_type == MatchType::TO_ADD) {
-        for (const auto &tree_remote : conf_remotes) {
-            auto it = std::ranges::find_if(
-                repo_remotes,
-                [&](const Remote &repo_remote) {
-                    return compare_by_name(repo_remote, tree_remote);
-                });
-            if (it == repo_remotes.end()) {
-                result.push_back(tree_remote);
+        for (const auto &source_item : source) {
+            auto it = std::ranges::find_if(target, [&](const T &target_item) {
+                return compare(target_item, source_item);
+            });
+            if (it == target.end()) {
+                result.push_back(source_item);
             }
         }
     }
     return result;
 }
 
+std::vector<Remote> find_remotes(
+    const std::vector<Remote> &conf_remotes,
+    const std::vector<Remote> &repo_remotes,
+    MatchType match_type) {
+    auto compare_by_name = [](const Remote &a, const Remote &b) {
+        return a.name == b.name;
+    };
+    return find_differences(
+        conf_remotes,
+        repo_remotes,
+        match_type,
+        compare_by_name);
+}
+
 std::vector<Branch> find_branches(
     const std::vector<Branch> &conf_branches,
     const std::vector<Branch> &repo_branches,
     MatchType match_type) {
-
-    std::vector<Branch> result;
     auto compare_by_name = [](const Branch &a, const Branch &b) {
         return a.name == b.name;
     };
-
-    if (match_type == MatchType::TO_REMOVE) {
-        for (const auto &repo_branch : repo_branches) {
-            auto it = std::ranges::find_if(
-                conf_branches,
-                [&](const Branch &tree_branch) {
-                    return compare_by_name(tree_branch, repo_branch);
-                });
-            if (it == conf_branches.end()) {
-                result.push_back(repo_branch);
-            }
-        }
-    } else if (match_type == MatchType::TO_ADD) {
-        for (const auto &tree_branch : conf_branches) {
-            auto it = std::ranges::find_if(
-                repo_branches,
-                [&](const Branch &repo_branch) {
-                    return compare_by_name(repo_branch, tree_branch);
-                });
-            if (it == repo_branches.end()) {
-                result.push_back(tree_branch);
-            }
-        }
-    }
-    return result;
+    return find_differences(
+        conf_branches,
+        repo_branches,
+        match_type,
+        compare_by_name);
 }
 
 void sync_branches(
@@ -297,17 +283,10 @@ int run_sync(const SyncOptions &options) {
     std::vector<Tree> config = filter_trees_by_root(
         get_dependencies(options.config_file),
         options.root_patterns);
-    Tracker tracker;
-    tracker.populate(config);
-    auto view = create_output_view(
-        detect_output_mode(),
-        DisplayFormat::PROGRESS,
-        tracker);
-    view->start();
+    TrackedOperation op(config, DisplayFormat::PROGRESS);
+    auto &tracker = op.tracker();
 
-    const auto effective_pool_size = static_cast<std::size_t>(
-        options.jobs > 0 ? options.jobs : SYNC_POOL_SIZE);
-    asio::thread_pool pool(effective_pool_size);
+    auto pool = create_thread_pool(options.jobs);
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
             sync_repository(
@@ -320,7 +299,5 @@ int run_sync(const SyncOptions &options) {
         }
     }
     pool.join();
-    tracker.close();
-    view->stop();
     return 0;
 }

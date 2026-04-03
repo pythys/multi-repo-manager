@@ -1,4 +1,6 @@
 #include "tracker.hpp"
+#include "output_view.hpp"
+#include "runtime.hpp"
 #include <algorithm>
 #include <stdexcept>
 
@@ -99,4 +101,26 @@ Tracker::get_repo_locked(const std::string &root, const std::string &name) {
         }
     }
     throw std::runtime_error("Repo not found");
+}
+
+TrackedOperation::TrackedOperation(
+    const std::vector<Tree> &trees,
+    DisplayFormat format)
+    : tracker_(), view_(nullptr) {
+    tracker_.populate(trees);
+    view_ = create_output_view(detect_output_mode(), format, tracker_);
+    view_->start();
+}
+
+TrackedOperation::~TrackedOperation() {
+    tracker_.close();
+    view_->stop();
+}
+
+Tracker &TrackedOperation::tracker() {
+    return tracker_;
+}
+
+OutputView &TrackedOperation::view() {
+    return *view_;
 }

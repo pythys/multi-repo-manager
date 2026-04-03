@@ -4,9 +4,9 @@
 #include "output_view.hpp"
 #include "repo_factory.hpp"
 #include "repo_manager.hpp"
-#include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
 #include <algorithm>
 #include <atomic>
 #include <boost/asio.hpp>
@@ -33,8 +33,7 @@ std::vector<RepoJob> collect_git_repos(const std::vector<Tree> &config) {
                     RepoJob{
                         .root = tree.root,
                         .name = repo.name,
-                        .path = (std::filesystem::path(tree.root) / repo.name)
-                                    .string(),
+                        .path = construct_repo_path(tree.root, repo.name),
                     });
             }
         }
@@ -209,21 +208,13 @@ int run_remotesync(const RemoteSyncOptions &options) {
         options.selector.root_patterns,
         options.selector.name_patterns);
 
-    Tracker tracker;
-    tracker.populate(trees);
-    auto view = create_output_view(
-        detect_output_mode(),
-        DisplayFormat::PROGRESS,
-        tracker);
-    view->start();
+    TrackedOperation op(trees, DisplayFormat::PROGRESS);
+    auto &tracker = op.tracker();
 
     const std::vector<RepoJob> repo_jobs = collect_git_repos(trees);
 
     std::atomic_bool has_operational_error{false};
-    const auto effective_jobs = static_cast<std::size_t>(
-        options.jobs > 0 ? options.jobs : SYNC_POOL_SIZE);
-
-    asio::thread_pool pool(effective_jobs);
+    auto pool = create_thread_pool(options.jobs);
 
     for (const auto &repo_job : repo_jobs) {
         asio::post(pool, [&, repo_job]() {
@@ -240,7 +231,5 @@ int run_remotesync(const RemoteSyncOptions &options) {
 
     pool.join();
 
-    tracker.close();
-    view->stop();
     return has_operational_error.load() ? kFailure : 0;
 }

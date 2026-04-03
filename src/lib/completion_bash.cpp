@@ -1,4 +1,5 @@
 #include "completion_bash.hpp"
+#include "utils.hpp"
 #include <sstream>
 
 namespace {
@@ -33,36 +34,20 @@ std::string escape_double_quotes(const std::string &value) {
 }
 
 std::string join_words(const std::vector<std::string> &values) {
-    std::ostringstream out;
-    for (std::size_t i = 0; i < values.size(); ++i) {
-        if (i > 0) {
-            out << " ";
-        }
-        out << escape_double_quotes(values[i]);
+    std::vector<std::string> escaped;
+    escaped.reserve(values.size());
+    for (const auto &value : values) {
+        escaped.push_back(escape_double_quotes(value));
     }
-    return out.str();
+    return join(escaped, " ");
 }
 
 std::string join_flags(const std::vector<std::string> &flags) {
-    std::ostringstream out;
-    for (std::size_t i = 0; i < flags.size(); ++i) {
-        if (i > 0) {
-            out << " ";
-        }
-        out << flags[i];
-    }
-    return out.str();
+    return join(flags, " ");
 }
 
 std::string join_flags_case(const std::vector<std::string> &flags) {
-    std::ostringstream out;
-    for (std::size_t i = 0; i < flags.size(); ++i) {
-        if (i > 0) {
-            out << "|";
-        }
-        out << flags[i];
-    }
-    return out.str();
+    return join(flags, "|");
 }
 
 const ArgSpec *first_positional(const CommandSpec &command) {

@@ -2,9 +2,9 @@
 #include "config.hpp"
 #include "output_view.hpp"
 #include "repo_factory.hpp"
-#include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
 #include <string>
 #include <vector>
 
@@ -15,19 +15,13 @@ int run_status(const StatusOptions &options) {
         options.selector.root_patterns,
         options.selector.name_patterns);
 
-    Tracker tracker;
-    tracker.populate(config);
-    auto view = create_output_view(
-        detect_output_mode(),
-        DisplayFormat::PROGRESS,
-        tracker);
-    view->start();
+    TrackedOperation op(config, DisplayFormat::PROGRESS);
+    auto &tracker = op.tracker();
 
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
             auto repo_manager = create_repo_manager(repo.type);
-            auto repo_path =
-                (std::filesystem::path(tree.root) / repo.name).string();
+            auto repo_path = construct_repo_path(tree.root, repo.name);
             tracker.set_phase(
                 tree.root,
                 repo.name,
@@ -63,7 +57,5 @@ int run_status(const StatusOptions &options) {
         }
     }
 
-    tracker.close();
-    view->stop();
     return 0;
 }

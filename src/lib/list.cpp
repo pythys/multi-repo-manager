@@ -1,7 +1,6 @@
 #include "list.hpp"
 #include "config.hpp"
 #include "output_view.hpp"
-#include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
 #include <algorithm>
@@ -36,11 +35,8 @@ int run_list(const ListOptions &options) {
     const DisplayFormat format =
         options.summary_mode ? DisplayFormat::SUMMARY : DisplayFormat::TABLE;
 
-    Tracker tracker;
-    tracker.populate(config);
-
-    auto view = create_output_view(detect_output_mode(), format, tracker);
-    view->start();
+    TrackedOperation op(config, format);
+    auto &tracker = op.tracker();
 
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
@@ -48,7 +44,5 @@ int run_list(const ListOptions &options) {
         }
     }
 
-    tracker.close();
-    view->stop();
     return 0;
 }

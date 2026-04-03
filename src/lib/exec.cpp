@@ -2,9 +2,9 @@
 #include "config.hpp"
 #include "output_view.hpp"
 #include "repo_type.hpp"
-#include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
 #include <boost/process/v1.hpp>
 #include <cstdlib>
 #include <filesystem>
@@ -179,14 +179,8 @@ int run_exec(const ExecutionOptions &options) {
         return 1;
     }
 
-    Tracker tracker;
-    tracker.populate(trees);
-
-    auto view = create_output_view(
-        detect_output_mode(),
-        DisplayFormat::PROGRESS,
-        tracker);
-    view->start();
+    TrackedOperation op(trees, DisplayFormat::PROGRESS);
+    auto &tracker = op.tracker();
 
     int return_code = 0;
     for (const auto &item : plan.items) {
@@ -227,8 +221,6 @@ int run_exec(const ExecutionOptions &options) {
         }
     }
 
-    tracker.close();
-    view->stop();
     return return_code;
 }
 
@@ -255,7 +247,7 @@ ExecPlanResult plan_exec(
                 continue;
             }
             const std::string repo_path =
-                (std::filesystem::path(tree.root) / repo.name).string();
+                construct_repo_path(tree.root, repo.name);
             const std::vector<std::string> command_parts =
                 build_command_for_repo(
                     custom_command,

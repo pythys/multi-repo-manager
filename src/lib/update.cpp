@@ -3,9 +3,9 @@
 #include "constants.hpp"
 #include "output_view.hpp"
 #include "repo_factory.hpp"
-#include "runtime.hpp"
 #include "tracker.hpp"
 #include "tree.hpp"
+#include "utils.hpp"
 #include <boost/asio.hpp>
 #include <string>
 #include <vector>
@@ -19,23 +19,15 @@ int run_update(const UpdateOptions &options) {
         options.selector.root_patterns,
         options.selector.name_patterns);
 
-    Tracker tracker;
-    tracker.populate(config);
-    auto view = create_output_view(
-        detect_output_mode(),
-        DisplayFormat::PROGRESS,
-        tracker);
-    view->start();
+    TrackedOperation op(config, DisplayFormat::PROGRESS);
+    auto &tracker = op.tracker();
 
-    const auto effective_pool_size = static_cast<std::size_t>(
-        options.jobs > 0 ? options.jobs : SYNC_POOL_SIZE);
-    asio::thread_pool pool(effective_pool_size);
+    auto pool = create_thread_pool(options.jobs);
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
             auto updater = [repo, tree, &tracker] {
                 auto repo_manager = create_repo_manager(repo.type);
-                auto repo_path =
-                    (std::filesystem::path(tree.root) / repo.name).string();
+                auto repo_path = construct_repo_path(tree.root, repo.name);
                 tracker.set_phase(
                     tree.root,
                     repo.name,
@@ -85,7 +77,5 @@ int run_update(const UpdateOptions &options) {
         }
     }
     pool.join();
-    tracker.close();
-    view->stop();
     return 0;
 }

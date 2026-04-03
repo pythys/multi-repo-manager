@@ -1,4 +1,5 @@
 #include "completion_zsh.hpp"
+#include "utils.hpp"
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -17,25 +18,11 @@ bool is_help_option(const OptionSpec &option) {
 }
 
 std::string join_flags_space(const std::vector<std::string> &flags) {
-    std::ostringstream out;
-    for (std::size_t i = 0; i < flags.size(); ++i) {
-        if (i > 0) {
-            out << " ";
-        }
-        out << flags[i];
-    }
-    return out.str();
+    return join(flags, " ");
 }
 
 std::string join_flags_comma(const std::vector<std::string> &flags) {
-    std::ostringstream out;
-    for (std::size_t i = 0; i < flags.size(); ++i) {
-        if (i > 0) {
-            out << ",";
-        }
-        out << flags[i];
-    }
-    return out.str();
+    return join(flags, ",");
 }
 
 std::string value_action_from_hint(const ValueSpec &value) {
