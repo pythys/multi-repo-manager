@@ -6,6 +6,9 @@
 
 ## Backlog
 
+### Cleanup
+- Refactor the files into subdirectories with proper layered architecture
+
 ### Safety & Recovery
 - Add `--dry-run` flag to all destructive commands (`sync`, `update`, `exec`)
 - Add `--interactive` / `--confirm` flag for operations with `--prune`
