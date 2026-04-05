@@ -310,7 +310,7 @@ void collect_tracked_repos(
 void prune_untracked_repos(
     const std::string &root,
     const std::vector<Repo> &tracked_repos,
-    Tracker &) {
+    [[maybe_unused]] Tracker &tracker) {
 
     std::vector<std::string> tracked_names;
     for (const auto &repo : tracked_repos) {
