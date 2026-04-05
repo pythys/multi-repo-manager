@@ -1,8 +1,8 @@
-#include "config.hpp"
-#include "find.hpp"
-#include "git_guard.hpp"
+#include "command/find.hpp"
 #include "git_test_utils.hpp"
+#include "persistence/config.hpp"
 #include "test_utils.hpp"
+#include "vcs/git_guard.hpp"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>

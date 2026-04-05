@@ -1,5 +1,5 @@
 #include "cli.hpp"
-#include "git_guard.hpp"
+#include "vcs/git_guard.hpp"
 
 int main(int argc, char **argv) {
     const GitGuard git_guard;

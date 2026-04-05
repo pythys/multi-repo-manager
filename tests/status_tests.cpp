@@ -1,8 +1,8 @@
-#include "git_guard.hpp"
+#include "core/tree.hpp"
 #include "git_test_utils.hpp"
-#include "repo_factory.hpp"
 #include "test_utils.hpp"
-#include "tree.hpp"
+#include "vcs/git_guard.hpp"
+#include "vcs/repo_factory.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <gtest/gtest.h>

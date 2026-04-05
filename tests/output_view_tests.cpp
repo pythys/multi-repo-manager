@@ -1,5 +1,5 @@
-#include "output_view.hpp"
-#include "tracker.hpp"
+#include "core/tracker.hpp"
+#include "presentation/output_view.hpp"
 #include <gtest/gtest.h>
 #include <sstream>
 

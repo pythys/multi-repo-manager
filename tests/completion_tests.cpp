@@ -1,4 +1,4 @@
-#include "completion.hpp"
+#include "command/completion.hpp"
 #include <gtest/gtest.h>
 #include <yaml-cpp/yaml.h>
 

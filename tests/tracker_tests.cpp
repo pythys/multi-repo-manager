@@ -1,5 +1,5 @@
-#include "tracker.hpp"
-#include "tree.hpp"
+#include "core/tracker.hpp"
+#include "core/tree.hpp"
 #include <chrono>
 #include <future>
 #include <gtest/gtest.h>

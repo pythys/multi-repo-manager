@@ -1,6 +1,6 @@
-#include "git_guard.hpp"
-#include "init.hpp"
+#include "command/init.hpp"
 #include "test_utils.hpp"
+#include "vcs/git_guard.hpp"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>

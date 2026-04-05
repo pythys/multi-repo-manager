@@ -1,11 +1,11 @@
-#include "command_options.hpp"
-#include "config.hpp"
-#include "find.hpp"
-#include "git_guard.hpp"
+#include "command/sync.hpp"
 #include "git_test_utils.hpp"
-#include "runtime.hpp"
-#include "sync.hpp"
+#include "persistence/config.hpp"
+#include "persistence/discovery.hpp"
 #include "test_utils.hpp"
+#include "util/command_options.hpp"
+#include "util/runtime.hpp"
+#include "vcs/git_guard.hpp"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>

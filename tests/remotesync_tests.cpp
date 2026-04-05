@@ -1,8 +1,8 @@
-#include "command_options.hpp"
-#include "git_guard.hpp"
+#include "command/remotesync.hpp"
 #include "git_test_utils.hpp"
-#include "remotesync.hpp"
 #include "test_utils.hpp"
+#include "util/command_options.hpp"
+#include "vcs/git_guard.hpp"
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>

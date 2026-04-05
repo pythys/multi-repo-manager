@@ -1,4 +1,4 @@
-#include "runtime.hpp"
+#include "util/runtime.hpp"
 #include <gtest/gtest.h>
 
 TEST(RuntimeTests, DetectOutputModeReturnsTUIOrText) {
