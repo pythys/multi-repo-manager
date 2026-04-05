@@ -24,6 +24,7 @@ int sync(const std::string &filename) {
             .root_patterns = {},
             .prune_remotes = false,
             .prune_branches = false,
+            .prune_repos = false,
             .jobs = 0,
         });
 }
@@ -35,6 +36,7 @@ int sync(const std::string &filename, bool prune_remotes, bool prune_branches) {
             .root_patterns = {},
             .prune_remotes = prune_remotes,
             .prune_branches = prune_branches,
+            .prune_repos = false,
             .jobs = 0,
         });
 }
@@ -318,4 +320,47 @@ TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
     ASSERT_NE(feature, nullptr);
     EXPECT_FALSE(main->is_current);
     EXPECT_TRUE(feature->is_current);
+}
+
+TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {
+    TempDir temp;
+    const fs::path root = temp.path() / "root";
+    const fs::path remote = temp.path() / "remote.git";
+    const fs::path repo1 = root / "repo1";
+    const fs::path repo2 = root / "repo2";
+    fs::create_directories(repo1);
+    fs::create_directories(repo2);
+
+    git_test::init_repo(remote, "main", true);
+    git_test::init_repo(repo1, "main");
+    git_test::set_user(repo1, "test@example.com", "test");
+    write_file(repo1 / "README.md", "hello\n");
+    git_test::stage_all(repo1);
+    git_test::commit(repo1, "init");
+    git_test::add_remote(repo1, "origin", remote);
+
+    git_test::init_repo(repo2, "main");
+    git_test::set_user(repo2, "test@example.com", "test");
+    write_file(repo2 / "README.md", "untracked\n");
+    git_test::stage_all(repo2);
+    git_test::commit(repo2, "init");
+
+    const fs::path config = temp.path() / "config.yml";
+    write_main_only_config(config, root, remote);
+
+    run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = true,
+            .jobs = 0,
+        });
+
+    auto repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    EXPECT_EQ("repo1", repos[0].name);
+    EXPECT_TRUE(fs::exists(repo1));
+    EXPECT_FALSE(fs::exists(repo2));
 }

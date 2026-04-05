@@ -29,6 +29,8 @@ int parse_cli(int argc, char **argv) {
     sync->add_flag("--prune-remotes,-R", prune_remotes, "prune remotes");
     bool prune_branches = false;
     sync->add_flag("--prune-branches,-B", prune_branches, "prune branches");
+    bool prune_repos = false;
+    sync->add_flag("--prune-repos,-P", prune_repos, "prune repositories");
     bool prune_all = false;
     sync->add_flag("--prune,-p", prune_all, "prune all");
     std::vector<std::string> sync_root_patterns;
@@ -238,11 +240,13 @@ Available placeholders:
     if (*sync) {
         const bool should_prune_remotes = prune_all || prune_remotes;
         const bool should_prune_branches = prune_all || prune_branches;
+        const bool should_prune_repos = prune_all || prune_repos;
         SyncOptions options{
             .config_file = config_file,
             .root_patterns = sync_root_patterns,
             .prune_remotes = should_prune_remotes,
             .prune_branches = should_prune_branches,
+            .prune_repos = should_prune_repos,
             .jobs = sync_jobs};
         return run_sync(options);
     }

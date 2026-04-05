@@ -41,6 +41,7 @@ struct SyncOptions {
     std::vector<std::string> root_patterns;
     bool prune_remotes = false;
     bool prune_branches = false;
+    bool prune_repos = false;
     int jobs = 0;
 };
 

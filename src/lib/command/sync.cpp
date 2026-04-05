@@ -2,6 +2,7 @@
 #include "core/tracker.hpp"
 #include "core/tree.hpp"
 #include "persistence/config.hpp"
+#include "persistence/discovery.hpp"
 #include "presentation/output_view.hpp"
 #include "presentation/tracked_operation.hpp"
 #include "util/common.hpp"
@@ -10,6 +11,7 @@
 #include <algorithm>
 #include <atomic>
 #include <boost/asio.hpp>
+#include <filesystem>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -296,6 +298,42 @@ void sync_repository(
     }
 }
 
+void collect_tracked_repos(
+    const Repo &repo,
+    std::vector<std::string> &tracked_repos) {
+    tracked_repos.push_back(repo.name);
+    for (const auto &child : repo.children) {
+        collect_tracked_repos(child, tracked_repos);
+    }
+}
+
+void prune_untracked_repos(
+    const std::string &root,
+    const std::vector<Repo> &tracked_repos,
+    Tracker &) {
+
+    std::vector<std::string> tracked_names;
+    for (const auto &repo : tracked_repos) {
+        collect_tracked_repos(repo, tracked_names);
+    }
+
+    std::vector<Repo> discovered_repos = find_repos(root);
+
+    for (const auto &discovered : discovered_repos) {
+        bool is_tracked = std::ranges::any_of(
+            tracked_names,
+            [&discovered](const std::string &tracked_name) {
+                return tracked_name == discovered.name;
+            });
+
+        if (!is_tracked) {
+            std::filesystem::path repo_path =
+                std::filesystem::path(root) / discovered.name;
+            std::filesystem::remove_all(repo_path);
+        }
+    }
+}
+
 int run_sync(const SyncOptions &options) {
     std::vector<Tree> config = filter_trees_by_root(
         get_dependencies(options.config_file),
@@ -305,6 +343,13 @@ int run_sync(const SyncOptions &options) {
 
     std::atomic_bool has_error{false};
     auto pool = create_thread_pool(options.jobs);
+
+    if (options.prune_repos) {
+        for (auto &tree : config) {
+            prune_untracked_repos(tree.root, tree.repos, tracker);
+        }
+    }
+
     for (auto &tree : config) {
         for (auto &repo : tree.repos) {
             sync_repository(

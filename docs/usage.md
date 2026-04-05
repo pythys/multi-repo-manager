@@ -36,11 +36,14 @@ Options:
 - `--prune-remotes` (`-R`): remove remotes not declared in config
 - `--prune-branches` (`-B`): remove local tracked branches not declared in
   config
-- `--prune` (`-p`): enable both `--prune-remotes` and `--prune-branches`
+- `--prune-repos` (`-P`): remove repository directories not declared in config
+- `--prune` (`-p`): enable `--prune-remotes`, `--prune-branches`, and
+  `--prune-repos`
 
 Notes:
 - all prune options are opt-in
 - when pruning branches, the current branch is never deleted
+- when pruning repos, entire repository directories are deleted from disk
 - does not support `--find` (requires parent/child dependencies from config)
 
 See [output modes](#output-modes) for terminal-specific formatting.
