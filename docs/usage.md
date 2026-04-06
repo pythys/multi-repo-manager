@@ -120,6 +120,7 @@ Show working tree status for repositories.
 ```sh
 mrm status
 mrm status --config myrepos.yml
+mrm status --config myrepos.yml --jobs 12
 mrm status --config myrepos.yml --root "fork*"
 mrm status --config myrepos.yml --name "*frontend*"
 mrm status --find ~/projects
@@ -141,6 +142,9 @@ Options:
 - `--find <path>` (`-f`): discover repos, see [source options](#source-options)
 - `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--jobs <n>` (`-j`): max concurrent operations, see
+  [concurrency](#concurrency)
+- `--modified` (`-m`): show only repositories with changes
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -349,10 +353,11 @@ Filter behavior:
 
 ## concurrency
 
-Commands that perform network operations support the `--jobs` flag:
+Commands that perform operations on multiple repositories support the `--jobs` flag:
 
 ```sh
 mrm sync --jobs 12
+mrm status --config myrepos.yml --jobs 8
 mrm update --config myrepos.yml --jobs 8
 mrm remotesync --find ~/forks --source upstream --target origin --branch main --jobs 4
 mrm exec --config myrepos.yml --command "git fetch --all" --jobs 12
@@ -363,9 +368,9 @@ Options:
 - `--jobs 0` (default): uses built-in fallback value
 
 Notes:
-- larger values can speed up network-bound operations
+- larger values can speed up operations on multiple repositories
 - may increase load on disk/network resources
-- applies to: `sync`, `update`, `remotesync`, `exec`
+- applies to: `sync`, `status`, `update`, `remotesync`, `exec`
 
 ## output modes
 

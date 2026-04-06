@@ -96,6 +96,9 @@ int parse_cli(int argc, char **argv) {
         "--modified,-m",
         status_modified_only,
         "show only modified repositories");
+    int status_jobs = 0;
+    status->add_option("--jobs,-j", status_jobs, "number of jobs")
+        ->type_name("N");
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
     update->alias("up");
@@ -287,7 +290,8 @@ Available placeholders:
                  .find_paths = status_find_paths,
                  .root_patterns = status_root_patterns,
                  .name_patterns = status_name_patterns},
-            .modified_only = status_modified_only};
+            .modified_only = status_modified_only,
+            .jobs = status_jobs};
         return run_status(options);
     }
 

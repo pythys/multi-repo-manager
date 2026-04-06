@@ -14,6 +14,7 @@ struct RepositorySelector {
 struct StatusOptions {
     RepositorySelector selector;
     bool modified_only = false;
+    int jobs = 0;
 };
 
 struct UpdateOptions {
