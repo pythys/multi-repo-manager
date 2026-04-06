@@ -8,15 +8,22 @@
 - [cmake](https://cmake.org) build generator
 - [conan](https://conan.io) package manager
 - [docker](https://docs.docker.com/engine/install/) containerization
-- [doxygen](https://github.com/doxygen/doxygen) documentation generator
 - [entr](https://github.com/eradman/entr) file watcher
 - [gcc](https://gcc.gnu.org/git/?p=gcc.git) compiler
 - [gdb](git://sourceware.org/git/binutils-gdb.git) debugger (gcc)
 - [lldb](https://lldb.llvm.org) debugger (clang)
 - [make](https://www.gnu.org/software/make) orchestrator and builder
+- [mkdocs](https://www.mkdocs.org/) documentation generator
 - [ninja](https://github.com/ninja-build/ninja) builder
 
 `Dockerfile` can be used a reference for steps to build the project
+
+## installing documentation tools
+
+```sh
+pipx install mkdocs
+pipx inject mkdocs mkdocs-material
+```
 
 ## development setup
 
@@ -75,7 +82,7 @@ This updates all versioned files including:
 
 - `VERSION`
 - `CMakeLists.txt`
-- `Doxyfile`
+- `mkdocs.yml`
 - `conanfile.py`
 - `docs/install.md`
 - `README.md`

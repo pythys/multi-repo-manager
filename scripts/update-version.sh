@@ -51,8 +51,8 @@ write_version_file
 update_with_awk "$ROOT_DIR/conanfile.py" \
     '{ if ($0 ~ /version[[:space:]]*=/) { sub(/version[[:space:]]*=[[:space:]]*"[^"]+"/, "version = \"" version "\"") } print }'
 
-update_with_awk "$ROOT_DIR/Doxyfile" \
-    '{ if ($0 ~ /^PROJECT_NUMBER[[:space:]]*=/) { sub(/=.*/, "= \"" version "\"") } print }'
+update_with_awk "$ROOT_DIR/mkdocs.yml" \
+    '{ if ($0 ~ /^[[:space:]]*version:/) { sub(/:.*/, ": " version) } print }'
 
 update_with_awk "$ROOT_DIR/docs/install.md" \
   '{ if ($0 ~ /install.sh/ && $0 ~ /--version/) { gsub(/--version[[:space:]]+[^[:space:]]+/, "--version " version) } print }'

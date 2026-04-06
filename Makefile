@@ -113,9 +113,11 @@ uninstall: ## Uninstall mrm
 	@rm /usr/local/bin/mrm
 
 .PHONY: docs
-docs: ## Generate doxygen documentation
-	$(call check_bin, doxygen)
-	@doxygen
+docs: ## Generate mkdocs documentation
+	$(call check_bin, mkdocs)
+	@echo "Generating docs/index.md from README.md..."
+	@sed 's|docs/||g' README.md > docs/index.md
+	@mkdocs build --site-dir build/docs
 
 .PHONY: package
 package: build ## Package code to various formats
