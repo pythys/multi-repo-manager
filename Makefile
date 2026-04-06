@@ -135,7 +135,6 @@ version: ## Update version across files (VERSION=1.2.3)
 		echo "$(VERSION)" > VERSION; \
 	fi
 	@version=$$(cat VERSION | tr -d '[:space:]'); \
-	echo "Updating version to $$version..."; \
 	sh scripts/update-version.sh "$$version"
 
 define target_help
