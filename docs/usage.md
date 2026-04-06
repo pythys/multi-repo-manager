@@ -9,8 +9,8 @@ mrm <command> --help
 
 ## command aliases
 
-All commands support 2-letter aliases for brevity: `sy` (sync), `li` (list),
-`fi` (find), `st` (status), `up` (update), `re` (remotesync), `ex` (exec),
+All commands support 2-letter aliases for brevity: `sy` (sync), `ls` (list),
+`fn` (find), `st` (status), `up` (update), `rs` (remotesync), `ex` (exec),
 `in` (init), `co` (completion)
 
 ```sh

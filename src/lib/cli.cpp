@@ -39,7 +39,7 @@ int parse_cli(int argc, char **argv) {
         ->type_name("pattern");
 
     CLI::App *list = app.add_subcommand("list", "List repositories");
-    list->alias("li");
+    list->alias("ls");
     list->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> list_find_paths;
@@ -61,7 +61,7 @@ int parse_cli(int argc, char **argv) {
         "display summary of trees with repository counts");
 
     CLI::App *find = app.add_subcommand("find", "Find repositories");
-    find->alias("fi");
+    find->alias("fn");
     std::vector<std::string> find_paths;
     find->add_option("paths", find_paths, "paths")->type_name("dir");
     std::string save_path;
@@ -124,7 +124,7 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *remotesync =
         app.add_subcommand("remotesync", "Sync between remotes");
-    remotesync->alias("re");
+    remotesync->alias("rs");
     remotesync->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> remotesync_find_paths;
