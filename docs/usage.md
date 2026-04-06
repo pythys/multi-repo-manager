@@ -7,6 +7,17 @@ mrm --help
 mrm <command> --help
 ```
 
+## command aliases
+
+All commands support 2-letter aliases for brevity: `sy` (sync), `li` (list),
+`fi` (find), `st` (status), `up` (update), `re` (remotesync), `ex` (exec),
+`in` (init), `co` (completion)
+
+```sh
+mrm sy             # same as: mrm sync
+mrm st --modified  # same as: mrm status --modified
+```
+
 ## sync
 
 Clone and synchronize repositories from config.

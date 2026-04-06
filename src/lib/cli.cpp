@@ -21,6 +21,7 @@ int parse_cli(int argc, char **argv) {
     std::string config_file = "mrm.yml";
 
     CLI::App *sync = app.add_subcommand("sync", "Synchronize repositories");
+    sync->alias("sy");
     sync->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     int sync_jobs = 0;
@@ -38,6 +39,7 @@ int parse_cli(int argc, char **argv) {
         ->type_name("pattern");
 
     CLI::App *list = app.add_subcommand("list", "List repositories");
+    list->alias("li");
     list->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> list_find_paths;
@@ -59,6 +61,7 @@ int parse_cli(int argc, char **argv) {
         "display summary of trees with repository counts");
 
     CLI::App *find = app.add_subcommand("find", "Find repositories");
+    find->alias("fi");
     std::vector<std::string> find_paths;
     find->add_option("paths", find_paths, "paths")->type_name("dir");
     std::string save_path;
@@ -68,6 +71,7 @@ int parse_cli(int argc, char **argv) {
             ->expected(0, 1);
 
     CLI::App *status = app.add_subcommand("status", "Show repository status");
+    status->alias("st");
     status->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> status_find_paths;
@@ -94,6 +98,7 @@ int parse_cli(int argc, char **argv) {
         "show only modified repositories");
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
+    update->alias("up");
     update->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> update_find_paths;
@@ -119,6 +124,7 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *remotesync =
         app.add_subcommand("remotesync", "Sync between remotes");
+    remotesync->alias("re");
     remotesync->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> remotesync_find_paths;
@@ -162,6 +168,7 @@ int parse_cli(int argc, char **argv) {
 
     CLI::App *exec =
         app.add_subcommand("exec", "Execute command in repositories");
+    exec->alias("ex");
     exec->footer(R"(
 
 Available placeholders:
@@ -193,12 +200,14 @@ Available placeholders:
         ->type_name("pattern");
 
     CLI::App *init = app.add_subcommand("init", "Initialize workspace");
+    init->alias("in");
     std::string repos_path = "r";
     init->add_option("--repos-path", repos_path, "repositories directory")
         ->type_name("path");
 
     CLI::App *completion =
         app.add_subcommand("completion", "Generate completion");
+    completion->alias("co");
     std::string completion_shell;
     completion->add_option("shell", completion_shell, "Shell type")
         ->required()
