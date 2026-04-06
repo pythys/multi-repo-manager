@@ -64,7 +64,7 @@ test: build ## Run all tests
 	@cd build && ctest $(if $(TESTTYPE),-L $(TESTTYPE))
 
 .PHONY: lint
-lint: ## Lint with clang-format and cmake-format, report issues
+lint: ## Lint and report issues
 	$(call check_bin, clang-format)
 	$(call check_bin, cmake-format)
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
@@ -82,7 +82,7 @@ lint: ## Lint with clang-format and cmake-format, report issues
 	fi
 
 .PHONY: lint-fix
-lint-fix: ## Lint and automatically fix formatting issues
+lint-fix: ## Lint and automatically fix issues
 	$(call check_bin, clang-format)
 	$(call check_bin, cmake-format)
 	@find src tests \( -name "*.cpp" -o -name "*.hpp" \) \
@@ -113,7 +113,7 @@ uninstall: ## Uninstall mrm
 	@rm /usr/local/bin/mrm
 
 .PHONY: docs
-docs: ## Generate mkdocs documentation
+docs: ## Generate documentation
 	$(call check_bin, mkdocs)
 	@echo "Generating docs/index.md from README.md..."
 	@sed 's|docs/||g' README.md > docs/index.md
