@@ -205,16 +205,16 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
 void sync_repository(
     const std::string &root,
     Repo *repo,
-    Tracker *tracker,
-    asio::thread_pool *pool,
+    Tracker &tracker,
+    asio::thread_pool &pool,
     bool prune_remotes,
     bool prune_branches,
     std::atomic_bool &has_error) {
 
     auto update_action = [root,
                           repo,
-                          tracker,
-                          pool,
+                          &tracker,
+                          &pool,
                           prune_remotes,
                           prune_branches,
                           &has_error]() {
@@ -222,16 +222,16 @@ void sync_repository(
             update_repository(
                 root,
                 repo,
-                *tracker,
+                tracker,
                 prune_remotes,
                 prune_branches);
-            tracker->set_phase(
+            tracker.set_phase(
                 root,
                 repo->name,
                 RepoPhase::SUCCEEDED,
                 "Repository synced");
         } catch (const std::exception &e) {
-            tracker->set_phase(
+            tracker.set_phase(
                 root,
                 repo->name,
                 RepoPhase::FAILED,
@@ -254,20 +254,20 @@ void sync_repository(
 
     auto clone_action = [root,
                          repo,
-                         tracker,
-                         pool,
+                         &tracker,
+                         &pool,
                          prune_remotes,
                          prune_branches,
                          &has_error]() {
         try {
-            clone_repository(root, repo, *tracker);
-            tracker->set_phase(
+            clone_repository(root, repo, tracker);
+            tracker.set_phase(
                 root,
                 repo->name,
                 RepoPhase::SUCCEEDED,
                 "Repository synced");
         } catch (const std::exception &e) {
-            tracker->set_phase(
+            tracker.set_phase(
                 root,
                 repo->name,
                 RepoPhase::FAILED,
@@ -292,9 +292,9 @@ void sync_repository(
     auto is_repo = repo_manager->is_repo(
         (std::filesystem::path(root) / repo->name).string());
     if (is_repo) {
-        asio::post(*pool, update_action);
+        asio::post(pool, update_action);
     } else {
-        asio::post(*pool, clone_action);
+        asio::post(pool, clone_action);
     }
 }
 
@@ -355,8 +355,8 @@ int run_sync(const SyncOptions &options) {
             sync_repository(
                 tree.root,
                 &repo,
-                &tracker,
-                &pool,
+                tracker,
+                pool,
                 options.prune_remotes,
                 options.prune_branches,
                 has_error);

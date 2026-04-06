@@ -6,6 +6,7 @@
 #include "presentation/output_view.hpp"
 #include "presentation/tracked_operation.hpp"
 #include "util/common.hpp"
+#include <atomic>
 #include <boost/asio.hpp>
 #include <boost/process/v1.hpp>
 #include <cstdlib>
@@ -16,6 +17,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+
+namespace asio = boost::asio;
 
 namespace {
 
@@ -193,46 +196,52 @@ int run_exec(const ExecutionOptions &options) {
     TrackedOperation op(trees, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();
 
-    int return_code = 0;
+    std::atomic_bool has_error{false};
+    auto pool = create_thread_pool(options.jobs);
     for (const auto &item : plan.items) {
-        const auto [root, repo_name] = parse_repo_path(trees, item.repo_path);
+        auto executor = [item, &trees, &tracker, &has_error] {
+            const auto [root, repo_name] =
+                parse_repo_path(trees, item.repo_path);
 
-        tracker.set_phase(
-            root,
-            repo_name,
-            RepoPhase::RUNNING,
-            "Executing command");
-
-        const ExecResult result =
-            execute_in_repo(item.repo_path, item.command_parts);
-
-        for (const auto &line : result.output_lines) {
             tracker.set_phase(
                 root,
                 repo_name,
                 RepoPhase::RUNNING,
-                line,
-                MessageLevel::OUTPUT);
-        }
+                "Executing command");
 
-        if (result.exit_code != 0) {
-            tracker.set_phase(
-                root,
-                repo_name,
-                RepoPhase::FAILED,
-                "Command failed with code " + std::to_string(result.exit_code),
-                MessageLevel::ERROR);
-            return_code = 1;
-        } else {
-            tracker.set_phase(
-                root,
-                repo_name,
-                RepoPhase::SUCCEEDED,
-                "Command completed successfully");
-        }
+            const ExecResult result =
+                execute_in_repo(item.repo_path, item.command_parts);
+
+            for (const auto &line : result.output_lines) {
+                tracker.set_phase(
+                    root,
+                    repo_name,
+                    RepoPhase::RUNNING,
+                    line,
+                    MessageLevel::OUTPUT);
+            }
+
+            if (result.exit_code != 0) {
+                tracker.set_phase(
+                    root,
+                    repo_name,
+                    RepoPhase::FAILED,
+                    "Command failed with code " +
+                        std::to_string(result.exit_code),
+                    MessageLevel::ERROR);
+                has_error.store(true);
+            } else {
+                tracker.set_phase(
+                    root,
+                    repo_name,
+                    RepoPhase::SUCCEEDED,
+                    "Command completed successfully");
+            }
+        };
+        asio::post(pool, executor);
     }
-
-    return return_code;
+    pool.join();
+    return has_error.load() ? 1 : 0;
 }
 
 ExecPlanResult plan_exec(

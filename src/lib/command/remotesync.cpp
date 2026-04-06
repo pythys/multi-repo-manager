@@ -53,7 +53,7 @@ bool sync_branch(
     const std::string &branch,
     bool source_available,
     bool dry_run,
-    std::atomic_bool &has_operational_error) {
+    std::atomic_bool &has_error) {
     try {
         std::string source_label = source_remote + "/" + branch;
         if (source_available) {
@@ -121,7 +121,7 @@ bool sync_branch(
             RepoPhase::FAILED,
             "[" + branch + "] " + std::string(e.what()),
             MessageLevel::ERROR);
-        has_operational_error.store(true);
+        has_error.store(true);
         return false;
     }
 }
@@ -133,7 +133,7 @@ void process_repo_sync(
     const std::string &target_remote,
     const std::vector<std::string> &branches,
     bool dry_run,
-    std::atomic_bool &has_operational_error) {
+    std::atomic_bool &has_error) {
     std::unique_ptr<RepoManager> repo_manager =
         create_repo_manager(RepoType::GIT);
     tracker.set_phase(
@@ -149,7 +149,7 @@ void process_repo_sync(
                 RepoPhase::FAILED,
                 "Not a git repository",
                 MessageLevel::ERROR);
-            has_operational_error.store(true);
+            has_error.store(true);
             return;
         }
 
@@ -176,7 +176,7 @@ void process_repo_sync(
                     branch,
                     source_available,
                     dry_run,
-                    has_operational_error)) {
+                    has_error)) {
                 repo_failed = true;
             }
         }
@@ -197,7 +197,7 @@ void process_repo_sync(
             RepoPhase::FAILED,
             e.what(),
             MessageLevel::ERROR);
-        has_operational_error.store(true);
+        has_error.store(true);
     }
 }
 } // namespace
@@ -214,7 +214,7 @@ int run_remotesync(const RemoteSyncOptions &options) {
 
     const std::vector<RepoJob> repo_jobs = collect_git_repos(trees);
 
-    std::atomic_bool has_operational_error{false};
+    std::atomic_bool has_error{false};
     auto pool = create_thread_pool(options.jobs);
 
     for (const auto &repo_job : repo_jobs) {
@@ -226,11 +226,11 @@ int run_remotesync(const RemoteSyncOptions &options) {
                 options.target_remote,
                 options.branches,
                 options.dry_run,
-                has_operational_error);
+                has_error);
         });
     }
 
     pool.join();
 
-    return has_operational_error.load() ? kFailure : 0;
+    return has_error.load() ? kFailure : 0;
 }

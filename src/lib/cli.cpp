@@ -198,6 +198,8 @@ Available placeholders:
             exec_name_patterns,
             "filter by repository name pattern")
         ->type_name("pattern");
+    int exec_jobs = 0;
+    exec->add_option("--jobs,-j", exec_jobs, "number of jobs")->type_name("N");
 
     CLI::App *init = app.add_subcommand("init", "Initialize workspace");
     init->alias("in");
@@ -323,7 +325,8 @@ Available placeholders:
                  .root_patterns = exec_root_patterns,
                  .name_patterns = exec_name_patterns},
             .command = custom_command,
-            .repository_type = repo_type};
+            .repository_type = repo_type,
+            .jobs = exec_jobs};
         return run_exec(options);
     }
 

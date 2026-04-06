@@ -219,6 +219,9 @@ mrm exec --command "du -sh {path}"
 mrm exec --command "find {path} -name '*.cpp' -type f"
 mrm exec --command "wc -l {path}/src/**/*.cpp"
 mrm exec --command "tar -czf /backup/{name}.tar.gz -C {root} {name}"
+
+# Parallel execution
+mrm exec --config myrepos.yml --command "git fetch --all" --jobs 12
 ```
 
 Behavior:
@@ -237,6 +240,8 @@ Options:
 - `--find <path>` (`-f`): discover repos, see [source options](#source-options)
 - `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--jobs <n>` (`-j`): max concurrent operations, see
+  [concurrency](#concurrency)
 - `--command <cmd>`: command to execute (required)
 - `--type <type>`: repo type filter (`git`, `svn`, `hg`, or `all` - default:
   `all`)
@@ -350,6 +355,7 @@ Commands that perform network operations support the `--jobs` flag:
 mrm sync --jobs 12
 mrm update --config myrepos.yml --jobs 8
 mrm remotesync --find ~/forks --source upstream --target origin --branch main --jobs 4
+mrm exec --config myrepos.yml --command "git fetch --all" --jobs 12
 ```
 
 Options:
@@ -359,7 +365,7 @@ Options:
 Notes:
 - larger values can speed up network-bound operations
 - may increase load on disk/network resources
-- applies to: `sync`, `update`, `remotesync`
+- applies to: `sync`, `update`, `remotesync`, `exec`
 
 ## output modes
 
