@@ -25,7 +25,7 @@ using test_utils::TempDir;
 Repo make_test_repo(const std::string &name) {
     return Repo{
         .name = name,
-        .type = RepoType::GIT,
+
         .remotes = {},
         .branches = {},
         .children = {},

@@ -1,5 +1,4 @@
 #include "persistence/config.hpp"
-#include "core/repo_type.hpp"
 #include "persistence/discovery.hpp"
 #include <algorithm>
 #include <filesystem>
@@ -48,14 +47,8 @@ Repo to_repo(const YAML::Node &node) {
                   << "for repo " << node["name"].as<std::string>("unknown")
                   << '\n';
     }
-    const auto type_name = node["type"].as<std::string>();
-    const std::optional<RepoType> type = parse_repo_type(type_name);
-    if (!type.has_value()) {
-        throw std::runtime_error("Invalid RepoType: " + type_name);
-    }
     return Repo{
         .name = node["name"].as<std::string>(),
-        .type = *type,
         .phase = RepoPhase::QUEUED,
         .remotes = remotes,
         .branches = branches,
@@ -142,8 +135,6 @@ std::string make_config(const std::vector<Tree> &trees) {
         for (const auto &repo : tree.repos) {
             out << YAML::BeginMap;
             out << YAML::Key << "name" << YAML::Value << repo.name;
-            out << YAML::Key << "type" << YAML::Value
-                << std::string(repo_type_name(repo.type));
             out << YAML::Key << "remotes" << YAML::Value << YAML::BeginSeq;
             for (const auto &remote : repo.remotes) {
                 out << YAML::BeginMap;

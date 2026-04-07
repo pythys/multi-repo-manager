@@ -177,16 +177,11 @@ int parse_cli(int argc, char **argv) {
 Available placeholders:
 {path}  -  full absolute path to repository
 {name}  -  repository name
-{root}  -  tree root path
-{type}  -  repository type (git, svn, hg))");
+{root}  -  tree root path)");
     std::string custom_command;
     exec->add_option("--command,-m", custom_command, "command to run")
         ->required()
         ->type_name("command");
-    std::string repo_type = "all";
-    exec->add_option("--type,-t", repo_type, "repository type")
-        ->type_name("type")
-        ->check(CLI::IsMember({"all", "git", "svn", "hg"}));
     exec->add_option("--config,-c", config_file, "config file")
         ->type_name("file");
     std::vector<std::string> exec_find_paths;
@@ -329,7 +324,6 @@ Available placeholders:
                  .root_patterns = exec_root_patterns,
                  .name_patterns = exec_name_patterns},
             .command = custom_command,
-            .repository_type = repo_type,
             .jobs = exec_jobs};
         return run_exec(options);
     }

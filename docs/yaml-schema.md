@@ -24,7 +24,6 @@ trees:
   - root: <path>
     repos:
       - name: <relative/repo/path>
-        type: git
         remotes:
           - name: <remote-name>
             url: <remote-url>
@@ -38,8 +37,8 @@ trees:
 - A `tree` is a set of repositories under a common root directory.
 - A `root` is a path relative to the config file.
 - The `repos` are a collection of repositories under the tree.
-- Each repo has a `name` (relative to the tree root), a `type` (like git), a
-  list of `remotes`, and a list of `branches`.
+- Each repo has a `name` (relative to the tree root), a list of `remotes`, and a
+  list of `branches`.
 - Each remote has a `name` and a `URL`.
 - Each branch has a `name`, a `remote` it tracks, and a boolean `is_current`
   indicating if it is the currently selected branch.
@@ -51,7 +50,6 @@ trees:
   - root: myrepos
     repos:
       - name: fd
-        type: git
         remotes:
           - name: origin
             url: https://github.com/sharkdp/fd
@@ -64,7 +62,6 @@ trees:
   - root: work
     repos:
       - name: app
-        type: git
         remotes:
           - name: origin
             url: git@github.com:org/app.git
@@ -81,14 +78,12 @@ trees:
   - root: work
     repos:
       - name: app
-        type: git
         remotes:
           - name: origin
             url: https://git.mycompany.com/org/app.git
   - root: personal
     repos:
       - name: blog
-        type: git
         remotes:
           - name: origin
             url: https://git.example.com/user/blog.git
@@ -99,7 +94,6 @@ trees:
 - `name` is relative to `root`.
 - Nested repo paths are allowed (for example `parent/child`).
 - During `sync`, missing repos are cloned and existing repos are reconciled.
-- Other SCM types are planned; see the roadmap.
 
 ## guides
 

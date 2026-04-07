@@ -5,7 +5,7 @@
 #include "presentation/output_view.hpp"
 #include "presentation/tracked_operation.hpp"
 #include "util/common.hpp"
-#include "vcs/repo_factory.hpp"
+#include "vcs/git_manager.hpp"
 #include <atomic>
 #include <boost/asio.hpp>
 #include <string>
@@ -33,7 +33,6 @@ int run_status(const StatusOptions &options) {
                                    &tracker,
                                    &has_error,
                                    modified_only = options.modified_only] {
-                auto repo_manager = create_repo_manager(repo.type);
                 auto repo_path = construct_repo_path(tree.root, repo.name);
                 tracker.set_phase(
                     tree.root,
@@ -41,7 +40,7 @@ int run_status(const StatusOptions &options) {
                     RepoPhase::RUNNING,
                     "Collecting status");
                 try {
-                    const auto status = repo_manager->get_status(repo_path);
+                    const auto status = GitManager::get_status(repo_path);
                     for (const auto &message : status.messages) {
                         tracker.set_phase(
                             tree.root,

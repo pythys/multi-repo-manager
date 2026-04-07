@@ -6,7 +6,7 @@
 #include "presentation/tracked_operation.hpp"
 #include "util/common.hpp"
 #include "util/constants.hpp"
-#include "vcs/repo_factory.hpp"
+#include "vcs/git_manager.hpp"
 #include <atomic>
 #include <boost/asio.hpp>
 #include <string>
@@ -29,7 +29,6 @@ int run_update(const UpdateOptions &options) {
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
             auto updater = [repo, tree, &tracker, &has_error] {
-                auto repo_manager = create_repo_manager(repo.type);
                 auto repo_path = construct_repo_path(tree.root, repo.name);
                 tracker.set_phase(
                     tree.root,
@@ -37,7 +36,7 @@ int run_update(const UpdateOptions &options) {
                     RepoPhase::RUNNING,
                     "Updating repository");
                 try {
-                    const auto branches = repo_manager->get_branches(repo_path);
+                    const auto branches = GitManager::get_branches(repo_path);
                     const Branch *current = find_current_branch(branches);
                     if (!current) {
                         throw std::runtime_error(
@@ -47,7 +46,7 @@ int run_update(const UpdateOptions &options) {
                         throw std::runtime_error(
                             "Current branch has no remote in " + repo_path);
                     }
-                    const auto summary_lines = repo_manager->pull_branch(
+                    const auto summary_lines = GitManager::pull(
                         repo_path,
                         current->remote,
                         current->name,

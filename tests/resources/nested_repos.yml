@@ -2,22 +2,18 @@ trees:
 - root: nested
   repos:
   - name: parent
-    type: git
     remotes:
     - name: origin
       url: https://github.com/bootandy/dust
   - name: parent/child1
-    type: git
     remotes:
     - name: origin
       url: https://github.com/sharkdp/fd
   - name: parent/child2
-    type: git
     remotes:
     - name: origin
       url: https://github.com/junegunn/fzf
   - name: parent/child1/not_a_repo/grandchild1
-    type: git
     remotes:
     - name: origin
       url: https://github.com/siduck/st

@@ -9,7 +9,7 @@ std::vector<Tree> make_test_trees() {
         .root = "/test/root",
         .repos = {Repo{
             .name = "test-repo",
-            .type = RepoType::GIT,
+
             .phase = RepoPhase::SUCCEEDED,
             .remotes = {Remote{
                 .name = "origin",

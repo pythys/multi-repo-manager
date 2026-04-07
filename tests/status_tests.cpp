@@ -2,7 +2,7 @@
 #include "git_test_utils.hpp"
 #include "test_utils.hpp"
 #include "vcs/git_guard.hpp"
-#include "vcs/repo_factory.hpp"
+#include "vcs/git_manager.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <gtest/gtest.h>
@@ -43,8 +43,7 @@ TEST(StatusTests, ReportsRenameIgnoredAndUntracked) {
     write_file(repo / "ignored.log", "ignored\n");
     write_file(repo / "untracked.txt", "untracked\n");
 
-    auto repo_manager = create_repo_manager(RepoType::GIT);
-    const RepoStatus status = repo_manager->get_status(repo.string());
+    const RepoStatus status = GitManager::get_status(repo.string());
 
     EXPECT_TRUE(status.has_changes);
     EXPECT_TRUE(contains_status(status.messages, "Renamed file staged"));
@@ -75,8 +74,7 @@ TEST(StatusTests, ReportsConflictedFiles) {
     git_test::commit(repo, "master");
     EXPECT_FALSE(git_test::merge_branch(repo, "feature"));
 
-    auto repo_manager = create_repo_manager(RepoType::GIT);
-    const RepoStatus status = repo_manager->get_status(repo.string());
+    const RepoStatus status = GitManager::get_status(repo.string());
     EXPECT_TRUE(status.has_changes);
     EXPECT_TRUE(
         contains_status(status.messages, "Conflicted file: conflict.txt"));

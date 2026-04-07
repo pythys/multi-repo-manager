@@ -16,10 +16,8 @@ struct ExecPlanResult {
     std::string error;
 };
 
-ExecPlanResult plan_exec(
-    const std::string &custom_command,
-    const std::vector<Tree> &config,
-    const std::string &repo_type);
+ExecPlanResult
+plan_exec(const std::string &custom_command, const std::vector<Tree> &config);
 
 int run_exec(const ExecutionOptions &options);
 

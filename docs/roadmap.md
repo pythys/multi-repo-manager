@@ -43,10 +43,6 @@
 - Shallow or partial clones for very large repos
 - Add `mrm hooks sync --from <template-dir>` to distribute git hooks
 
-### VCS Support
-- Implement subversion logic
-- Implement mercurial logic
-
 ### Distribution
 - Add powershell completion
 - Package for major OSes and distros:

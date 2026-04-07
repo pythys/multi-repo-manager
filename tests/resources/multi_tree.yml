@@ -2,19 +2,16 @@ trees:
 - root: first_root
   repos:
   - name: dust
-    type: git
     remotes:
     - name: origin
       url: https://github.com/bootandy/dust
 - root: second_root
   repos:
   - name: fd
-    type: git
     remotes:
     - name: origin
       url: https://github.com/sharkdp/fd
   - name: st
-    type: git
     remotes:
     - name: origin
       url: https://github.com/siduck/st

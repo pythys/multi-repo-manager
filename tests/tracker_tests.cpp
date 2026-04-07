@@ -13,7 +13,7 @@ std::vector<Tree> make_trees() {
         .root = "root",
         .repos = {Repo{
             .name = "repo",
-            .type = RepoType::GIT,
+
             .phase = RepoPhase::QUEUED,
             .remotes = {},
             .branches = {},

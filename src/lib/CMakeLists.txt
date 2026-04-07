@@ -14,10 +14,7 @@ target_sources(
             util/runtime.cpp
             # core/
             core/tree.cpp
-            core/repo_type.cpp
             core/tracker.cpp
-            # vcs/
-            vcs/repo_factory.cpp
             # persistence/
             persistence/config.cpp
             persistence/discovery.cpp

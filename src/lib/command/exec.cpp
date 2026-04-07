@@ -1,5 +1,4 @@
 #include "command/exec.hpp"
-#include "core/repo_type.hpp"
 #include "core/tracker.hpp"
 #include "core/tree.hpp"
 #include "persistence/config.hpp"
@@ -36,13 +35,11 @@ std::string substitute_placeholders(
     const std::string &command,
     const std::string &repo_path,
     const std::string &repo_name,
-    const std::string &tree_root,
-    RepoType repo_type) {
+    const std::string &tree_root) {
     std::string result = command;
     result = replace_all(result, "{path}", repo_path);
     result = replace_all(result, "{name}", repo_name);
     result = replace_all(result, "{root}", tree_root);
-    result = replace_all(result, "{type}", repo_type_to_string(repo_type));
     return result;
 }
 
@@ -99,14 +96,12 @@ std::vector<std::string> build_command_for_repo(
     const std::string &custom_command,
     const std::string &repo_path,
     const std::string &repo_name,
-    const std::string &tree_root,
-    RepoType repo_type) {
+    const std::string &tree_root) {
     const std::string substituted = substitute_placeholders(
         custom_command,
         repo_path,
         repo_name,
-        tree_root,
-        repo_type);
+        tree_root);
     return split_command(substituted);
 }
 
@@ -186,8 +181,7 @@ int run_exec(const ExecutionOptions &options) {
         options.selector.root_patterns,
         options.selector.name_patterns);
 
-    const ExecPlanResult plan =
-        plan_exec(options.command, trees, options.repository_type);
+    const ExecPlanResult plan = plan_exec(options.command, trees);
     if (!plan.error.empty()) {
         std::cerr << plan.error << "\n";
         return 1;
@@ -244,28 +238,11 @@ int run_exec(const ExecutionOptions &options) {
     return has_error.load() ? 1 : 0;
 }
 
-ExecPlanResult plan_exec(
-    const std::string &custom_command,
-    const std::vector<Tree> &config,
-    const std::string &repo_type) {
-    std::optional<RepoType> target_repo_type;
-    if (repo_type != "all") {
-        target_repo_type = parse_repo_type(repo_type);
-        if (!target_repo_type.has_value()) {
-            return {
-                .items = {},
-                .error = "Invalid repo type: " + repo_type +
-                         ". Expected one of: all, git, svn, hg"};
-        }
-    }
-
+ExecPlanResult
+plan_exec(const std::string &custom_command, const std::vector<Tree> &config) {
     std::vector<ExecPlanItem> items;
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
-            if (target_repo_type.has_value() &&
-                repo.type != *target_repo_type) {
-                continue;
-            }
             const std::string repo_path =
                 construct_repo_path(tree.root, repo.name);
             const std::vector<std::string> command_parts =
@@ -273,8 +250,7 @@ ExecPlanResult plan_exec(
                     custom_command,
                     repo_path,
                     repo.name,
-                    tree.root,
-                    repo.type);
+                    tree.root);
             if (command_parts.empty()) {
                 return {
                     .items = {},

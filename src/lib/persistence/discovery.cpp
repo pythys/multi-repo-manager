@@ -1,18 +1,15 @@
 #include "persistence/discovery.hpp"
 #include "core/tree.hpp"
-#include "vcs/repo_factory.hpp"
+#include "vcs/git_manager.hpp"
 #include <algorithm>
-#include <array>
 #include <filesystem>
 #include <iostream>
-#include <optional>
 #include <string>
 #include <vector>
 
 namespace fs = std::filesystem;
 
 namespace {
-using RepoMarker = std::pair<const char *, RepoType>;
 
 bool is_accessible_directory(const fs::path &path) {
     std::error_code ec;
@@ -28,20 +25,9 @@ bool has_entries(const fs::path &path) {
     return !ec && it != fs::directory_iterator{};
 }
 
-std::optional<RepoType> find_repo_type(const fs::path &dir) {
-    static constexpr std::array<RepoMarker, 2> kMarkers = {
-        RepoMarker{".git", RepoType::GIT},
-        RepoMarker{".svn", RepoType::SVN},
-    };
-
-    for (const auto &[marker, type] : kMarkers) {
-        const fs::path marker_path = dir / marker;
-        if (is_accessible_directory(marker_path) && has_entries(marker_path)) {
-            return type;
-        }
-    }
-
-    return std::nullopt;
+bool is_git_repo(const fs::path &dir) {
+    const fs::path git_dir = dir / ".git";
+    return is_accessible_directory(git_dir) && has_entries(git_dir);
 }
 } // namespace
 
@@ -74,21 +60,18 @@ std::vector<Repo> find_repos(const std::string &path) {
 
         const fs::path dirpath = it->path();
         const std::string filename = dirpath.filename().string();
-        if (filename == ".git" || filename == ".svn") {
+        if (filename == ".git") {
             it.disable_recursion_pending();
             it.increment(ec);
             continue;
         }
 
-        const auto repo_type = find_repo_type(dirpath);
-        if (repo_type.has_value()) {
+        if (is_git_repo(dirpath)) {
             try {
-                auto repo_manager = create_repo_manager(*repo_type);
-                auto remotes = repo_manager->get_remotes(dirpath);
-                auto branches = repo_manager->get_branches(dirpath);
+                auto remotes = GitManager::get_remotes(dirpath);
+                auto branches = GitManager::get_branches(dirpath);
                 Repo repo;
                 repo.name = fs::relative(dirpath, root).string();
-                repo.type = *repo_type;
                 repo.remotes = remotes;
                 repo.branches = branches;
                 repos.push_back(repo);

@@ -1,9 +1,9 @@
 #ifndef SRC_LIB_VCS_GIT_MANAGER_HPP_
 #define SRC_LIB_VCS_GIT_MANAGER_HPP_
 
+#include "core/tree.hpp"
 #include "git2.h"
 #include "util/runtime.hpp"
-#include "vcs/repo_manager.hpp"
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -12,6 +12,13 @@
 #include <vector>
 
 constexpr size_t SHORT_COMMIT_HASH_LENGTH = 7;
+
+enum class BranchSyncState : std::uint8_t {
+    UP_TO_DATE,
+    SOURCE_AHEAD,
+    TARGET_AHEAD,
+    DIVERGED
+};
 
 template <typename T, void (*free_resource)(T *)> class GitResource {
     T *resource_;
@@ -64,7 +71,7 @@ class GitBuffer {
     }
 };
 
-class GitManager : public RepoManager {
+class GitManager {
   private:
     static void check_error(
         int error_code,
@@ -502,10 +509,7 @@ class GitManager : public RepoManager {
     }
 
   public:
-    GitManager() = default;
-    ~GitManager() override = default;
-
-    bool is_repo(const std::string &path) override {
+    static bool is_repo(const std::string &path) {
         const bool path_exists = std::filesystem::exists(path);
         if (!path_exists) {
             return false;
@@ -516,7 +520,7 @@ class GitManager : public RepoManager {
         return error_code == 0;
     }
 
-    void init(const std::string &path, const std::string &branch) override {
+    static void init(const std::string &path, const std::string &branch) {
         git_repository_init_options opts;
         check_error(
             git_repository_init_options_init(
@@ -534,8 +538,8 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void
-    copy(const std::string &source, const std::string &destination) override {
+    static void
+    clone(const std::string &source, const std::string &destination) {
         GitRepository repo;
         git_clone_options clone_opts;
         git_clone_options_init(&clone_opts, GIT_CLONE_OPTIONS_VERSION);
@@ -565,7 +569,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void add_remote(const std::string &path, const Remote &remote) override {
+    static void add_remote(const std::string &path, const Remote &remote) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -583,7 +587,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void remove_remote(const std::string &path, const Remote &remote) override {
+    static void remove_remote(const std::string &path, const Remote &remote) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -596,7 +600,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    std::vector<Remote> get_remotes(const std::string &path) override {
+    static std::vector<Remote> get_remotes(const std::string &path) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -630,7 +634,7 @@ class GitManager : public RepoManager {
         return remotes;
     }
 
-    void add_branch(const std::string &path, const Branch &branch) override {
+    static void add_branch(const std::string &path, const Branch &branch) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -686,7 +690,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    void remove_branch(const std::string &path, const Branch &branch) override {
+    static void remove_branch(const std::string &path, const Branch &branch) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -723,7 +727,7 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    std::vector<Branch> get_branches(const std::string &path) override {
+    static std::vector<Branch> get_branches(const std::string &path) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -786,8 +790,8 @@ class GitManager : public RepoManager {
         return branches;
     }
 
-    bool branch_exists(const std::string &path, const std::string &branch_name)
-        override {
+    static bool
+    branch_exists(const std::string &path, const std::string &branch_name) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -810,8 +814,8 @@ class GitManager : public RepoManager {
         return true;
     }
 
-    void switch_branch(const std::string &path, const std::string &branch_name)
-        override {
+    static void
+    switch_branch(const std::string &path, const std::string &branch_name) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -859,11 +863,11 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    std::vector<std::string> pull_branch(
+    static std::vector<std::string> pull(
         const std::string &path,
         const std::string &remote_name,
         const std::string &remote_branch,
-        const std::string &local_branch) override {
+        const std::string &local_branch) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -965,11 +969,11 @@ class GitManager : public RepoManager {
             target_oid);
     }
 
-    void push_branch(
+    static void push(
         const std::string &path,
         const std::string &remote_name,
         const std::string &local_branch,
-        const std::string &remote_branch) override {
+        const std::string &remote_branch) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -1018,10 +1022,10 @@ class GitManager : public RepoManager {
             repo.get());
     }
 
-    BranchSyncState compare_branches(
+    static BranchSyncState compare_branches(
         const std::string &path,
         const std::string &source_branch,
-        const std::string &target_branch) override {
+        const std::string &target_branch) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -1059,7 +1063,7 @@ class GitManager : public RepoManager {
         return BranchSyncState::SOURCE_AHEAD;
     }
 
-    RepoStatus get_status(const std::string &path) override {
+    static RepoStatus get_status(const std::string &path) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),

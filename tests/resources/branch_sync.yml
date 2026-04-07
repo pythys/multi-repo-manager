@@ -2,7 +2,6 @@ trees:
 - root: branch_root
   repos:
   - name: fzf
-    type: git
     remotes:
     - name: origin
       url: https://github.com/junegunn/fzf

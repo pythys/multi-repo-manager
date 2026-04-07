@@ -19,7 +19,6 @@ Run in order:
 
 ## Notes for Agents
 
-- Maintain multi repository type abstraction (git, subversion, etc).
 - Write tests for critical functionality without breaking public signatures.
 - Keep documentation in "/docs" in sync with code changes.
 - Prefer terse, functional and portable (linux, macos, windows) code.

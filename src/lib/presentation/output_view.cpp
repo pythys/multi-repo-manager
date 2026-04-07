@@ -63,19 +63,6 @@ ftxui::Color convert_level_to_color(MessageLevel level) {
     return ftxui::Color::White;
 }
 
-ftxui::Color convert_type_to_color(RepoType type) {
-    switch (type) {
-    case RepoType::GIT:
-        return ftxui::Color::Green;
-    case RepoType::SVN:
-        return ftxui::Color::Blue;
-    case RepoType::HG:
-        return ftxui::Color::Magenta;
-    default:
-        return ftxui::Color::White;
-    }
-}
-
 std::string extract_current_branch(const std::vector<Branch> &branches) {
     const Branch *current = find_current_branch(branches);
     return current ? current->name : "";
@@ -145,7 +132,6 @@ void build_progress_text_lines(
 struct TableColumnWidths {
     std::size_t root;
     std::size_t name;
-    std::size_t type;
     std::size_t remotes;
     std::size_t branches;
     std::size_t current;
@@ -154,7 +140,6 @@ struct TableColumnWidths {
 TableColumnWidths compute_table_column_widths(const std::vector<Tree> &trees) {
     constexpr std::size_t kMinRootWidth = 4;
     constexpr std::size_t kMinNameWidth = 4;
-    constexpr std::size_t kMinTypeWidth = 4;
     constexpr std::size_t kMinRemotesWidth = 7;
     constexpr std::size_t kMinBranchesWidth = 8;
     constexpr std::size_t kMinCurrentWidth = 7;
@@ -162,7 +147,6 @@ TableColumnWidths compute_table_column_widths(const std::vector<Tree> &trees) {
     TableColumnWidths widths{
         .root = kMinRootWidth,
         .name = kMinNameWidth,
-        .type = kMinTypeWidth,
         .remotes = kMinRemotesWidth,
         .branches = kMinBranchesWidth,
         .current = kMinCurrentWidth};
@@ -171,8 +155,6 @@ TableColumnWidths compute_table_column_widths(const std::vector<Tree> &trees) {
         widths.root = std::max(widths.root, tree.root.length());
         for (const auto &repo : tree.repos) {
             widths.name = std::max(widths.name, repo.name.length());
-            const std::string type_str = repo_type_to_string(repo.type);
-            widths.type = std::max(widths.type, type_str.length());
             const std::string remotes_str = std::to_string(repo.remotes.size());
             widths.remotes = std::max(widths.remotes, remotes_str.length());
             const std::string branches_str =
@@ -202,8 +184,6 @@ void build_table_tui_lines(
             text("  "),
             text(apply_padding("NAME", widths.name)) | bold,
             text("  "),
-            text(apply_padding("TYPE", widths.type)) | bold,
-            text("  "),
             text(apply_padding("REMOTES", widths.remotes, true)) | bold,
             text("  "),
             text(apply_padding("BRANCHES", widths.branches, true)) | bold,
@@ -212,15 +192,14 @@ void build_table_tui_lines(
         }) |
         color(Color::White));
 
-    constexpr std::size_t kColumnSpacing = 10;
-    const std::size_t separator_width =
-        widths.root + widths.name + widths.type + widths.remotes +
-        widths.branches + widths.current + kColumnSpacing;
+    constexpr std::size_t kColumnSpacing = 8;
+    const std::size_t separator_width = widths.root + widths.name +
+                                        widths.remotes + widths.branches +
+                                        widths.current + kColumnSpacing;
     lines.push_back(text(create_separator(separator_width)));
 
     for (const auto &tree : trees) {
         for (const auto &repo : tree.repos) {
-            const std::string type_str = repo_type_to_string(repo.type);
             const std::string remotes_str = std::to_string(repo.remotes.size());
             const std::string branches_str =
                 std::to_string(repo.branches.size());
@@ -231,9 +210,6 @@ void build_table_tui_lines(
                     color(Color::Cyan),
                 text("  "),
                 text(apply_padding(repo.name, widths.name)),
-                text("  "),
-                text(apply_padding(type_str, widths.type)) |
-                    color(convert_type_to_color(repo.type)),
                 text("  "),
                 text(apply_padding(remotes_str, widths.remotes, true)),
                 text("  "),
@@ -249,19 +225,17 @@ void build_table_tui_lines(
 std::string format_table_text_row(
     const std::vector<std::string> &cells,
     const TableColumnWidths &widths) {
-    constexpr std::size_t kExpectedColumnCount = 6;
+    constexpr std::size_t kExpectedColumnCount = 5;
     constexpr std::size_t kRootIndex = 0;
     constexpr std::size_t kNameIndex = 1;
-    constexpr std::size_t kTypeIndex = 2;
-    constexpr std::size_t kRemotesIndex = 3;
-    constexpr std::size_t kBranchesIndex = 4;
-    constexpr std::size_t kCurrentIndex = 5;
+    constexpr std::size_t kRemotesIndex = 2;
+    constexpr std::size_t kBranchesIndex = 3;
+    constexpr std::size_t kCurrentIndex = 4;
 
     std::ostringstream oss;
     if (cells.size() >= kExpectedColumnCount) {
         oss << apply_padding(cells[kRootIndex], widths.root) << "  "
             << apply_padding(cells[kNameIndex], widths.name) << "  "
-            << apply_padding(cells[kTypeIndex], widths.type) << "  "
             << apply_padding(cells[kRemotesIndex], widths.remotes, true) << "  "
             << apply_padding(cells[kBranchesIndex], widths.branches, true)
             << "  " << apply_padding(cells[kCurrentIndex], widths.current);
@@ -279,24 +253,22 @@ void build_table_text_lines(
     const TableColumnWidths widths = compute_table_column_widths(trees);
 
     lines.push_back(format_table_text_row(
-        {"ROOT", "NAME", "TYPE", "REMOTES", "BRANCHES", "CURRENT"},
+        {"ROOT", "NAME", "REMOTES", "BRANCHES", "CURRENT"},
         widths));
 
-    constexpr std::size_t kColumnSpacing = 10;
-    const std::size_t separator_width =
-        widths.root + widths.name + widths.type + widths.remotes +
-        widths.branches + widths.current + kColumnSpacing;
+    constexpr std::size_t kColumnSpacing = 8;
+    const std::size_t separator_width = widths.root + widths.name +
+                                        widths.remotes + widths.branches +
+                                        widths.current + kColumnSpacing;
     lines.push_back(create_separator(separator_width));
 
     for (const auto &tree : trees) {
         for (const auto &repo : tree.repos) {
-            const std::string type_str = repo_type_to_string(repo.type);
             const std::string current = extract_current_branch(repo.branches);
 
             lines.push_back(format_table_text_row(
                 {tree.root,
                  repo.name,
-                 type_str,
                  std::to_string(repo.remotes.size()),
                  std::to_string(repo.branches.size()),
                  current},

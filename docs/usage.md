@@ -74,7 +74,6 @@ mrm list --find myrepos
 Output columns:
 - ROOT: tree root path
 - NAME: repository name
-- TYPE: repository type (git, svn, hg)
 - REMOTES: count of configured remotes
 - BRANCHES: count of local branches
 - CURRENT: currently checked-out branch name
@@ -102,7 +101,7 @@ mrm find client fork personal --save myrepos.yml
 ```
 
 Behavior:
-- scans specified paths for repositories (`.git`, `.hg`, etc directories)
+- scans specified paths for Git repositories (`.git` directories)
 - outputs YAML config to stdout or saves to file
 - each path becomes one `tree.root` in the generated config
 
@@ -184,7 +183,7 @@ mrm remotesync --source upstream --target origin --branch master
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --jobs 12
 mrm remotesync --config myrepos.yml --source upstream --target origin --branch master --branch develop --dry-run
-mrm remotesync --find ~/forks --source upstream --target origin --branch main
+mrm remotesync --find ~/forks --source upstream --target origin --branch master
 ```
 
 Behavior:
@@ -214,11 +213,11 @@ Execute arbitrary commands in repositories with context substitution.
 ```sh
 # VCS commands (must specify full command)
 mrm exec --command "git remote get-url origin"
-mrm exec --config myrepos.yml --type git --command "git status -sb"
+mrm exec --config myrepos.yml --command "git status -sb"
 mrm exec --find ~/projects --name "*api*" --command "git log --oneline -5"
 
 # Arbitrary commands with placeholders
-mrm exec --command "echo {name}: {type} repo at {path}"
+mrm exec --command "echo {name}: repo at {path}"
 mrm exec --command "du -sh {path}"
 mrm exec --command "find {path} -name '*.cpp' -type f"
 mrm exec --command "wc -l {path}/src/**/*.cpp"
@@ -237,7 +236,6 @@ Placeholders:
 - `{path}`: full absolute path to repository (e.g., `/home/user/projects/my-app`)
 - `{name}`: repository name only (e.g., `my-app`)
 - `{root}`: tree root path (e.g., `/home/user/projects`)
-- `{type}`: repository type (e.g., `git`, `svn`, `hg`)
 
 Options:
 - `--config <file>` (`-c`): config file, see [source options](#source-options)
@@ -247,8 +245,6 @@ Options:
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
 - `--command <cmd>`: command to execute (required)
-- `--type <type>`: repo type filter (`git`, `svn`, `hg`, or `all` - default:
-  `all`)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -310,7 +306,7 @@ mrm update --find ~/work ~/personal --jobs 8
 ```
 
 Discover repositories by scanning directories:
-- scans specified paths for repositories (`.git`, `.hg`, etc directories)
+- scans specified paths for Git repositories (`.git` directories)
 - creates in-memory structure equivalent to config file
 - each path becomes one tree root
 - repeatable: `--find ~/work --find ~/personal`
@@ -359,7 +355,7 @@ Commands that perform operations on multiple repositories support the `--jobs` f
 mrm sync --jobs 12
 mrm status --config myrepos.yml --jobs 8
 mrm update --config myrepos.yml --jobs 8
-mrm remotesync --find ~/forks --source upstream --target origin --branch main --jobs 4
+mrm remotesync --find ~/forks --source upstream --target origin --branch master --jobs 4
 mrm exec --config myrepos.yml --command "git fetch --all" --jobs 12
 ```
 

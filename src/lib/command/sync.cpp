@@ -7,7 +7,7 @@
 #include "presentation/tracked_operation.hpp"
 #include "util/common.hpp"
 #include "util/constants.hpp"
-#include "vcs/repo_factory.hpp"
+#include "vcs/git_manager.hpp"
 #include <algorithm>
 #include <atomic>
 #include <boost/asio.hpp>
@@ -85,7 +85,6 @@ void sync_branches(
     Tracker &tracker,
     const std::string &root,
     const std::string &repo_name,
-    RepoManager *repo_manager,
     const std::string &repo_path,
     const std::vector<Branch> &desired_branches,
     bool prune_branches) {
@@ -93,7 +92,7 @@ void sync_branches(
         return;
     }
 
-    auto repo_branches = repo_manager->get_branches(repo_path);
+    auto repo_branches = GitManager::get_branches(repo_path);
     const Branch *original = find_current_branch(repo_branches);
     const std::string original_branch = original ? original->name : "";
     auto to_add_branches =
@@ -103,22 +102,21 @@ void sync_branches(
             throw std::runtime_error(
                 "Branch remote is missing for " + branch.name);
         }
-        if (!repo_manager->branch_exists(repo_path, branch.name)) {
-            repo_manager->pull_branch(
+        if (!GitManager::branch_exists(repo_path, branch.name)) {
+            GitManager::pull(
                 repo_path,
                 branch.remote,
                 branch.name,
                 branch.name);
         }
-        repo_manager->switch_branch(repo_path, branch.name);
-        repo_manager
-            ->pull_branch(repo_path, branch.remote, branch.name, branch.name);
+        GitManager::switch_branch(repo_path, branch.name);
+        GitManager::pull(repo_path, branch.remote, branch.name, branch.name);
     }
     auto to_remove_branches =
         find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
     if (prune_branches) {
         for (const auto &branch : to_remove_branches) {
-            repo_manager->remove_branch(repo_path, branch);
+            GitManager::remove_branch(repo_path, branch);
         }
     } else {
         for (const auto &branch : to_remove_branches) {
@@ -131,7 +129,7 @@ void sync_branches(
         }
     }
     if (!original_branch.empty()) {
-        repo_manager->switch_branch(repo_path, original_branch);
+        GitManager::switch_branch(repo_path, original_branch);
     }
 }
 } // namespace
@@ -144,26 +142,24 @@ void update_repository(
     bool prune_branches) {
     tracker
         .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
-    auto repo_manager = create_repo_manager(repo->type);
     const std::string repo_path =
         (std::filesystem::path(root) / repo->name).string();
-    auto remotes = repo_manager->get_remotes(repo_path);
+    auto remotes = GitManager::get_remotes(repo_path);
     if (prune_remotes) {
         auto to_remove =
             find_remotes(repo->remotes, remotes, MatchType::TO_REMOVE);
         for (const auto &remote : to_remove) {
-            repo_manager->remove_remote(repo_path, remote);
+            GitManager::remove_remote(repo_path, remote);
         }
     }
     auto to_add = find_remotes(repo->remotes, remotes, MatchType::TO_ADD);
     for (const auto &remote : to_add) {
-        repo_manager->add_remote(repo_path, remote);
+        GitManager::add_remote(repo_path, remote);
     }
     sync_branches(
         tracker,
         root,
         repo->name,
-        repo_manager.get(),
         repo_path,
         repo->branches,
         prune_branches);
@@ -172,12 +168,11 @@ void update_repository(
 void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
     tracker
         .set_phase(root, repo->name, RepoPhase::RUNNING, "Cloning repository");
-    auto repo_manager = create_repo_manager(repo->type);
     auto it = std::ranges::find_if(repo->remotes, [](const Remote &remote) {
         return remote.name == "origin";
     });
     if (it != repo->remotes.end()) {
-        repo_manager->copy(
+        GitManager::clone(
             it->url,
             (std::filesystem::path(root) / repo->name).string());
     } else {
@@ -188,7 +183,7 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         if (remote.name == "origin") {
             continue;
         }
-        repo_manager->add_remote(
+        GitManager::add_remote(
             (std::filesystem::path(root) / repo->name).string(),
             remote);
     }
@@ -196,7 +191,6 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         tracker,
         root,
         repo->name,
-        repo_manager.get(),
         (std::filesystem::path(root) / repo->name).string(),
         repo->branches,
         false);
@@ -288,8 +282,7 @@ void sync_repository(
         }
     };
 
-    auto repo_manager = create_repo_manager(repo->type);
-    auto is_repo = repo_manager->is_repo(
+    auto is_repo = GitManager::is_repo(
         (std::filesystem::path(root) / repo->name).string());
     if (is_repo) {
         asio::post(pool, update_action);

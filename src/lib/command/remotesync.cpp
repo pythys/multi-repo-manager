@@ -6,8 +6,7 @@
 #include "presentation/tracked_operation.hpp"
 #include "util/common.hpp"
 #include "util/constants.hpp"
-#include "vcs/repo_factory.hpp"
-#include "vcs/repo_manager.hpp"
+#include "vcs/git_manager.hpp"
 #include <algorithm>
 #include <atomic>
 #include <boost/asio.hpp>
@@ -25,18 +24,16 @@ struct RepoJob {
     std::string path;
 };
 
-std::vector<RepoJob> collect_git_repos(const std::vector<Tree> &config) {
+std::vector<RepoJob> collect_repos(const std::vector<Tree> &config) {
     std::vector<RepoJob> repo_jobs;
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
-            if (repo.type == RepoType::GIT) {
-                repo_jobs.push_back(
-                    RepoJob{
-                        .root = tree.root,
-                        .name = repo.name,
-                        .path = construct_repo_path(tree.root, repo.name),
-                    });
-            }
+            repo_jobs.push_back(
+                RepoJob{
+                    .root = tree.root,
+                    .name = repo.name,
+                    .path = construct_repo_path(tree.root, repo.name),
+                });
         }
     }
     return repo_jobs;
@@ -44,7 +41,6 @@ std::vector<RepoJob> collect_git_repos(const std::vector<Tree> &config) {
 
 bool sync_branch(
     Tracker &tracker,
-    RepoManager *repo_manager,
     const std::string &root,
     const std::string &repo_name,
     const std::string &repo_path,
@@ -56,18 +52,27 @@ bool sync_branch(
     std::atomic_bool &has_error) {
     try {
         std::string source_label = source_remote + "/" + branch;
+        const std::string &source_local_branch = branch;
+        std::string target_local_branch = "mrm-target-" + branch;
+
         if (source_available) {
             try {
                 const bool has_branch =
-                    repo_manager->branch_exists(repo_path, branch);
+                    GitManager::branch_exists(repo_path, source_local_branch);
                 if (!has_branch) {
-                    repo_manager
-                        ->pull_branch(repo_path, source_remote, branch, branch);
+                    GitManager::pull(
+                        repo_path,
+                        source_remote,
+                        branch,
+                        source_local_branch);
                 }
-                repo_manager->switch_branch(repo_path, branch);
+                GitManager::switch_branch(repo_path, source_local_branch);
                 if (has_branch) {
-                    repo_manager
-                        ->pull_branch(repo_path, source_remote, branch, branch);
+                    GitManager::pull(
+                        repo_path,
+                        source_remote,
+                        branch,
+                        source_local_branch);
                 }
             } catch (const std::exception &) {
                 source_available = false;
@@ -81,7 +86,7 @@ bool sync_branch(
         }
 
         if (!source_available) {
-            if (!repo_manager->branch_exists(repo_path, branch)) {
+            if (!GitManager::branch_exists(repo_path, source_local_branch)) {
                 tracker.set_phase(
                     root,
                     repo_name,
@@ -91,7 +96,86 @@ bool sync_branch(
                 return true;
             }
             source_label = "local " + branch;
-            repo_manager->switch_branch(repo_path, branch);
+            GitManager::switch_branch(repo_path, source_local_branch);
+        }
+
+        bool target_exists = false;
+        try {
+            GitManager::pull(
+                repo_path,
+                target_remote,
+                branch,
+                target_local_branch);
+            target_exists = true;
+        } catch (const std::exception &) {
+            target_exists = false;
+        }
+
+        if (target_exists) {
+            try {
+                BranchSyncState state = GitManager::compare_branches(
+                    repo_path,
+                    source_local_branch,
+                    target_local_branch);
+
+                if (state == BranchSyncState::UP_TO_DATE) {
+                    tracker.set_phase(
+                        root,
+                        repo_name,
+                        RepoPhase::RUNNING,
+                        "[" + branch + "] Already up-to-date",
+                        MessageLevel::OUTPUT);
+                    GitManager::switch_branch(repo_path, source_local_branch);
+                    try {
+                        Branch temp_branch{
+                            .name = target_local_branch,
+                            .remote = "",
+                            .is_current = false};
+                        GitManager::remove_branch(repo_path, temp_branch);
+                    } catch (...) { // NOLINT(bugprone-empty-catch)
+                    }
+                    return true;
+                }
+                if (state == BranchSyncState::TARGET_AHEAD) {
+                    tracker.set_phase(
+                        root,
+                        repo_name,
+                        RepoPhase::FAILED,
+                        "[" + branch +
+                            "] Target is ahead; cannot push without merge",
+                        MessageLevel::ERROR);
+                    has_error.store(true);
+                    return false;
+                }
+                if (state == BranchSyncState::DIVERGED) {
+                    tracker.set_phase(
+                        root,
+                        repo_name,
+                        RepoPhase::FAILED,
+                        "[" + branch +
+                            "] Branches diverged; manual merge required",
+                        MessageLevel::ERROR);
+                    has_error.store(true);
+                    return false;
+                }
+            } catch (const std::exception &e) {
+                tracker.set_phase(
+                    root,
+                    repo_name,
+                    RepoPhase::RUNNING,
+                    "[" + branch +
+                        "] Could not compare: " + std::string(e.what()),
+                    MessageLevel::WARNING);
+            }
+            GitManager::switch_branch(repo_path, source_local_branch);
+            try {
+                Branch temp_branch{
+                    .name = target_local_branch,
+                    .remote = "",
+                    .is_current = false};
+                GitManager::remove_branch(repo_path, temp_branch);
+            } catch (...) { // NOLINT(bugprone-empty-catch)
+            }
         }
 
         if (dry_run) {
@@ -105,7 +189,7 @@ bool sync_branch(
             return true;
         }
 
-        repo_manager->push_branch(repo_path, target_remote, branch, branch);
+        GitManager::push(repo_path, target_remote, source_local_branch, branch);
 
         tracker.set_phase(
             root,
@@ -134,15 +218,14 @@ void process_repo_sync(
     const std::vector<std::string> &branches,
     bool dry_run,
     std::atomic_bool &has_error) {
-    std::unique_ptr<RepoManager> repo_manager =
-        create_repo_manager(RepoType::GIT);
+
     tracker.set_phase(
         repo_job.root,
         repo_job.name,
         RepoPhase::RUNNING,
         "Synchronizing remotes");
     try {
-        if (!repo_manager->is_repo(repo_job.path)) {
+        if (!GitManager::is_repo(repo_job.path)) {
             tracker.set_phase(
                 repo_job.root,
                 repo_job.name,
@@ -153,7 +236,7 @@ void process_repo_sync(
             return;
         }
 
-        const auto repo_branches = repo_manager->get_branches(repo_job.path);
+        const auto repo_branches = GitManager::get_branches(repo_job.path);
         const auto current_it =
             std::ranges::find_if(repo_branches, [](const Branch &branch) {
                 return branch.is_current;
@@ -167,7 +250,6 @@ void process_repo_sync(
         for (const auto &branch : branches) {
             if (!sync_branch(
                     tracker,
-                    repo_manager.get(),
                     repo_job.root,
                     repo_job.name,
                     repo_job.path,
@@ -181,7 +263,7 @@ void process_repo_sync(
             }
         }
         if (!original_branch.empty()) {
-            repo_manager->switch_branch(repo_job.path, original_branch);
+            GitManager::switch_branch(repo_job.path, original_branch);
         }
         if (!repo_failed) {
             tracker.set_phase(
@@ -212,7 +294,7 @@ int run_remotesync(const RemoteSyncOptions &options) {
     TrackedOperation op(trees, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();
 
-    const std::vector<RepoJob> repo_jobs = collect_git_repos(trees);
+    const std::vector<RepoJob> repo_jobs = collect_repos(trees);
 
     std::atomic_bool has_error{false};
     auto pool = create_thread_pool(options.jobs);

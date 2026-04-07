@@ -25,7 +25,6 @@ struct UpdateOptions {
 struct ExecutionOptions {
     RepositorySelector selector;
     std::string command;
-    std::string repository_type;
     int jobs = 0;
 };
 

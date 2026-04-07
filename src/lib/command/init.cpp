@@ -72,10 +72,10 @@ mrm sync
 
 ## documentation
 
-- [Usage Guide](https://git.pythys.com/taher/multi-repo-manager/src/branch/main/docs/usage.md)
-- [Quick Start](https://git.pythys.com/taher/multi-repo-manager/src/branch/main/docs/guides/quickstart.md)
-- [Best Practices](https://git.pythys.com/taher/multi-repo-manager/src/branch/main/docs/guides/best-practices.md)
-- [YAML Schema](https://git.pythys.com/taher/multi-repo-manager/src/branch/main/docs/yaml-schema.md)
+- [Usage Guide](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/usage.md)
+- [Quick Start](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/guides/quickstart.md)
+- [Best Practices](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/guides/best-practices.md)
+- [YAML Schema](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/yaml-schema.md)
 
 For more information, visit: https://git.pythys.com/taher/multi-repo-manager
 )";
@@ -118,7 +118,6 @@ int run_init(const InitOptions &options) {
     try {
         const std::string &repos_path = options.repos_path;
 
-        // Check that current directory is completely empty
         std::error_code ec;
         if (!fs::is_empty(".", ec)) {
             if (ec) {
@@ -168,8 +167,7 @@ int run_init(const InitOptions &options) {
 
         create_gitignore_with_repos(repos_path);
 
-        GitManager git_manager;
-        git_manager.init(".", "main");
+        GitManager::init(".", "master");
 
         const fs::path current_path = fs::current_path(ec);
         const std::string display_path = ec ? "." : current_path.string();

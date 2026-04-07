@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 
-enum class RepoType : std::uint8_t { GIT, SVN, HG, UNKNOWN };
 enum class RepoPhase : std::uint8_t { QUEUED, RUNNING, SUCCEEDED, FAILED };
 enum class MessageLevel : std::uint8_t { INFO, WARNING, ERROR, OUTPUT };
 
@@ -27,7 +26,6 @@ struct Branch {
 
 struct Repo {
     std::string name;
-    RepoType type = RepoType::UNKNOWN;
     RepoPhase phase = RepoPhase::QUEUED;
     std::vector<Remote> remotes;
     std::vector<Branch> branches;
@@ -44,8 +42,6 @@ struct RepoStatus {
     std::vector<std::string> messages;
     bool has_changes = false;
 };
-
-std::string repo_type_to_string(RepoType type);
 
 const Branch *find_current_branch(const std::vector<Branch> &branches);
 
