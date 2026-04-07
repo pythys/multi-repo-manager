@@ -1,7 +1,7 @@
 # mrm
 
-**mrm (multi-repo-manager)** helps you manage many repositories as one using a
-YAML repository list.
+**mrm (multi-repo-manager)** helps you manage many git repositories as one using
+a YAML repository list.
 
 Define your repositories once in a YAML file, then run a single command across
 all of them to turn hours of repetitive maintenance into minutes.
