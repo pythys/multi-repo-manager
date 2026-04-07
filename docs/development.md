@@ -13,16 +13,22 @@
 - [gdb](git://sourceware.org/git/binutils-gdb.git) debugger (gcc)
 - [lldb](https://lldb.llvm.org) debugger (clang)
 - [make](https://www.gnu.org/software/make) orchestrator and builder
-- [mkdocs](https://www.mkdocs.org/) documentation generator
+- [zensical](https://zensical.org/) documentation generator
 - [ninja](https://github.com/ninja-build/ninja) builder
 
 `Dockerfile` can be used a reference for steps to build the project
 
-## installing documentation tools
+## installing tools
+
+Most tools are available through standard package managers (`apt`, `brew`, `dnf`,
+`pacman`). Some tools may not be packaged or require specific installation:
 
 ```sh
-pipx install mkdocs
-pipx inject mkdocs mkdocs-material
+# conan
+mise use -g conan@latest
+
+# zensical
+pipx install zensical
 ```
 
 ## development setup

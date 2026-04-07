@@ -114,10 +114,10 @@ uninstall: ## Uninstall mrm
 
 .PHONY: docs
 docs: ## Generate documentation
-	$(call check_bin, mkdocs)
+	$(call check_bin, zensical)
 	@echo "Generating docs/index.md from README.md..."
 	@sed 's|docs/||g' README.md > docs/index.md
-	@mkdocs build --site-dir build/docs
+	@zensical build
 
 .PHONY: package
 package: build ## Package code to various formats

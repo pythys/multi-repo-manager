@@ -21,7 +21,7 @@ Run in order:
 
 - Maintain multi repository type abstraction (git, subversion, etc).
 - Write tests for critical functionality without breaking public signatures.
-- Keep /docs in sync with code.
+- Keep documentation in "/docs" in sync with code changes.
 - Prefer terse, functional and portable (linux, macos, windows) code.
 - Avoid redundant comments that are better described with code.
 - Library source code used in this project can be found at ~/.conan2/p.
