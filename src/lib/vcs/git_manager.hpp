@@ -727,6 +727,52 @@ class GitManager {
             repo.get());
     }
 
+    static bool set_branch_upstream(
+        const std::string &path,
+        const std::string &branch_name,
+        const std::string &remote_name) {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitReference branch_ref;
+        check_error(
+            git_branch_lookup(
+                branch_ref.get_address(),
+                repo.get(),
+                branch_name.c_str(),
+                GIT_BRANCH_LOCAL),
+            "Failed to lookup branch in " + path,
+            repo.get());
+
+        const std::string upstream_name = remote_name + "/" + branch_name;
+        const std::string remote_ref_name =
+            "refs/remotes/" + remote_name + "/" + branch_name;
+
+        GitReference remote_ref;
+        int lookup_code = git_reference_lookup(
+            remote_ref.get_address(),
+            repo.get(),
+            remote_ref_name.c_str());
+
+        if (lookup_code == GIT_ENOTFOUND) {
+            return false;
+        }
+        check_error(
+            lookup_code,
+            "Failed to lookup remote ref in " + path,
+            repo.get());
+
+        check_error(
+            git_branch_set_upstream(branch_ref.get(), upstream_name.c_str()),
+            "Failed to set branch upstream in " + path,
+            repo.get());
+
+        return true;
+    }
+
     static std::vector<Branch> get_branches(const std::string &path) {
         GitRepository repo;
         check_error(

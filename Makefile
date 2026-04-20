@@ -17,6 +17,11 @@ define check_bin
     fi
 endef
 
+# macos + conan SSL certificates bugfix
+ifeq ($(shell uname),Darwin)
+    export SSL_CERT_FILE=/etc/ssl/cert.pem
+endif
+
 ifeq ($(COMPILER),clang)
     CC = clang
     CXX = clang++

@@ -1,6 +1,8 @@
 #ifndef TESTS_GIT_TEST_UTILS_HPP_
 #define TESTS_GIT_TEST_UTILS_HPP_
 
+#include "core/tree.hpp"
+#include "vcs/git_manager.hpp"
 #include <array>
 #include <filesystem>
 #include <git2.h>
@@ -423,6 +425,53 @@ inline std::pair<int, int> left_right_counts(
             left_oid),
         "ahead/behind");
     return {static_cast<int>(right_behind), static_cast<int>(right_ahead)};
+}
+
+inline void create_branch(
+    const std::filesystem::path &repo_path,
+    const std::string &branch) {
+    GitRepository repo = open_repo(repo_path);
+    git_oid head_oid;
+    check(git_reference_name_to_id(&head_oid, repo.get(), "HEAD"), "head oid");
+    GitCommit head_commit;
+    check(
+        git_commit_lookup(head_commit.out(), repo.get(), &head_oid),
+        "head commit");
+    GitReference branch_ref;
+    check(
+        git_branch_create(
+            branch_ref.out(),
+            repo.get(),
+            branch.c_str(),
+            head_commit.get(),
+            0),
+        "create branch");
+}
+
+inline void push(
+    const std::filesystem::path &repo_path,
+    const std::string &remote_name,
+    const std::string &branch) {
+    push_branch(repo_path, remote_name, branch, false);
+}
+
+inline std::vector<Branch>
+get_branches(const std::filesystem::path &repo_path) {
+    GitRepository repo = open_repo(repo_path);
+    return GitManager::get_branches(repo_path.string());
+}
+
+inline void set_upstream(
+    const std::filesystem::path &repo_path,
+    const std::string &branch,
+    const std::string &upstream) {
+    set_branch_upstream(repo_path, branch, upstream);
+}
+
+inline void switch_branch(
+    const std::filesystem::path &repo_path,
+    const std::string &branch) {
+    GitManager::switch_branch(repo_path.string(), branch);
 }
 
 } // namespace git_test

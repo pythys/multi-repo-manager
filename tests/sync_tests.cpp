@@ -128,6 +128,187 @@ TEST(SyncTests, BranchSyncMatchesConfig) {
     }
 }
 
+TEST(SyncTests, LeavesUpstreamUnchangedWhenMatches) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repos";
+    const fs::path repo = root / "repo1";
+    const fs::path origin_remote = temp.path() / "origin.git";
+
+    fs::create_directories(root);
+
+    git_test::init_repo(origin_remote, "main", true);
+
+    git_test::init_repo(repo, "main");
+    git_test::set_user(repo, "test@example.com", "test");
+    write_file(repo / "README.md", "test\n");
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", origin_remote);
+    git_test::push(repo, "origin", "main");
+    git_test::set_upstream(repo, "main", "origin/main");
+
+    auto branches_before = git_test::get_branches(repo);
+    ASSERT_EQ(1, branches_before.size());
+    EXPECT_EQ("origin", branches_before[0].remote);
+
+    const fs::path config = temp.path() / "config.yml";
+    write_main_only_config(config, root, origin_remote);
+
+    int result = run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 0,
+        });
+
+    EXPECT_EQ(0, result);
+
+    auto branches_after = git_test::get_branches(repo);
+    ASSERT_EQ(1, branches_after.size());
+    EXPECT_EQ("main", branches_after[0].name);
+    EXPECT_EQ("origin", branches_after[0].remote);
+}
+
+TEST(SyncTests, ChangesUpstreamWhenNotMatching) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repos";
+    const fs::path repo = root / "repo1";
+    const fs::path origin_remote = temp.path() / "origin.git";
+    const fs::path upstream_remote = temp.path() / "upstream.git";
+
+    fs::create_directories(root);
+
+    git_test::init_repo(origin_remote, "master", true);
+    git_test::init_repo(upstream_remote, "master", true);
+
+    git_test::init_repo(repo, "master");
+    git_test::set_user(repo, "test@example.com", "test");
+    write_file(repo / "README.md", "test\n");
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", origin_remote);
+    git_test::add_remote(repo, "upstream", upstream_remote);
+    git_test::push(repo, "origin", "master");
+    git_test::push(repo, "upstream", "master");
+    git_test::set_upstream(repo, "master", "origin/master");
+
+    auto branches_before = git_test::get_branches(repo);
+    ASSERT_EQ(1, branches_before.size());
+    EXPECT_EQ("origin", branches_before[0].remote);
+
+    const fs::path config = temp.path() / "config.yml";
+    write_file(
+        config,
+        "trees:\n"
+        "  - root: " +
+            root.string() +
+            "\n"
+            "    repos:\n"
+            "      - name: repo1\n"
+            "        type: git\n"
+            "        remotes:\n"
+            "          - name: origin\n"
+            "            url: " +
+            origin_remote.string() +
+            "\n"
+            "          - name: upstream\n"
+            "            url: " +
+            upstream_remote.string() +
+            "\n"
+            "        branches:\n"
+            "          - name: master\n"
+            "            remote: upstream\n"
+            "            is_current: true\n");
+
+    int result = run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 0,
+        });
+
+    EXPECT_EQ(0, result);
+
+    auto branches_after = git_test::get_branches(repo);
+    ASSERT_EQ(1, branches_after.size());
+    EXPECT_EQ("master", branches_after[0].name);
+    EXPECT_EQ("upstream", branches_after[0].remote);
+}
+
+TEST(SyncTests, SwitchesToCurrentBranchFromConfig) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repos";
+    const fs::path repo = root / "repo1";
+    const fs::path origin_remote = temp.path() / "origin.git";
+
+    fs::create_directories(root);
+
+    git_test::init_repo(origin_remote, "master", true);
+
+    git_test::init_repo(repo, "master");
+    git_test::set_user(repo, "test@example.com", "test");
+    write_file(repo / "README.md", "test\n");
+    git_test::stage_all(repo);
+    git_test::commit(repo, "init");
+    git_test::add_remote(repo, "origin", origin_remote);
+    git_test::push(repo, "origin", "master");
+    git_test::set_upstream(repo, "master", "origin/master");
+
+    git_test::create_branch(repo, "develop");
+    git_test::push(repo, "origin", "develop");
+    git_test::set_upstream(repo, "develop", "origin/develop");
+
+    git_test::switch_branch(repo, "develop");
+
+    const fs::path config = temp.path() / "config.yml";
+    write_file(
+        config,
+        "trees:\n"
+        "  - root: " +
+            root.string() +
+            "\n"
+            "    repos:\n"
+            "      - name: repo1\n"
+            "        type: git\n"
+            "        remotes:\n"
+            "          - name: origin\n"
+            "            url: " +
+            origin_remote.string() +
+            "\n"
+            "        branches:\n"
+            "          - name: master\n"
+            "            remote: origin\n"
+            "            is_current: true\n"
+            "          - name: develop\n"
+            "            remote: origin\n"
+            "            is_current: false\n");
+
+    int result = run_sync(
+        SyncOptions{
+            .config_file = config.string(),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 0,
+        });
+
+    EXPECT_EQ(0, result);
+
+    auto branches = GitManager::get_branches(repo.string());
+    auto current_it = std::ranges::find_if(branches, [](const Branch &b) {
+        return b.is_current;
+    });
+    ASSERT_NE(current_it, branches.end());
+    EXPECT_EQ("master", current_it->name);
+}
+
 TEST(SyncTests, EmitsTextOutputWhenNotInTerminal) {
     if (detect_output_mode() != OutputMode::TEXT) {
         GTEST_SKIP() << "Only valid for non-terminal execution mode";
@@ -279,47 +460,6 @@ TEST(SyncTests, PruneBranchesRemovesNonCurrentBranches) {
     ASSERT_EQ(1, repos.size());
     EXPECT_NE(find_branch(repos[0], "main"), nullptr);
     EXPECT_EQ(find_branch(repos[0], "feature"), nullptr);
-}
-
-TEST(SyncTests, PruneBranchesDoesNotDeleteCurrentBranch) {
-    TempDir temp;
-    const fs::path root = temp.path() / "root";
-    const fs::path remote = temp.path() / "remote.git";
-    const fs::path repo = root / "repo1";
-    fs::create_directories(repo);
-    git_test::init_repo(remote, "main", true);
-    git_test::init_repo(repo, "main");
-    git_test::set_user(repo, "test@example.com", "test");
-    write_file(repo / "README.md", "hello\n");
-    git_test::stage_all(repo);
-    git_test::commit(repo, "init");
-    git_test::add_remote(repo, "origin", remote);
-    git_test::push_branch(repo, "origin", "main", true);
-    git_test::create_and_checkout_branch(repo, "feature");
-    write_file(repo / "feature.txt", "feature\n");
-    git_test::stage_all(repo);
-    git_test::commit(repo, "feature");
-    git_test::push_branch(repo, "origin", "feature", true);
-
-    const fs::path config = temp.path() / "config.yml";
-    write_main_only_config(config, root, remote);
-
-    run_sync(
-        SyncOptions{
-            .config_file = config.string(),
-            .root_patterns = {},
-            .prune_remotes = false,
-            .prune_branches = true,
-            .jobs = 0,
-        });
-    auto repos = find_repos(root.string());
-    ASSERT_EQ(1, repos.size());
-    const Branch *main = find_branch(repos[0], "main");
-    const Branch *feature = find_branch(repos[0], "feature");
-    ASSERT_NE(main, nullptr);
-    ASSERT_NE(feature, nullptr);
-    EXPECT_FALSE(main->is_current);
-    EXPECT_TRUE(feature->is_current);
 }
 
 TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {

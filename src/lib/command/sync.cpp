@@ -81,216 +81,6 @@ std::vector<Branch> find_branches(
         compare_by_name);
 }
 
-void sync_branches(
-    Tracker &tracker,
-    const std::string &root,
-    const std::string &repo_name,
-    const std::string &repo_path,
-    const std::vector<Branch> &desired_branches,
-    bool prune_branches) {
-    if (desired_branches.empty()) {
-        return;
-    }
-
-    auto repo_branches = GitManager::get_branches(repo_path);
-    const Branch *original = find_current_branch(repo_branches);
-    const std::string original_branch = original ? original->name : "";
-    auto to_add_branches =
-        find_branches(desired_branches, repo_branches, MatchType::TO_ADD);
-    for (const auto &branch : to_add_branches) {
-        if (branch.remote.empty()) {
-            throw std::runtime_error(
-                "Branch remote is missing for " + branch.name);
-        }
-        if (!GitManager::branch_exists(repo_path, branch.name)) {
-            GitManager::pull(
-                repo_path,
-                branch.remote,
-                branch.name,
-                branch.name);
-        }
-        GitManager::switch_branch(repo_path, branch.name);
-        GitManager::pull(repo_path, branch.remote, branch.name, branch.name);
-    }
-    auto to_remove_branches =
-        find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
-    if (prune_branches) {
-        for (const auto &branch : to_remove_branches) {
-            GitManager::remove_branch(repo_path, branch);
-        }
-    } else {
-        for (const auto &branch : to_remove_branches) {
-            tracker.set_phase(
-                root,
-                repo_name,
-                RepoPhase::RUNNING,
-                "Ignoring branch not in config: " + branch.name,
-                MessageLevel::WARNING);
-        }
-    }
-    if (!original_branch.empty()) {
-        GitManager::switch_branch(repo_path, original_branch);
-    }
-}
-} // namespace
-
-void update_repository(
-    const std::string &root,
-    Repo *repo,
-    Tracker &tracker,
-    bool prune_remotes,
-    bool prune_branches) {
-    tracker
-        .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
-    const std::string repo_path =
-        (std::filesystem::path(root) / repo->name).string();
-    auto remotes = GitManager::get_remotes(repo_path);
-    if (prune_remotes) {
-        auto to_remove =
-            find_remotes(repo->remotes, remotes, MatchType::TO_REMOVE);
-        for (const auto &remote : to_remove) {
-            GitManager::remove_remote(repo_path, remote);
-        }
-    }
-    auto to_add = find_remotes(repo->remotes, remotes, MatchType::TO_ADD);
-    for (const auto &remote : to_add) {
-        GitManager::add_remote(repo_path, remote);
-    }
-    sync_branches(
-        tracker,
-        root,
-        repo->name,
-        repo_path,
-        repo->branches,
-        prune_branches);
-}
-
-void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
-    tracker
-        .set_phase(root, repo->name, RepoPhase::RUNNING, "Cloning repository");
-    auto it = std::ranges::find_if(repo->remotes, [](const Remote &remote) {
-        return remote.name == "origin";
-    });
-    if (it != repo->remotes.end()) {
-        GitManager::clone(
-            it->url,
-            (std::filesystem::path(root) / repo->name).string());
-    } else {
-        throw std::runtime_error(
-            "No remote found with name 'origin' for repo: " + repo->name);
-    }
-    for (const auto &remote : repo->remotes) {
-        if (remote.name == "origin") {
-            continue;
-        }
-        GitManager::add_remote(
-            (std::filesystem::path(root) / repo->name).string(),
-            remote);
-    }
-    sync_branches(
-        tracker,
-        root,
-        repo->name,
-        (std::filesystem::path(root) / repo->name).string(),
-        repo->branches,
-        false);
-}
-
-void sync_repository(
-    const std::string &root,
-    Repo *repo,
-    Tracker &tracker,
-    asio::thread_pool &pool,
-    bool prune_remotes,
-    bool prune_branches,
-    std::atomic_bool &has_error) {
-
-    auto update_action = [root,
-                          repo,
-                          &tracker,
-                          &pool,
-                          prune_remotes,
-                          prune_branches,
-                          &has_error]() {
-        try {
-            update_repository(
-                root,
-                repo,
-                tracker,
-                prune_remotes,
-                prune_branches);
-            tracker.set_phase(
-                root,
-                repo->name,
-                RepoPhase::SUCCEEDED,
-                "Repository synced");
-        } catch (const std::exception &e) {
-            tracker.set_phase(
-                root,
-                repo->name,
-                RepoPhase::FAILED,
-                e.what(),
-                MessageLevel::ERROR);
-            has_error.store(true);
-            return;
-        }
-        for (auto &child : repo->children) {
-            sync_repository(
-                root,
-                &child,
-                tracker,
-                pool,
-                prune_remotes,
-                prune_branches,
-                has_error);
-        }
-    };
-
-    auto clone_action = [root,
-                         repo,
-                         &tracker,
-                         &pool,
-                         prune_remotes,
-                         prune_branches,
-                         &has_error]() {
-        try {
-            clone_repository(root, repo, tracker);
-            tracker.set_phase(
-                root,
-                repo->name,
-                RepoPhase::SUCCEEDED,
-                "Repository synced");
-        } catch (const std::exception &e) {
-            tracker.set_phase(
-                root,
-                repo->name,
-                RepoPhase::FAILED,
-                e.what(),
-                MessageLevel::ERROR);
-            has_error.store(true);
-            return;
-        }
-        for (auto &child : repo->children) {
-            sync_repository(
-                root,
-                &child,
-                tracker,
-                pool,
-                prune_remotes,
-                prune_branches,
-                has_error);
-        }
-    };
-
-    auto is_repo = GitManager::is_repo(
-        (std::filesystem::path(root) / repo->name).string());
-    if (is_repo) {
-        asio::post(pool, update_action);
-    } else {
-        asio::post(pool, clone_action);
-    }
-}
-
 void collect_tracked_repos(
     const Repo &repo,
     std::vector<std::string> &tracked_repos) {
@@ -320,12 +110,196 @@ void prune_untracked_repos(
             });
 
         if (!is_tracked) {
-            std::filesystem::path repo_path =
-                std::filesystem::path(root) / discovered.name;
-            std::filesystem::remove_all(repo_path);
+            std::filesystem::remove_all(
+                construct_repo_path(root, discovered.name));
         }
     }
 }
+
+void sync_branches(
+    Tracker &tracker,
+    const std::string &root,
+    const std::string &repo_name,
+    const std::string &repo_path,
+    const std::vector<Branch> &desired_branches,
+    bool prune_branches) {
+    if (desired_branches.empty()) {
+        return;
+    }
+
+    auto repo_branches = GitManager::get_branches(repo_path);
+
+    for (const auto &desired_branch : desired_branches) {
+        if (desired_branch.remote.empty()) {
+            throw std::runtime_error(
+                "Branch remote is missing for " + desired_branch.name);
+        }
+
+        auto repo_it =
+            std::ranges::find_if(repo_branches, [&](const Branch &b) {
+                return b.name == desired_branch.name;
+            });
+
+        const bool branch_exists = repo_it != repo_branches.end();
+
+        if (!branch_exists) {
+            GitManager::pull(
+                repo_path,
+                desired_branch.remote,
+                desired_branch.name,
+                desired_branch.name);
+        } else if (repo_it->remote != desired_branch.remote) {
+            bool success = GitManager::set_branch_upstream(
+                repo_path,
+                desired_branch.name,
+                desired_branch.remote);
+            if (!success) {
+                tracker.set_phase(
+                    root,
+                    repo_name,
+                    RepoPhase::RUNNING,
+                    "Branch " + desired_branch.name + " tracks " +
+                        repo_it->remote + " but config specifies " +
+                        desired_branch.remote +
+                        " (remote ref not found locally)",
+                    MessageLevel::WARNING);
+            }
+        }
+    }
+
+    const Branch *desired_current = find_current_branch(desired_branches);
+    if (desired_current) {
+        GitManager::switch_branch(repo_path, desired_current->name);
+    }
+
+    auto to_remove_branches =
+        find_branches(desired_branches, repo_branches, MatchType::TO_REMOVE);
+    if (prune_branches) {
+        for (const auto &branch : to_remove_branches) {
+            GitManager::remove_branch(repo_path, branch);
+        }
+    } else {
+        for (const auto &branch : to_remove_branches) {
+            tracker.set_phase(
+                root,
+                repo_name,
+                RepoPhase::RUNNING,
+                "Ignoring branch not in config: " + branch.name,
+                MessageLevel::WARNING);
+        }
+    }
+}
+
+void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
+    tracker
+        .set_phase(root, repo->name, RepoPhase::RUNNING, "Cloning repository");
+    auto it = std::ranges::find_if(repo->remotes, [](const Remote &remote) {
+        return remote.name == "origin";
+    });
+    if (it != repo->remotes.end()) {
+        GitManager::clone(it->url, construct_repo_path(root, repo->name));
+    } else {
+        throw std::runtime_error(
+            "No remote found with name 'origin' for repo: " + repo->name);
+    }
+    for (const auto &remote : repo->remotes) {
+        if (remote.name == "origin") {
+            continue;
+        }
+        GitManager::add_remote(construct_repo_path(root, repo->name), remote);
+    }
+    sync_branches(
+        tracker,
+        root,
+        repo->name,
+        construct_repo_path(root, repo->name),
+        repo->branches,
+        false);
+}
+
+void update_repository(
+    const std::string &root,
+    Repo *repo,
+    Tracker &tracker,
+    bool prune_remotes,
+    bool prune_branches) {
+    tracker
+        .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
+    const std::string repo_path = construct_repo_path(root, repo->name);
+    auto remotes = GitManager::get_remotes(repo_path);
+    if (prune_remotes) {
+        auto to_remove =
+            find_remotes(repo->remotes, remotes, MatchType::TO_REMOVE);
+        for (const auto &remote : to_remove) {
+            GitManager::remove_remote(repo_path, remote);
+        }
+    }
+    auto to_add = find_remotes(repo->remotes, remotes, MatchType::TO_ADD);
+    for (const auto &remote : to_add) {
+        GitManager::add_remote(repo_path, remote);
+    }
+    sync_branches(
+        tracker,
+        root,
+        repo->name,
+        repo_path,
+        repo->branches,
+        prune_branches);
+}
+
+void sync_repository(
+    const std::string &root,
+    Repo *repo,
+    Tracker &tracker,
+    asio::thread_pool &pool,
+    bool prune_remotes,
+    bool prune_branches,
+    std::atomic_bool &has_error) {
+
+    bool is_existing_repo =
+        GitManager::is_repo(construct_repo_path(root, repo->name));
+
+    asio::post(pool, [=, &tracker, &pool, &has_error]() {
+        try {
+            if (is_existing_repo) {
+                update_repository(
+                    root,
+                    repo,
+                    tracker,
+                    prune_remotes,
+                    prune_branches);
+            } else {
+                clone_repository(root, repo, tracker);
+            }
+            tracker.set_phase(
+                root,
+                repo->name,
+                RepoPhase::SUCCEEDED,
+                "Repository synced");
+        } catch (const std::exception &e) {
+            tracker.set_phase(
+                root,
+                repo->name,
+                RepoPhase::FAILED,
+                e.what(),
+                MessageLevel::ERROR);
+            has_error.store(true);
+            return;
+        }
+
+        for (auto &child : repo->children) {
+            sync_repository(
+                root,
+                &child,
+                tracker,
+                pool,
+                prune_remotes,
+                prune_branches,
+                has_error);
+        }
+    });
+}
+} // namespace
 
 int run_sync(const SyncOptions &options) {
     std::vector<Tree> config = filter_trees_by_root(
