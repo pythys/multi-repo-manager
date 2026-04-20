@@ -23,6 +23,8 @@ if(MSVC)
     add_compile_options(/W4 /MT)
 elseif(APPLE)
     add_compile_options(-Wall -Wextra -Wshadow -Wconversion -Wpedantic -Werror)
+    # macos ssl bugfix
+    link_libraries("-framework Security" "-framework CoreFoundation")
 elseif(UNIX)
     add_compile_options(-Wall -Wextra -Wshadow -Wconversion -Wpedantic -Werror)
     add_link_options(-static-libgcc -static-libstdc++)

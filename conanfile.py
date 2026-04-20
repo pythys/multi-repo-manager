@@ -14,6 +14,8 @@ class MrmConan(ConanFile):
         "yaml-cpp/0.8.0",
     )
     generators = "CMakeDeps", "CMakeToolchain"
-    default_options = {
-        "*:shared": False,  # Static linking
-    }
+
+    def configure(self):
+        self.options["*"].shared = False
+        if self.settings.os == "Macos": # macos ssl bugfix
+            self.options["libgit2"].with_https = "security"
