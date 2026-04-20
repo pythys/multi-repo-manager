@@ -9,23 +9,6 @@ add_library(mrm_core STATIC)
 target_sources(
     mrm_core
     PRIVATE cli.cpp
-            # util/
-            util/common.cpp
-            util/runtime.cpp
-            # core/
-            core/tree.cpp
-            core/tracker.cpp
-            # persistence/
-            persistence/config.cpp
-            persistence/discovery.cpp
-            # presentation/
-            presentation/output_view.cpp
-            presentation/tracked_operation.cpp
-            # completion/
-            completion/completion_bash.cpp
-            completion/completion_spec.cpp
-            completion/completion_zsh.cpp
-            # command/
             command/completion.cpp
             command/exec.cpp
             command/find.cpp
@@ -34,7 +17,18 @@ target_sources(
             command/remotesync.cpp
             command/status.cpp
             command/sync.cpp
-            command/update.cpp)
+            command/update.cpp
+            completion/completion_bash.cpp
+            completion/completion_spec.cpp
+            completion/completion_zsh.cpp
+            core/tracker.cpp
+            core/tree.cpp
+            persistence/config.cpp
+            persistence/discovery.cpp
+            presentation/output_view.cpp
+            presentation/tracked_operation.cpp
+            util/common.cpp
+            util/runtime.cpp)
 
 target_include_directories(mrm_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(mrm_core PRIVATE Boost::headers Boost::filesystem)
