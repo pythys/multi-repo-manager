@@ -3,4 +3,3 @@
 CMakeUserPresets.json
 build/
 compile_commands.json
-conanfile.lock

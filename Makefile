@@ -30,7 +30,8 @@ endif
 .PHONY: clean
 clean: ## Clean generated artifacts
 	@echo "Cleaning artifacts..."
-	@rm -rf .cache build compile_commands.json CMakeUserPresets.json
+	@rm -rf .cache build
+	@rm -f compile_commands.json CMakeUserPresets.json
 
 .PHONY: deps
 deps: ## Install dependencies with Conan
@@ -39,13 +40,9 @@ deps: ## Install dependencies with Conan
 		echo "No Conan profile found, creating default profile..."; \
 		conan profile detect --force; \
 	fi
-	@if [ ! -f conanfile.lock ] || [ conanfile.py -nt conanfile.lock ]; then \
-		echo "Updating Conan lock file..."; \
-		conan lock create . --lockfile-out=conanfile.lock; \
-	fi
 	@echo "Installing dependencies with Conan..."
 	@mkdir -p build/conan
-	@conan install . --build=missing -of build/conan --lockfile=conanfile.lock -s build_type=$(BUILDTYPE)
+	@conan install . --build=missing -of build/conan -s build_type=$(BUILDTYPE)
 
 .PHONY: build
 build: deps ## Compile and generate artifacts
