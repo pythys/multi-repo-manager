@@ -117,7 +117,7 @@ int run_remote_sync_with_config(
 
 } // namespace
 
-TEST(CleanRemoteSyncTests, DryRunReportsPlannedOperations) {
+TEST(RemoteSyncTests, DryRunReportsPlannedOperations) {
     const std::string test_root = "test_fork_dry_run";
     setup_local_fork_scenario(test_root);
 
@@ -137,7 +137,7 @@ TEST(CleanRemoteSyncTests, DryRunReportsPlannedOperations) {
     EXPECT_NE(std::string::npos, output.find("hello-world"));
 }
 
-TEST(CleanRemoteSyncTests, SyncsBetweenConfiguredRemotes) {
+TEST(RemoteSyncTests, SyncsBetweenConfiguredRemotes) {
     const std::string test_root = "test_fork_sync";
     setup_local_fork_scenario(test_root);
 
@@ -157,7 +157,7 @@ TEST(CleanRemoteSyncTests, SyncsBetweenConfiguredRemotes) {
     EXPECT_NE(std::string::npos, output.find("hello-world"));
 }
 
-TEST(CleanRemoteSyncTests, HandlesMultipleRepositoriesWithLocalForks) {
+TEST(RemoteSyncTests, HandlesMultipleRepositoriesWithLocalForks) {
     const std::string test_root = "test_fork_multi";
     setup_local_fork_scenario(test_root);
 

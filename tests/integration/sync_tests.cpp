@@ -22,14 +22,14 @@ std::string get_scenario_path(const std::string &scenario_name) {
         {"branch_config", "scenarios/branch/configuration.yml"},
         {"upstream_change", "scenarios/sync/upstream_changes.yml"},
         {"branch_switching", "scenarios/branch/switching.yml"},
-        {"pruning_test", "scenarios/sync/repository_pruning.yml"}
-    };
-    
+        {"pruning_test", "scenarios/sync/repository_pruning.yml"}};
+
     auto it = scenario_paths.find(scenario_name);
     if (it != scenario_paths.end()) {
         return std::string(TEST_RESOURCES_DIR) + "/" + it->second;
     }
-    return std::string(TEST_RESOURCES_DIR) + "/scenarios/" + scenario_name + ".yml";
+    return std::string(TEST_RESOURCES_DIR) + "/scenarios/" + scenario_name +
+           ".yml";
 }
 
 int run_scenario(const std::string &scenario_name) {
@@ -58,7 +58,7 @@ int run_scenario_with_pruning(
             .jobs = 1});
 }
 
-TEST(CleanSyncTests, BasicSyncFunctionality) {
+TEST(SyncTests, BasicSyncFunctionality) {
     int result = run_scenario("basic_sync");
     EXPECT_EQ(0, result);
 
@@ -87,7 +87,7 @@ TEST(CleanSyncTests, BasicSyncFunctionality) {
     EXPECT_TRUE(found_spoon_knife);
 }
 
-TEST(CleanSyncTests, NestedRepositoryStructure) {
+TEST(SyncTests, NestedRepositoryStructure) {
     int result = run_scenario("nested_repos");
     EXPECT_EQ(0, result);
 
@@ -112,7 +112,7 @@ TEST(CleanSyncTests, NestedRepositoryStructure) {
     EXPECT_TRUE(found_child2);
 }
 
-TEST(CleanSyncTests, MultipleWorkspaceTrees) {
+TEST(SyncTests, MultipleWorkspaceTrees) {
     int result = run_scenario("multi_tree");
     EXPECT_EQ(0, result);
 
@@ -124,12 +124,13 @@ TEST(CleanSyncTests, MultipleWorkspaceTrees) {
     EXPECT_EQ(2, second_repos.size());
 }
 
-TEST(CleanSyncTests, BranchConfigurationIsValidated) {
+TEST(SyncTests, BranchConfigurationIsValidated) {
     int result = run_scenario("branch_config");
     EXPECT_EQ(0, result);
 
     std::vector<Tree> trees = get_config(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/branch/configuration.yml");
+        std::string(TEST_RESOURCES_DIR) +
+        "/scenarios/branch/configuration.yml");
     ASSERT_EQ(trees.size(), 1);
     ASSERT_EQ(trees[0].repos.size(), 1);
     const Repo &expected = trees[0].repos[0];
@@ -169,7 +170,7 @@ TEST(CleanSyncTests, BranchConfigurationIsValidated) {
     EXPECT_TRUE(has_upstream);
 }
 
-TEST(CleanSyncTests, UpstreamTrackingIsUpdated) {
+TEST(SyncTests, UpstreamTrackingIsUpdated) {
     int result = run_scenario("upstream_change");
     EXPECT_EQ(0, result);
 
@@ -197,7 +198,7 @@ TEST(CleanSyncTests, UpstreamTrackingIsUpdated) {
     EXPECT_TRUE(has_upstream);
 }
 
-TEST(CleanSyncTests, CurrentBranchSwitchesToConfiguredBranch) {
+TEST(SyncTests, CurrentBranchSwitchesToConfiguredBranch) {
     int result = run_scenario("branch_switching");
     EXPECT_EQ(0, result);
 
@@ -219,7 +220,7 @@ TEST(CleanSyncTests, CurrentBranchSwitchesToConfiguredBranch) {
     EXPECT_TRUE(has_main);
 }
 
-TEST(CleanSyncTests, OutputFormattingWorksInNonTerminalMode) {
+TEST(SyncTests, OutputFormattingWorksInNonTerminalMode) {
     if (detect_output_mode() != OutputMode::TEXT) {
         GTEST_SKIP() << "Only valid for non-terminal execution mode";
     }
@@ -235,7 +236,7 @@ TEST(CleanSyncTests, OutputFormattingWorksInNonTerminalMode) {
         << "Missing success indicators in output";
 }
 
-TEST(CleanSyncTests, PruneRemotesRemovesExtraRemotes) {
+TEST(SyncTests, PruneRemotesRemovesExtraRemotes) {
     int result = run_scenario("pruning_test");
     EXPECT_EQ(0, result);
 
@@ -260,7 +261,7 @@ TEST(CleanSyncTests, PruneRemotesRemovesExtraRemotes) {
     EXPECT_TRUE(has_origin);
 }
 
-TEST(CleanSyncTests, PruneBranchesRemovesNonConfiguredBranches) {
+TEST(SyncTests, PruneBranchesRemovesNonConfiguredBranches) {
     int result = run_scenario("pruning_test");
     EXPECT_EQ(0, result);
 
@@ -285,7 +286,7 @@ TEST(CleanSyncTests, PruneBranchesRemovesNonConfiguredBranches) {
     EXPECT_TRUE(has_master);
 }
 
-TEST(CleanSyncTests, PruneReposRemovesUntrackedRepositories) {
+TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {
     int result = run_scenario("pruning_test");
     EXPECT_EQ(0, result);
 

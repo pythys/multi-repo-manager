@@ -2,6 +2,7 @@
 #include "persistence/config.hpp"
 #include "test_utils.hpp"
 #include "vcs/git_guard.hpp"
+#include "vcs/git_manager.hpp"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
@@ -10,11 +11,13 @@
 namespace fs = std::filesystem;
 
 std::vector<Tree> parse_config(const std::string &filename) {
-    return get_config(std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
+    return get_config(
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
 }
 
 std::vector<Tree> parse_dependencies(const std::string &filename) {
-    return get_dependencies(std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
+    return get_dependencies(
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
 }
 
 namespace {
@@ -251,7 +254,8 @@ TEST(ConfigTests, FilterTreesByNameTreeWithNoRepos) {
 
 TEST(ConfigTests, LoadTreesFromConfigFile) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/nested_repositories.yml",
+        std::string(TEST_RESOURCES_DIR) +
+            "/scenarios/config/nested_repositories.yml",
         {},
         {},
         {});
@@ -262,7 +266,8 @@ TEST(ConfigTests, LoadTreesFromConfigFile) {
 
 TEST(ConfigTests, LoadTreesWithRootFilter) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/multiple_trees.yml",
+        std::string(TEST_RESOURCES_DIR) +
+            "/scenarios/config/multiple_trees.yml",
         {},
         {"first*"},
         {});
@@ -272,7 +277,8 @@ TEST(ConfigTests, LoadTreesWithRootFilter) {
 
 TEST(ConfigTests, LoadTreesWithNameFilter) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/nested_repositories.yml",
+        std::string(TEST_RESOURCES_DIR) +
+            "/scenarios/config/nested_repositories.yml",
         {},
         {},
         {"parent"});
@@ -283,7 +289,8 @@ TEST(ConfigTests, LoadTreesWithNameFilter) {
 
 TEST(ConfigTests, LoadTreesWithBothFilters) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/multiple_trees.yml",
+        std::string(TEST_RESOURCES_DIR) +
+            "/scenarios/config/multiple_trees.yml",
         {},
         {"second*"},
         {"*d"});
@@ -295,7 +302,8 @@ TEST(ConfigTests, LoadTreesWithBothFilters) {
 
 TEST(ConfigTests, LoadTreesEmptyAfterFiltering) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/nested_repositories.yml",
+        std::string(TEST_RESOURCES_DIR) +
+            "/scenarios/config/nested_repositories.yml",
         {},
         {},
         {"nonexistent-repo-name"});
@@ -303,29 +311,53 @@ TEST(ConfigTests, LoadTreesEmptyAfterFiltering) {
 }
 
 TEST(ConfigTests, LoadTreesFromFindPaths) {
-    const auto trees = load_trees("", {"test_basic"}, {}, {});
+    test_utils::TempDir temp;
+
+    const auto test_dir = temp.path() / "test_basic";
+    fs::create_directories(test_dir);
+
+    GitManager::init(test_dir.string(), "main");
+
+    const auto trees = load_trees("", {test_dir.string()}, {}, {});
     EXPECT_GE(trees.size(), 1);
     if (!trees.empty()) {
-        EXPECT_GE(trees[0].repos.size(), 1);
+        EXPECT_EQ(trees[0].root, fs::canonical(test_dir).string());
     }
 }
 
 TEST(ConfigTests, LoadTreesFromMultipleFindPaths) {
-    const auto trees = load_trees("", {"test_basic", "test_nested"}, {}, {});
-    EXPECT_GE(trees.size(), 1);
+    test_utils::TempDir temp;
+
+    const auto test_dir1 = temp.path() / "test_basic";
+    const auto test_dir2 = temp.path() / "test_nested";
+    fs::create_directories(test_dir1);
+    fs::create_directories(test_dir2);
+
+    GitManager::init(test_dir1.string(), "main");
+    GitManager::init(test_dir2.string(), "main");
+
+    const auto trees =
+        load_trees("", {test_dir1.string(), test_dir2.string()}, {}, {});
+    EXPECT_EQ(trees.size(), 2);
 }
 
 TEST(ConfigTests, LoadTreesFromFindWithNameFilter) {
-    const auto trees = load_trees("", {"test_basic"}, {}, {"*hello*"});
-    if (!trees.empty() && !trees[0].repos.empty()) {
-        bool found_hello = false;
-        for (const auto &repo : trees[0].repos) {
-            if (repo.name.find("hello") != std::string::npos) {
-                found_hello = true;
-                break;
-            }
-        }
-        EXPECT_TRUE(found_hello);
+    test_utils::TempDir temp;
+
+    const auto parent_dir = temp.path() / "parent";
+    const auto test_dir1 = parent_dir / "test_basic";
+    const auto test_dir2 = parent_dir / "test_nested";
+    fs::create_directories(test_dir1);
+    fs::create_directories(test_dir2);
+
+    GitManager::init(test_dir1.string(), "main");
+    GitManager::init(test_dir2.string(), "main");
+
+    const auto trees = load_trees("", {parent_dir.string()}, {}, {"*basic*"});
+    EXPECT_EQ(trees.size(), 1);
+    if (!trees.empty()) {
+        EXPECT_EQ(trees[0].repos.size(), 1);
+        EXPECT_EQ(trees[0].repos[0].name, "test_basic");
     }
 }
 

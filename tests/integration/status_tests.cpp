@@ -15,14 +15,14 @@ const GitGuard git_guard;
 
 std::string get_scenario_path(const std::string &scenario_name) {
     static const std::unordered_map<std::string, std::string> scenario_paths = {
-        {"status_checks", "scenarios/status/repository_checks.yml"}
-    };
-    
+        {"status_checks", "scenarios/status/repository_checks.yml"}};
+
     auto it = scenario_paths.find(scenario_name);
     if (it != scenario_paths.end()) {
         return std::string(TEST_RESOURCES_DIR) + "/" + it->second;
     }
-    return std::string(TEST_RESOURCES_DIR) + "/scenarios/" + scenario_name + ".yml";
+    return std::string(TEST_RESOURCES_DIR) + "/scenarios/" + scenario_name +
+           ".yml";
 }
 
 int run_scenario(const std::string &scenario_name) {
@@ -44,7 +44,7 @@ bool contains_status_message(
     });
 }
 
-TEST(CleanStatusTests, ReportsRepositoryStatus) {
+TEST(StatusTests, ReportsRepositoryStatus) {
     int result = run_scenario("status_checks");
     EXPECT_EQ(0, result);
 
@@ -59,7 +59,7 @@ TEST(CleanStatusTests, ReportsRepositoryStatus) {
     }
 }
 
-TEST(CleanStatusTests, ReportsCleanRepositoryState) {
+TEST(StatusTests, ReportsCleanRepositoryState) {
     int result = run_scenario("status_checks");
     EXPECT_EQ(0, result);
 
