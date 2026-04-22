@@ -1,0 +1,12 @@
+trees:
+- root: test_branch_switching
+  repos:
+  - name: spoon-knife
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Spoon-Knife.git
+    branches:
+    - name: main
+      remote: origin
+      is_current: true

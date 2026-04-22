@@ -1,0 +1,29 @@
+# Nested repository structure scenario
+# Tests sync behavior with parent/child repository layouts
+trees:
+- root: test_nested
+  repos:
+  - name: parent
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Hello-World
+    branches:
+    - name: master
+      remote: origin
+      is_current: true
+  - name: parent/child1
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Spoon-Knife
+    branches:
+    - name: main
+      remote: origin
+      is_current: true
+  - name: parent/child2
+    remotes:
+    - name: origin
+      url: https://github.com/actions/hello-world-docker-action
+    branches:
+    - name: main
+      remote: origin
+      is_current: true

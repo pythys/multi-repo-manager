@@ -1,0 +1,14 @@
+trees:
+- root: test_upstream_tracking
+  repos:
+  - name: hello-world
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Hello-World.git
+    - name: upstream
+      url: https://github.com/octocat/Hello-World.git
+    branches:
+    - name: master
+      remote: upstream
+      is_current: true

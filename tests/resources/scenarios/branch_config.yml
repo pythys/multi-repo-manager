@@ -1,0 +1,14 @@
+trees:
+- root: test_branch_config_unique
+  repos:
+  - name: hello-world
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Hello-World.git
+    - name: upstream
+      url: https://github.com/octocat/Hello-World.git
+    branches:
+    - name: master
+      remote: origin
+      is_current: true

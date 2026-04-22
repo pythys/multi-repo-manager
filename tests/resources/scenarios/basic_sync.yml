@@ -1,0 +1,21 @@
+# Basic sync scenario using tiny stable GitHub repositories
+# Tests fundamental sync functionality with minimal overhead
+trees:
+- root: test_basic
+  repos:
+  - name: hello-world
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Hello-World
+    branches:
+    - name: master
+      remote: origin
+      is_current: true
+  - name: spoon-knife
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Spoon-Knife
+    branches:
+    - name: main
+      remote: origin
+      is_current: true

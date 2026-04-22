@@ -1,5 +1,4 @@
 #include "command/remotesync.hpp"
-#include "git_test_utils.hpp"
 #include "test_utils.hpp"
 #include "util/command_options.hpp"
 #include "vcs/git_guard.hpp"

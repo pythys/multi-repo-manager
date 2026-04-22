@@ -1,0 +1,31 @@
+# Multi-tree scenario for testing multiple root directories
+# Tests sync across different workspace roots
+trees:
+- root: first_workspace
+  repos:
+  - name: hello-world
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Hello-World
+    branches:
+    - name: master
+      remote: origin
+      is_current: true
+- root: second_workspace
+  repos:
+  - name: spoon-knife
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Spoon-Knife
+    branches:
+    - name: main
+      remote: origin
+      is_current: true
+  - name: docker-action
+    remotes:
+    - name: origin
+      url: https://github.com/actions/hello-world-docker-action
+    branches:
+    - name: main
+      remote: origin
+      is_current: true

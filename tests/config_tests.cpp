@@ -1,5 +1,4 @@
 #include "command/find.hpp"
-#include "git_test_utils.hpp"
 #include "persistence/config.hpp"
 #include "test_utils.hpp"
 #include "vcs/git_guard.hpp"

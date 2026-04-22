@@ -1,0 +1,15 @@
+# Multi-branch scenario for testing branch management
+# Uses a small repository with multiple branches
+trees:
+- root: test_branches
+  repos:
+  - name: gitignore
+    remotes:
+    - name: origin
+      url: https://github.com/github/gitignore
+    branches:
+    - name: main
+      remote: origin
+      is_current: false
+    # Note: github/gitignore only has main branch in practice,
+    # but this shows how multi-branch scenarios would work

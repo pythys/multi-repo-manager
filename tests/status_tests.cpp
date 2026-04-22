@@ -1,5 +1,4 @@
 #include "core/tree.hpp"
-#include "git_test_utils.hpp"
 #include "test_utils.hpp"
 #include "vcs/git_guard.hpp"
 #include "vcs/git_manager.hpp"
