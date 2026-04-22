@@ -1,0 +1,12 @@
+trees:
+- root: test_status_checks
+  repos:
+  - name: hello-world
+    type: git
+    remotes:
+    - name: origin
+      url: https://github.com/octocat/Hello-World
+    branches:
+    - name: master
+      remote: origin
+      is_current: true
