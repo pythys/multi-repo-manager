@@ -9,15 +9,33 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <ranges>
+#include <unordered_map>
 #include <vector>
 
 const GitGuard git_guard;
 
+std::string get_scenario_path(const std::string &scenario_name) {
+    static const std::unordered_map<std::string, std::string> scenario_paths = {
+        {"basic_sync", "scenarios/sync/basic_repositories.yml"},
+        {"nested_repos", "scenarios/sync/nested_structure.yml"},
+        {"multi_tree", "scenarios/sync/multiple_trees.yml"},
+        {"branch_config", "scenarios/branch/configuration.yml"},
+        {"upstream_change", "scenarios/sync/upstream_changes.yml"},
+        {"branch_switching", "scenarios/branch/switching.yml"},
+        {"pruning_test", "scenarios/sync/repository_pruning.yml"}
+    };
+    
+    auto it = scenario_paths.find(scenario_name);
+    if (it != scenario_paths.end()) {
+        return std::string(TEST_RESOURCES_DIR) + "/" + it->second;
+    }
+    return std::string(TEST_RESOURCES_DIR) + "/scenarios/" + scenario_name + ".yml";
+}
+
 int run_scenario(const std::string &scenario_name) {
     return run_sync(
         SyncOptions{
-            .config_file = std::string(TEST_RESOURCES_DIR) + "/scenarios/" +
-                           scenario_name + ".yml",
+            .config_file = get_scenario_path(scenario_name),
             .root_patterns = {},
             .prune_remotes = false,
             .prune_branches = false,
@@ -32,8 +50,7 @@ int run_scenario_with_pruning(
     bool prune_repos) {
     return run_sync(
         SyncOptions{
-            .config_file = std::string(TEST_RESOURCES_DIR) + "/scenarios/" +
-                           scenario_name + ".yml",
+            .config_file = get_scenario_path(scenario_name),
             .root_patterns = {},
             .prune_remotes = prune_remotes,
             .prune_branches = prune_branches,
@@ -112,7 +129,7 @@ TEST(CleanSyncTests, BranchConfigurationIsValidated) {
     EXPECT_EQ(0, result);
 
     std::vector<Tree> trees = get_config(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/branch_config.yml");
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/branch/configuration.yml");
     ASSERT_EQ(trees.size(), 1);
     ASSERT_EQ(trees[0].repos.size(), 1);
     const Repo &expected = trees[0].repos[0];

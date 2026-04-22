@@ -7,16 +7,28 @@
 #include <gtest/gtest.h>
 #include <ranges>
 #include <string>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
 const GitGuard git_guard;
 
+std::string get_scenario_path(const std::string &scenario_name) {
+    static const std::unordered_map<std::string, std::string> scenario_paths = {
+        {"status_checks", "scenarios/status/repository_checks.yml"}
+    };
+    
+    auto it = scenario_paths.find(scenario_name);
+    if (it != scenario_paths.end()) {
+        return std::string(TEST_RESOURCES_DIR) + "/" + it->second;
+    }
+    return std::string(TEST_RESOURCES_DIR) + "/scenarios/" + scenario_name + ".yml";
+}
+
 int run_scenario(const std::string &scenario_name) {
     return run_sync(
         SyncOptions{
-            .config_file = std::string(TEST_RESOURCES_DIR) + "/scenarios/" +
-                           scenario_name + ".yml",
+            .config_file = get_scenario_path(scenario_name),
             .root_patterns = {},
             .prune_remotes = false,
             .prune_branches = false,

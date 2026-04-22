@@ -10,11 +10,11 @@
 namespace fs = std::filesystem;
 
 std::vector<Tree> parse_config(const std::string &filename) {
-    return get_config(std::string(TEST_RESOURCES_DIR) + "/" + filename);
+    return get_config(std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
 }
 
 std::vector<Tree> parse_dependencies(const std::string &filename) {
-    return get_dependencies(std::string(TEST_RESOURCES_DIR) + "/" + filename);
+    return get_dependencies(std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
 }
 
 namespace {
@@ -38,28 +38,28 @@ Tree make_test_tree(const std::string &root, std::vector<Repo> repos) {
 } // namespace
 
 TEST(ConfigTests, WithoutNesting) {
-    std::vector<Tree> trees = parse_config("nested_repos.yml");
+    std::vector<Tree> trees = parse_config("nested_repositories.yml");
     EXPECT_EQ(trees[0].repos.size(), 4);
 }
 
 TEST(ConfigTests, NestingFirstLevel) {
-    std::vector<Tree> trees = parse_dependencies("nested_repos.yml");
+    std::vector<Tree> trees = parse_dependencies("nested_repositories.yml");
     EXPECT_EQ(trees[0].repos.size(), 1);
 }
 
 TEST(ConfigTests, NestingSecondLevel) {
-    std::vector<Tree> trees = parse_dependencies("nested_repos.yml");
+    std::vector<Tree> trees = parse_dependencies("nested_repositories.yml");
     EXPECT_EQ(trees[0].repos[0].children.size(), 2);
 }
 
 TEST(ConfigTests, NestingThirdLevel) {
-    std::vector<Tree> trees = parse_dependencies("nested_repos.yml");
+    std::vector<Tree> trees = parse_dependencies("nested_repositories.yml");
     EXPECT_EQ(trees[0].repos[0].children[0].children.size(), 1);
     EXPECT_EQ(trees[0].repos[0].children[1].children.size(), 0);
 }
 
 TEST(ConfigTests, MultipleTrees) {
-    std::vector<Tree> trees = parse_dependencies("multi_tree.yml");
+    std::vector<Tree> trees = parse_dependencies("multiple_trees.yml");
     EXPECT_EQ(trees.size(), 2);
 }
 
@@ -251,7 +251,7 @@ TEST(ConfigTests, FilterTreesByNameTreeWithNoRepos) {
 
 TEST(ConfigTests, LoadTreesFromConfigFile) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/nested_repos.yml",
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/nested_repositories.yml",
         {},
         {},
         {});
@@ -262,7 +262,7 @@ TEST(ConfigTests, LoadTreesFromConfigFile) {
 
 TEST(ConfigTests, LoadTreesWithRootFilter) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/multi_tree.yml",
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/multiple_trees.yml",
         {},
         {"first*"},
         {});
@@ -272,7 +272,7 @@ TEST(ConfigTests, LoadTreesWithRootFilter) {
 
 TEST(ConfigTests, LoadTreesWithNameFilter) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/nested_repos.yml",
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/nested_repositories.yml",
         {},
         {},
         {"parent"});
@@ -283,7 +283,7 @@ TEST(ConfigTests, LoadTreesWithNameFilter) {
 
 TEST(ConfigTests, LoadTreesWithBothFilters) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/multi_tree.yml",
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/multiple_trees.yml",
         {},
         {"second*"},
         {"*d"});
@@ -295,7 +295,7 @@ TEST(ConfigTests, LoadTreesWithBothFilters) {
 
 TEST(ConfigTests, LoadTreesEmptyAfterFiltering) {
     const auto trees = load_trees(
-        std::string(TEST_RESOURCES_DIR) + "/nested_repos.yml",
+        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/nested_repositories.yml",
         {},
         {},
         {"nonexistent-repo-name"});
