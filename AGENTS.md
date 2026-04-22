@@ -24,5 +24,4 @@ Run in order:
 - Library source code used in this project can be found at ~/.conan2/p.
 - Prefer terse, functional and portable (linux, macos, windows) code.
 - Avoid comments that are better described with code.
-- Avoid trailing space characters in code.
 - Use "master" not "main" as the default branch.
