@@ -964,7 +964,7 @@ class GitManager {
                 git_signature_now(
                     stash_signature.get_address(),
                     "mrm",
-                    "mrm@mrm.com"),
+                    "noreply@localhost"),
                 "Failed to create signature",
                 repo.get());
             stash_code = git_stash_save(

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-REPO_BASE_URL="https://git.pythys.com/taher/multi-repo-manager"
+REPO_BASE_URL="https://github.com/pythys/multi-repo-manager"
 PROJECT_NAME="mrm"
 DEFAULT_BIN_DIR="$HOME/.local/bin"
 
@@ -133,15 +133,15 @@ esac
 if [ "$NEEDS_PATH" -eq 1 ] || [ "$NEEDS_COMPLETION" -eq 1 ]; then
   printf '\n%s\n' "To complete setup, run:"
   printf '%s\n' "cat >> \"$PROFILE_FILE\" <<'SETUP_EOF'"
-  
+
   if [ "$NEEDS_PATH" -eq 1 ]; then
     printf '%s\n' "export PATH=\"$BIN_DIR:\$PATH\""
   fi
-  
+
   if [ "$NEEDS_COMPLETION" -eq 1 ]; then
     printf '%s\n' "source <($PROJECT_NAME completion $SHELL_NAME)"
   fi
-  
+
   printf '%s\n' "SETUP_EOF"
   printf '\n%s\n' "Then restart your shell: exec \$SHELL"
 fi

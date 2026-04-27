@@ -72,18 +72,18 @@ mrm sync
 
 ## documentation
 
-- [Usage Guide](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/usage.md)
-- [Quick Start](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/guides/quickstart.md)
-- [Best Practices](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/guides/best-practices.md)
-- [YAML Schema](https://git.pythys.com/taher/multi-repo-manager/src/branch/master/docs/yaml-schema.md)
+- [Usage Guide](https://github.com/pythys/multi-repo-manager/blob/master/docs/usage.md)
+- [Quick Start](https://github.com/pythys/multi-repo-manager/blob/master/docs/guides/quickstart.md)
+- [Best Practices](https://github.com/pythys/multi-repo-manager/blob/master/docs/guides/best-practices.md)
+- [YAML Schema](https://github.com/pythys/multi-repo-manager/blob/master/docs/yaml-schema.md)
 
-For more information, visit: https://git.pythys.com/taher/multi-repo-manager
+For more information, visit: https://github.com/pythys/multi-repo-manager
 )";
 
 constexpr std::string_view kConfigTemplate = R"(# This is your mrm config file
 # Use 'mrm find <path> --save' to populate it with your repositories
 # Example: mrm find {repos_path} --save
-# See: https://git.pythys.com/taher/multi-repo-manager for documentation
+# See: https://github.com/pythys/multi-repo-manager for documentation
 trees: []
 )";
 
