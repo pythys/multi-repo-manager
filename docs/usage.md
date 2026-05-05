@@ -38,12 +38,13 @@ Behavior:
 - process nested dependencies
 
 Options:
-- `--config <file>` (`-c`): config file (default: `mrm.yml`), see [source
-  options](#source-options)
+- `--config <file>` (`-c`): config file, see [source options](#source-options)
+- `--find <path>` (`-f`): discover repos, see [source options](#source-options)
 - `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--timeout <seconds>` (`-T`): network operation timeout in seconds (default: 300, 0 = disabled)
 - `--prune-remotes` (`-R`): remove remotes not declared in config
 - `--prune-branches` (`-B`): remove local tracked branches not declared in
   config
@@ -171,6 +172,7 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--timeout <seconds>` (`-T`): network operation timeout in seconds (default: 300, 0 = disabled)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -199,6 +201,7 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--timeout <seconds>` (`-T`): network operation timeout in seconds (default: 300, 0 = disabled)
 - `--source <remote>` (`-s`): source remote name (required)
 - `--target <remote>` (`-t`): target remote name (required)
 - `--branch <name>` (`-b`): branch to sync (repeatable, required)

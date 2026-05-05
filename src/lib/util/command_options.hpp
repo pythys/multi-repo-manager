@@ -1,6 +1,7 @@
 #ifndef SRC_LIB_UTIL_COMMAND_OPTIONS_HPP_
 #define SRC_LIB_UTIL_COMMAND_OPTIONS_HPP_
 
+#include "constants.hpp"
 #include <string>
 #include <vector>
 
@@ -20,6 +21,7 @@ struct StatusOptions {
 struct UpdateOptions {
     RepositorySelector selector;
     int jobs = 0;
+    int timeout_seconds = DEFAULT_TIMEOUT;
 };
 
 struct ExecutionOptions {
@@ -35,6 +37,7 @@ struct RemoteSyncOptions {
     std::vector<std::string> branches;
     bool dry_run = false;
     int jobs = 0;
+    int timeout_seconds = DEFAULT_TIMEOUT;
 };
 
 struct SyncOptions {
@@ -44,6 +47,7 @@ struct SyncOptions {
     bool prune_branches = false;
     bool prune_repos = false;
     int jobs = 0;
+    int timeout_seconds = DEFAULT_TIMEOUT;
 };
 
 struct ListOptions {

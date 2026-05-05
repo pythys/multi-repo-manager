@@ -122,7 +122,8 @@ void sync_branches(
     const std::string &repo_name,
     const std::string &repo_path,
     const std::vector<Branch> &desired_branches,
-    bool prune_branches) {
+    bool prune_branches,
+    int timeout_seconds = 0) {
     if (desired_branches.empty()) {
         return;
     }
@@ -147,7 +148,8 @@ void sync_branches(
                 repo_path,
                 desired_branch.remote,
                 desired_branch.name,
-                desired_branch.name);
+                desired_branch.name,
+                timeout_seconds);
         } else if (repo_it->remote != desired_branch.remote) {
             bool success = GitManager::set_branch_upstream(
                 repo_path,
@@ -190,14 +192,21 @@ void sync_branches(
     }
 }
 
-void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
+void clone_repository(
+    const std::string &root,
+    Repo *repo,
+    Tracker &tracker,
+    int timeout_seconds) {
     tracker
         .set_phase(root, repo->name, RepoPhase::RUNNING, "Cloning repository");
     auto it = std::ranges::find_if(repo->remotes, [](const Remote &remote) {
         return remote.name == "origin";
     });
     if (it != repo->remotes.end()) {
-        GitManager::clone(it->url, construct_repo_path(root, repo->name));
+        GitManager::clone(
+            it->url,
+            construct_repo_path(root, repo->name),
+            timeout_seconds);
     } else {
         throw std::runtime_error(
             "No remote found with name 'origin' for repo: " + repo->name);
@@ -214,7 +223,8 @@ void clone_repository(const std::string &root, Repo *repo, Tracker &tracker) {
         repo->name,
         construct_repo_path(root, repo->name),
         repo->branches,
-        false);
+        false,
+        timeout_seconds);
 }
 
 void update_repository(
@@ -222,7 +232,8 @@ void update_repository(
     Repo *repo,
     Tracker &tracker,
     bool prune_remotes,
-    bool prune_branches) {
+    bool prune_branches,
+    int timeout_seconds) {
     tracker
         .set_phase(root, repo->name, RepoPhase::RUNNING, "Updating repository");
     const std::string repo_path = construct_repo_path(root, repo->name);
@@ -244,7 +255,8 @@ void update_repository(
         repo->name,
         repo_path,
         repo->branches,
-        prune_branches);
+        prune_branches,
+        timeout_seconds);
 }
 
 void sync_repository(
@@ -254,7 +266,8 @@ void sync_repository(
     asio::thread_pool &pool,
     bool prune_remotes,
     bool prune_branches,
-    std::atomic_bool &has_error) {
+    std::atomic_bool &has_error,
+    int timeout_seconds) {
 
     bool is_existing_repo =
         GitManager::is_repo(construct_repo_path(root, repo->name));
@@ -267,9 +280,10 @@ void sync_repository(
                     repo,
                     tracker,
                     prune_remotes,
-                    prune_branches);
+                    prune_branches,
+                    timeout_seconds);
             } else {
-                clone_repository(root, repo, tracker);
+                clone_repository(root, repo, tracker, timeout_seconds);
             }
             tracker.set_phase(
                 root,
@@ -295,7 +309,8 @@ void sync_repository(
                 pool,
                 prune_remotes,
                 prune_branches,
-                has_error);
+                has_error,
+                timeout_seconds);
         }
     });
 }
@@ -326,7 +341,8 @@ int run_sync(const SyncOptions &options) {
                 pool,
                 options.prune_remotes,
                 options.prune_branches,
-                has_error);
+                has_error,
+                options.timeout_seconds);
         }
     }
     pool.join();

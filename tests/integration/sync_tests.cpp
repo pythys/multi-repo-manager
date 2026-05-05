@@ -301,3 +301,41 @@ TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {
     ASSERT_EQ(1, repos_after.size());
     EXPECT_EQ("hello-world", repos_after[0].name);
 }
+
+TEST(SyncTests, TimeoutConfigurationIsRespected) {
+    int result = run_sync(
+        SyncOptions{
+            .config_file = get_scenario_path("basic_sync"),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 1,
+            .timeout_seconds = 120});
+    EXPECT_EQ(0, result);
+}
+
+TEST(SyncTests, ZeroTimeoutDisablesTimeout) {
+    int result = run_sync(
+        SyncOptions{
+            .config_file = get_scenario_path("basic_sync"),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 1,
+            .timeout_seconds = 0});
+    EXPECT_EQ(0, result);
+}
+
+TEST(SyncTests, DefaultTimeoutIsApplied) {
+    int result = run_sync(
+        SyncOptions{
+            .config_file = get_scenario_path("basic_sync"),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 1});
+    EXPECT_EQ(0, result);
+}

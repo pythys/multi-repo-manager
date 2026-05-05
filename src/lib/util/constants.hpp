@@ -4,5 +4,6 @@
 #include <string_view>
 
 inline constexpr int SYNC_POOL_SIZE = 10;
+inline constexpr int DEFAULT_TIMEOUT = 300;
 
 #endif // SRC_LIB_UTIL_CONSTANTS_HPP_

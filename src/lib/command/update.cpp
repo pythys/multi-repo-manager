@@ -26,9 +26,10 @@ int run_update(const UpdateOptions &options) {
 
     std::atomic_bool has_error{false};
     auto pool = create_thread_pool(options.jobs);
+
     for (const auto &tree : config) {
         for (const auto &repo : tree.repos) {
-            auto updater = [repo, tree, &tracker, &has_error] {
+            auto updater = [repo, tree, &tracker, &has_error, &options] {
                 auto repo_path = construct_repo_path(tree.root, repo.name);
                 tracker.set_phase(
                     tree.root,
@@ -50,7 +51,8 @@ int run_update(const UpdateOptions &options) {
                         repo_path,
                         current->remote,
                         current->name,
-                        current->name);
+                        current->name,
+                        options.timeout_seconds);
 
                     for (const auto &line : summary_lines) {
                         tracker.set_phase(

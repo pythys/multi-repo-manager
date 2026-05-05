@@ -10,6 +10,7 @@
 #include "command/update.hpp"
 #include "persistence/config.hpp"
 #include "util/command_options.hpp"
+#include "util/constants.hpp"
 #include <CLI/CLI.hpp>
 #include <filesystem>
 #include <iostream>
@@ -26,6 +27,12 @@ int parse_cli(int argc, char **argv) {
         ->type_name("file");
     int sync_jobs = 0;
     sync->add_option("--jobs,-j", sync_jobs, "number of jobs")->type_name("N");
+    int sync_timeout_seconds = DEFAULT_TIMEOUT;
+    sync->add_option(
+            "--timeout,-T",
+            sync_timeout_seconds,
+            "network operation timeout in seconds (0 = no timeout)")
+        ->type_name("seconds");
     bool prune_remotes = false;
     sync->add_flag("--prune-remotes,-R", prune_remotes, "prune remotes");
     bool prune_branches = false;
@@ -114,6 +121,13 @@ int parse_cli(int argc, char **argv) {
     int update_jobs = 0;
     update->add_option("--jobs,-j", update_jobs, "number of jobs")
         ->type_name("N");
+    int update_timeout_seconds = DEFAULT_TIMEOUT;
+    update
+        ->add_option(
+            "--timeout,-T",
+            update_timeout_seconds,
+            "network operation timeout in seconds (0 = no timeout)")
+        ->type_name("seconds");
     std::vector<std::string> update_root_patterns;
     update->add_option("--root,-r", update_root_patterns, "root tree pattern")
         ->type_name("pattern");
@@ -157,6 +171,13 @@ int parse_cli(int argc, char **argv) {
     int remotesync_jobs = 0;
     remotesync->add_option("--jobs,-j", remotesync_jobs, "number of jobs")
         ->type_name("N");
+    int remotesync_timeout_seconds = DEFAULT_TIMEOUT;
+    remotesync
+        ->add_option(
+            "--timeout,-T",
+            remotesync_timeout_seconds,
+            "network operation timeout in seconds (0 = no timeout)")
+        ->type_name("seconds");
     std::vector<std::string> remotesync_root_patterns;
     remotesync
         ->add_option("--root,-r", remotesync_root_patterns, "root tree pattern")
@@ -256,7 +277,8 @@ Available placeholders:
             .prune_remotes = should_prune_remotes,
             .prune_branches = should_prune_branches,
             .prune_repos = should_prune_repos,
-            .jobs = sync_jobs};
+            .jobs = sync_jobs,
+            .timeout_seconds = sync_timeout_seconds};
         return run_sync(options);
     }
 
@@ -297,7 +319,8 @@ Available placeholders:
                  .find_paths = update_find_paths,
                  .root_patterns = update_root_patterns,
                  .name_patterns = update_name_patterns},
-            .jobs = update_jobs};
+            .jobs = update_jobs,
+            .timeout_seconds = update_timeout_seconds};
         return run_update(options);
     }
 
@@ -312,7 +335,8 @@ Available placeholders:
             .target_remote = remotesync_target,
             .branches = remotesync_branches,
             .dry_run = remotesync_dry_run,
-            .jobs = remotesync_jobs};
+            .jobs = remotesync_jobs,
+            .timeout_seconds = remotesync_timeout_seconds};
         return run_remotesync(options);
     }
 

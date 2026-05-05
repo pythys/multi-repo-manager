@@ -49,7 +49,8 @@ bool sync_branch(
     const std::string &branch,
     bool source_available,
     bool dry_run,
-    std::atomic_bool &has_error) {
+    std::atomic_bool &has_error,
+    int timeout_seconds) {
     try {
         std::string source_label = source_remote + "/" + branch;
         const std::string &source_local_branch = branch;
@@ -64,7 +65,8 @@ bool sync_branch(
                         repo_path,
                         source_remote,
                         branch,
-                        source_local_branch);
+                        source_local_branch,
+                        timeout_seconds);
                 }
                 GitManager::switch_branch(repo_path, source_local_branch);
                 if (has_branch) {
@@ -72,7 +74,8 @@ bool sync_branch(
                         repo_path,
                         source_remote,
                         branch,
-                        source_local_branch);
+                        source_local_branch,
+                        timeout_seconds);
                 }
             } catch (const std::exception &) {
                 source_available = false;
@@ -103,9 +106,10 @@ bool sync_branch(
         try {
             GitManager::pull(
                 repo_path,
-                target_remote,
+                source_remote,
                 branch,
-                target_local_branch);
+                source_local_branch,
+                timeout_seconds);
             target_exists = true;
         } catch (const std::exception &) {
             target_exists = false;
@@ -189,7 +193,12 @@ bool sync_branch(
             return true;
         }
 
-        GitManager::push(repo_path, target_remote, source_local_branch, branch);
+        GitManager::push(
+            repo_path,
+            target_remote,
+            source_local_branch,
+            branch,
+            timeout_seconds);
 
         tracker.set_phase(
             root,
@@ -217,7 +226,8 @@ void process_repo_sync(
     const std::string &target_remote,
     const std::vector<std::string> &branches,
     bool dry_run,
-    std::atomic_bool &has_error) {
+    std::atomic_bool &has_error,
+    int timeout_seconds) {
 
     tracker.set_phase(
         repo_job.root,
@@ -258,7 +268,8 @@ void process_repo_sync(
                     branch,
                     source_available,
                     dry_run,
-                    has_error)) {
+                    has_error,
+                    timeout_seconds)) {
                 repo_failed = true;
             }
         }
@@ -308,7 +319,8 @@ int run_remotesync(const RemoteSyncOptions &options) {
                 options.target_remote,
                 options.branches,
                 options.dry_run,
-                has_error);
+                has_error,
+                options.timeout_seconds);
         });
     }
 
