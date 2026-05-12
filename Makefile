@@ -1,10 +1,7 @@
 COMPILER ?= clang
 GENERATOR ?= "Ninja"
 BUILDTYPE ?= Release
-SCANMATCH = src/*.cpp src/*.hpp \
-            src/lib/*.cpp src/lib/*.hpp \
-            src/lib/*/*.cpp src/lib/*/*.hpp \
-            tests/*.cpp tests/*.hpp
+SCANFILTER ?= (src|tests)/.*\.cpp$$
 TESTTYPE ?=
 NPROC := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 4)
 
@@ -90,8 +87,10 @@ lint-fix: ## Lint and automatically fix issues
 
 .PHONY: scan
 scan: ## Scan source code with clang-tidy
-	$(call check_bin, clang-tidy)
-	@clang-tidy -p build $(wildcard $(SCANMATCH))
+	$(call check_bin, run-clang-tidy)
+	@run-clang-tidy -p build -quiet -j $(NPROC) \
+		-header-filter='(src|tests)/.*\.hpp$$' \
+		'$(SCANFILTER)'
 
 .PHONY: watch
 watch: ## Cycle of clean test lint
@@ -151,6 +150,6 @@ help: ## Show this help
 	@echo "BUILDTYPE:       \"Debug\", \"Release\" - default: \"Release\""
 	@echo "COMPILER:        \"clang\", \"gcc\" - default: \"clang\""
 	@echo "GENERATOR:       \"Ninja\", \"Unix Makefiles\" - default: \"Ninja\""
-	@echo "SCANMATCH:       <glob-pattern> - default: \"src/lib/*.cpp src/lib/*.hpp tests/*.cpp tests/*.hpp\""
+	@echo "SCANFILTER:      <regex> - default: \"(src|tests)/.*\\.cpp\$$\""
 	@echo "TESTTYPE:        \"unit\", \"integration\" - default: all tests"
 	@echo "VERSION:         <version> - update VERSION file before propagating"
