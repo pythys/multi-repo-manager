@@ -4,14 +4,16 @@
 #include <chrono>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <random>
 
 const GitGuard git_guard;
 
 class GitManagerTimeoutTests : public ::testing::Test {
   protected:
     void SetUp() override {
+        std::random_device rng;
         test_dir = std::filesystem::temp_directory_path() /
-                   ("mrm_git_timeout_test_" + std::to_string(std::rand()));
+                   ("mrm_git_timeout_test_" + std::to_string(rng()));
         std::filesystem::create_directories(test_dir);
     }
 
@@ -21,7 +23,13 @@ class GitManagerTimeoutTests : public ::testing::Test {
         }
     }
 
+  private:
     std::filesystem::path test_dir;
+
+  protected:
+    [[nodiscard]] auto dir() const -> const std::filesystem::path & {
+        return test_dir;
+    }
 };
 
 TEST_F(GitManagerTimeoutTests, DefaultTimeoutConstantIsCorrect) {
@@ -30,7 +38,7 @@ TEST_F(GitManagerTimeoutTests, DefaultTimeoutConstantIsCorrect) {
 
 TEST_F(GitManagerTimeoutTests, CloneWithCustomTimeout) {
     GitManager manager;
-    std::filesystem::path repo_path = test_dir / "test_repo";
+    std::filesystem::path repo_path = dir() / "test_repo";
 
     EXPECT_NO_THROW({
         manager.clone(
@@ -42,7 +50,7 @@ TEST_F(GitManagerTimeoutTests, CloneWithCustomTimeout) {
 
 TEST_F(GitManagerTimeoutTests, CloneWithZeroTimeoutDisablesTimeout) {
     GitManager manager;
-    std::filesystem::path repo_path = test_dir / "test_repo";
+    std::filesystem::path repo_path = dir() / "test_repo";
 
     EXPECT_NO_THROW({
         manager.clone(
@@ -54,7 +62,7 @@ TEST_F(GitManagerTimeoutTests, CloneWithZeroTimeoutDisablesTimeout) {
 
 TEST_F(GitManagerTimeoutTests, CloneWithDefaultTimeout) {
     GitManager manager;
-    std::filesystem::path repo_path = test_dir / "test_repo";
+    std::filesystem::path repo_path = dir() / "test_repo";
 
     EXPECT_NO_THROW({
         manager.clone(
@@ -63,9 +71,11 @@ TEST_F(GitManagerTimeoutTests, CloneWithDefaultTimeout) {
     });
 }
 
-TEST_F(GitManagerTimeoutTests, DISABLED_TimeoutActuallyTriggersOnSlowConnection) {
+TEST_F(
+    GitManagerTimeoutTests,
+    DISABLED_TimeoutActuallyTriggersOnSlowConnection) {
     GitManager manager;
-    std::filesystem::path repo_path = test_dir / "timeout_repo";
+    std::filesystem::path repo_path = dir() / "timeout_repo";
 
     auto start = std::chrono::steady_clock::now();
 
@@ -88,7 +98,7 @@ TEST_F(GitManagerTimeoutTests, DISABLED_TimeoutActuallyTriggersOnSlowConnection)
 
 TEST_F(GitManagerTimeoutTests, ZeroTimeoutAllowsSlowConnections) {
     GitManager manager;
-    std::filesystem::path repo_path = test_dir / "no_timeout_repo";
+    std::filesystem::path repo_path = dir() / "no_timeout_repo";
 
     EXPECT_THROW(
         {

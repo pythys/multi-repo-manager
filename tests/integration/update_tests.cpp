@@ -10,6 +10,9 @@
 
 const GitGuard git_guard;
 
+constexpr int TIMEOUT_SHORT = 120;
+constexpr int TIMEOUT_LONG = 180;
+
 std::string get_update_scenario_path(const std::string &scenario_name) {
     return std::string(TEST_RESOURCES_DIR) + "/scenarios/sync/" +
            scenario_name + ".yml";
@@ -26,7 +29,7 @@ TEST(UpdateTests, TimeoutConfigurationIsRespected) {
                     .root_patterns = {},
                     .name_patterns = {}},
             .jobs = 1,
-            .timeout_seconds = 120});
+            .timeout_seconds = TIMEOUT_SHORT});
     EXPECT_EQ(0, result);
 }
 
@@ -69,6 +72,6 @@ TEST(UpdateTests, CustomTimeoutWorksWithMultipleRepos) {
                     .root_patterns = {},
                     .name_patterns = {}},
             .jobs = 2,
-            .timeout_seconds = 180});
+            .timeout_seconds = TIMEOUT_LONG});
     EXPECT_EQ(0, result);
 }

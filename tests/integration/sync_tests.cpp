@@ -14,6 +14,8 @@
 
 const GitGuard git_guard;
 
+constexpr int TIMEOUT_SHORT = 120;
+
 std::string get_scenario_path(const std::string &scenario_name) {
     static const std::unordered_map<std::string, std::string> scenario_paths = {
         {"basic_sync", "scenarios/sync/basic_repositories.yml"},
@@ -99,12 +101,15 @@ TEST(SyncTests, NestedRepositoryStructure) {
     bool found_child2 = false;
 
     for (const auto &repo : repos) {
-        if (repo.name == "parent")
+        if (repo.name == "parent") {
             found_parent = true;
-        if (repo.name == "parent/child1")
+        }
+        if (repo.name == "parent/child1") {
             found_child1 = true;
-        if (repo.name == "parent/child2")
+        }
+        if (repo.name == "parent/child2") {
             found_child2 = true;
+        }
     }
 
     EXPECT_TRUE(found_parent);
@@ -311,7 +316,7 @@ TEST(SyncTests, TimeoutConfigurationIsRespected) {
             .prune_branches = false,
             .prune_repos = false,
             .jobs = 1,
-            .timeout_seconds = 120});
+            .timeout_seconds = TIMEOUT_SHORT});
     EXPECT_EQ(0, result);
 }
 
