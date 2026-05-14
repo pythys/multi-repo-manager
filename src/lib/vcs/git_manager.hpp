@@ -230,10 +230,11 @@ class GitManager {
                 0) {
                 return 0;
             }
-            auto *state = static_cast<SshKeyCursor *>(payload);
-            if (!state) {
+            auto *context = static_cast<TimeoutContext *>(payload);
+            if (!context) {
                 return GIT_PASSTHROUGH;
             }
+            auto *state = &context->ssh_keys;
 
             while (state->next_index < state->keys.size()) {
                 const std::size_t key_index = state->next_index++;
@@ -258,14 +259,6 @@ class GitManager {
             return GIT_PASSTHROUGH;
         }
         return GIT_PASSTHROUGH;
-    }
-
-    static git_remote_callbacks create_remote_callbacks(void *payload) {
-        git_remote_callbacks callbacks;
-        git_remote_init_callbacks(&callbacks, GIT_REMOTE_CALLBACKS_VERSION);
-        callbacks.credentials = credential_callback;
-        callbacks.payload = payload;
-        return callbacks;
     }
 
     static int
@@ -355,16 +348,8 @@ class GitManager {
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        if (timeout > 0) {
-            TimeoutContext context(timeout);
-            fetch_opts.callbacks = create_timeout_callbacks(&context);
-        } else {
-            SshKeyCursor key_state{
-                .keys = cached_ssh_keys(),
-                .next_index = 0,
-            };
-            fetch_opts.callbacks = create_remote_callbacks(&key_state);
-        }
+        TimeoutContext context(timeout > 0 ? timeout : 0);
+        fetch_opts.callbacks = create_timeout_callbacks(&context);
         check_error(
             git_remote_fetch(remote.get(), &refspecs, &fetch_opts, nullptr),
             "Failed to fetch remote in " + path,
@@ -604,16 +589,8 @@ class GitManager {
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
-        if (timeout > 0) {
-            TimeoutContext context(timeout);
-            fetch_opts.callbacks = create_timeout_callbacks(&context);
-        } else {
-            SshKeyCursor key_state{
-                .keys = cached_ssh_keys(),
-                .next_index = 0,
-            };
-            fetch_opts.callbacks = create_remote_callbacks(&key_state);
-        }
+        TimeoutContext context(timeout > 0 ? timeout : 0);
+        fetch_opts.callbacks = create_timeout_callbacks(&context);
         clone_opts.fetch_opts = fetch_opts;
 
         check_error(
@@ -1116,16 +1093,8 @@ class GitManager {
 
         git_push_options push_opts;
         git_push_options_init(&push_opts, GIT_PUSH_OPTIONS_VERSION);
-        if (timeout > 0) {
-            TimeoutContext context(timeout);
-            push_opts.callbacks = create_timeout_callbacks(&context);
-        } else {
-            SshKeyCursor key_state{
-                .keys = cached_ssh_keys(),
-                .next_index = 0,
-            };
-            push_opts.callbacks = create_remote_callbacks(&key_state);
-        }
+        TimeoutContext context(timeout > 0 ? timeout : 0);
+        push_opts.callbacks = create_timeout_callbacks(&context);
         check_error(
             git_remote_push(remote.get(), &refspecs, &push_opts),
             "Failed to push reference in " + path,

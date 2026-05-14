@@ -106,9 +106,9 @@ bool sync_branch(
         try {
             GitManager::pull(
                 repo_path,
-                source_remote,
+                target_remote,
                 branch,
-                source_local_branch,
+                target_local_branch,
                 timeout_seconds);
             target_exists = true;
         } catch (const std::exception &) {
