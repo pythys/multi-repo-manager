@@ -1142,6 +1142,54 @@ class GitManager {
         return BranchSyncState::SOURCE_AHEAD;
     }
 
+    static BranchSyncState compare_branch_to_remote(
+        const std::string &path,
+        const std::string &source_branch,
+        const std::string &target_remote,
+        const std::string &target_branch,
+        int timeout = DEFAULT_TIMEOUT) {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        const FetchResult fetch_result = fetch_branch(
+            repo.get(),
+            path,
+            target_remote,
+            target_branch,
+            timeout);
+
+        const std::string source_ref = "refs/heads/" + source_branch;
+        const git_oid source_oid =
+            lookup_ref_oid(repo.get(), source_ref.c_str());
+        const git_oid target_oid = fetch_result.target_oid;
+
+        size_t source_ahead_count = 0;
+        size_t source_behind_count = 0;
+        check_error(
+            git_graph_ahead_behind(
+                &source_ahead_count,
+                &source_behind_count,
+                repo.get(),
+                &source_oid,
+                &target_oid),
+            "Failed to compare branches in " + path,
+            repo.get());
+
+        if (source_ahead_count == 0 && source_behind_count == 0) {
+            return BranchSyncState::UP_TO_DATE;
+        }
+        if (source_ahead_count == 0 && source_behind_count > 0) {
+            return BranchSyncState::TARGET_AHEAD;
+        }
+        if (source_ahead_count > 0 && source_behind_count > 0) {
+            return BranchSyncState::DIVERGED;
+        }
+        return BranchSyncState::SOURCE_AHEAD;
+    }
+
     static RepoStatus get_status(const std::string &path) {
         GitRepository repo;
         check_error(

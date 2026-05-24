@@ -53,28 +53,27 @@ bool sync_branch(
     int timeout_seconds) {
     try {
         std::string source_label = source_remote + "/" + branch;
-        const std::string &source_local_branch = branch;
-        std::string target_local_branch = "mrm-target-" + branch;
+        const std::string &local_branch = branch;
 
         if (source_available) {
             try {
                 const bool has_branch =
-                    GitManager::branch_exists(repo_path, source_local_branch);
+                    GitManager::branch_exists(repo_path, local_branch);
                 if (!has_branch) {
                     GitManager::pull(
                         repo_path,
                         source_remote,
                         branch,
-                        source_local_branch,
+                        local_branch,
                         timeout_seconds);
                 }
-                GitManager::switch_branch(repo_path, source_local_branch);
+                GitManager::switch_branch(repo_path, local_branch);
                 if (has_branch) {
                     GitManager::pull(
                         repo_path,
                         source_remote,
                         branch,
-                        source_local_branch,
+                        local_branch,
                         timeout_seconds);
                 }
             } catch (const std::exception &) {
@@ -89,7 +88,7 @@ bool sync_branch(
         }
 
         if (!source_available) {
-            if (!GitManager::branch_exists(repo_path, source_local_branch)) {
+            if (!GitManager::branch_exists(repo_path, local_branch)) {
                 tracker.set_phase(
                     root,
                     repo_name,
@@ -99,16 +98,17 @@ bool sync_branch(
                 return true;
             }
             source_label = "local " + branch;
-            GitManager::switch_branch(repo_path, source_local_branch);
+            GitManager::switch_branch(repo_path, local_branch);
         }
 
         bool target_exists = false;
+        BranchSyncState state = BranchSyncState::SOURCE_AHEAD;
         try {
-            GitManager::pull(
+            state = GitManager::compare_branch_to_remote(
                 repo_path,
+                local_branch,
                 target_remote,
                 branch,
-                target_local_branch,
                 timeout_seconds);
             target_exists = true;
         } catch (const std::exception &) {
@@ -117,11 +117,6 @@ bool sync_branch(
 
         if (target_exists) {
             try {
-                BranchSyncState state = GitManager::compare_branches(
-                    repo_path,
-                    source_local_branch,
-                    target_local_branch);
-
                 if (state == BranchSyncState::UP_TO_DATE) {
                     tracker.set_phase(
                         root,
@@ -129,15 +124,6 @@ bool sync_branch(
                         RepoPhase::RUNNING,
                         "[" + branch + "] Already up-to-date",
                         MessageLevel::OUTPUT);
-                    GitManager::switch_branch(repo_path, source_local_branch);
-                    try {
-                        Branch temp_branch{
-                            .name = target_local_branch,
-                            .remote = "",
-                            .is_current = false};
-                        GitManager::remove_branch(repo_path, temp_branch);
-                    } catch (...) { // NOLINT(bugprone-empty-catch)
-                    }
                     return true;
                 }
                 if (state == BranchSyncState::TARGET_AHEAD) {
@@ -171,15 +157,6 @@ bool sync_branch(
                         "] Could not compare: " + std::string(e.what()),
                     MessageLevel::WARNING);
             }
-            GitManager::switch_branch(repo_path, source_local_branch);
-            try {
-                Branch temp_branch{
-                    .name = target_local_branch,
-                    .remote = "",
-                    .is_current = false};
-                GitManager::remove_branch(repo_path, temp_branch);
-            } catch (...) { // NOLINT(bugprone-empty-catch)
-            }
         }
 
         if (dry_run) {
@@ -196,7 +173,7 @@ bool sync_branch(
         GitManager::push(
             repo_path,
             target_remote,
-            source_local_branch,
+            local_branch,
             branch,
             timeout_seconds);
 
