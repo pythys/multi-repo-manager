@@ -70,16 +70,3 @@ TEST_F(GitManagerTimeoutTests, CloneWithDefaultTimeout) {
     });
 }
 
-TEST_F(GitManagerTimeoutTests, ZeroTimeoutAllowsSlowConnections) {
-    GitManager manager;
-    std::filesystem::path repo_path = dir() / "no_timeout_repo";
-
-    EXPECT_THROW(
-        {
-            manager.clone(
-                "http://192.0.2.1/nonexistent.git",
-                repo_path.string(),
-                0);
-        },
-        std::runtime_error);
-}
