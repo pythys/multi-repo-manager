@@ -387,13 +387,11 @@ class GitManager {
         git_repository *repo,
         const std::string &path,
         const std::string &local_branch,
-        const std::string &remote_name,
-        const std::string &remote_branch,
         bool local_exists,
         GitReference &local_ref,
         const git_oid *target_oid) {
-        GitReference updated_ref;
         if (local_exists) {
+            GitReference updated_ref;
             check_error(
                 git_reference_set_target(
                     updated_ref.get_address(),
@@ -402,31 +400,22 @@ class GitManager {
                     "Fast-forward"),
                 "Failed to fast-forward branch in " + path,
                 repo);
-        } else {
-            GitCommit target_commit;
-            check_error(
-                git_commit_lookup(
-                    target_commit.get_address(),
-                    repo,
-                    target_oid),
-                "Failed to lookup target commit in " + path,
-                repo);
-            check_error(
-                git_branch_create(
-                    updated_ref.get_address(),
-                    repo,
-                    local_branch.c_str(),
-                    target_commit.get(),
-                    0),
-                "Failed to create branch in " + path,
-                repo);
+            return;
         }
-
-        GitReference *upstream_ref = local_exists ? &local_ref : &updated_ref;
-        const std::string upstream_name = remote_name + "/" + remote_branch;
+        GitCommit target_commit;
         check_error(
-            git_branch_set_upstream(upstream_ref->get(), upstream_name.c_str()),
-            "Failed to set branch upstream in " + path,
+            git_commit_lookup(target_commit.get_address(), repo, target_oid),
+            "Failed to lookup target commit in " + path,
+            repo);
+        GitReference created_ref;
+        check_error(
+            git_branch_create(
+                created_ref.get_address(),
+                repo,
+                local_branch.c_str(),
+                target_commit.get(),
+                0),
+            "Failed to create branch in " + path,
             repo);
     }
 
@@ -1018,8 +1007,6 @@ class GitManager {
             repo.get(),
             path,
             local_branch,
-            remote_name,
-            remote_branch,
             local_exists,
             local_ref,
             target_oid);

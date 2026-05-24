@@ -150,6 +150,10 @@ void sync_branches(
                 desired_branch.name,
                 desired_branch.name,
                 timeout_seconds);
+            GitManager::set_branch_upstream(
+                repo_path,
+                desired_branch.name,
+                desired_branch.remote);
         } else if (repo_it->remote != desired_branch.remote) {
             bool success = GitManager::set_branch_upstream(
                 repo_path,
