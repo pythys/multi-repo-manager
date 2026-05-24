@@ -1,7 +1,6 @@
 #include "util/constants.hpp"
 #include "vcs/git_guard.hpp"
 #include "vcs/git_manager.hpp"
-#include <chrono>
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <random>
@@ -69,31 +68,6 @@ TEST_F(GitManagerTimeoutTests, CloneWithDefaultTimeout) {
             "https://github.com/octocat/Hello-World.git",
             repo_path.string());
     });
-}
-
-TEST_F(
-    GitManagerTimeoutTests,
-    DISABLED_TimeoutActuallyTriggersOnSlowConnection) {
-    GitManager manager;
-    std::filesystem::path repo_path = dir() / "timeout_repo";
-
-    auto start = std::chrono::steady_clock::now();
-
-    EXPECT_THROW(
-        {
-            manager.clone(
-                "http://10.255.255.1/repo.git",
-                repo_path.string(),
-                5);
-        },
-        std::runtime_error);
-
-    auto end = std::chrono::steady_clock::now();
-    auto duration =
-        std::chrono::duration_cast<std::chrono::seconds>(end - start);
-
-    EXPECT_GE(duration.count(), 4);
-    EXPECT_LT(duration.count(), 15);
 }
 
 TEST_F(GitManagerTimeoutTests, ZeroTimeoutAllowsSlowConnections) {
