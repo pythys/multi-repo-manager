@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <span>
 #include <string>
@@ -57,7 +58,7 @@ using GitTree = GitResource<git_tree, git_tree_free>;
 using GitDiff = GitResource<git_diff, git_diff_free>;
 using GitDiffStats = GitResource<git_diff_stats, git_diff_stats_free>;
 
-enum class SwitchMode { PRESERVE, FORCE };
+enum class SwitchMode : std::uint8_t { PRESERVE, FORCE };
 
 class GitBuffer {
     git_buf buf_;
