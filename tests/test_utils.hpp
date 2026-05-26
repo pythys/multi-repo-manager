@@ -51,6 +51,25 @@ class CurrentPathGuard {
     fs::path saved_;
 };
 
+class ScopedTempCwd {
+  public:
+    explicit ScopedTempCwd(const std::string &prefix = "mrm-test")
+        : temp_(prefix) {
+        fs::current_path(temp_.path());
+    }
+
+    const fs::path &path() const {
+        return temp_.path();
+    }
+
+    ScopedTempCwd(const ScopedTempCwd &) = delete;
+    ScopedTempCwd &operator=(const ScopedTempCwd &) = delete;
+
+  private:
+    TempDir temp_;
+    CurrentPathGuard cwd_guard_;
+};
+
 inline std::string read_file(const fs::path &path) {
     std::ifstream file(path);
     if (!file.is_open()) {

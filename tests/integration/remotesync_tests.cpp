@@ -118,6 +118,8 @@ int run_remote_sync_with_config(
 } // namespace
 
 TEST(RemoteSyncTests, DryRunReportsPlannedOperations) {
+    test_utils::ScopedTempCwd scratch("mrm-remotesync-dry-run");
+
     const std::string test_root = "test_fork_dry_run";
     setup_local_fork_scenario(test_root);
 
@@ -138,6 +140,8 @@ TEST(RemoteSyncTests, DryRunReportsPlannedOperations) {
 }
 
 TEST(RemoteSyncTests, SyncsBetweenConfiguredRemotes) {
+    test_utils::ScopedTempCwd scratch("mrm-remotesync-sync");
+
     const std::string test_root = "test_fork_sync";
     setup_local_fork_scenario(test_root);
 
@@ -158,6 +162,8 @@ TEST(RemoteSyncTests, SyncsBetweenConfiguredRemotes) {
 }
 
 TEST(RemoteSyncTests, HandlesMultipleRepositoriesWithLocalForks) {
+    test_utils::ScopedTempCwd scratch("mrm-remotesync-multi");
+
     const std::string test_root = "test_fork_multi";
     setup_local_fork_scenario(test_root);
 
@@ -175,4 +181,36 @@ TEST(RemoteSyncTests, HandlesMultipleRepositoriesWithLocalForks) {
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_NE(std::string::npos, output.find("mrm report"));
+}
+
+TEST(RemoteSyncTests, SkipsRepositoryWithUncommittedChanges) {
+    test_utils::ScopedTempCwd scratch("mrm-remotesync-dirty");
+
+    const std::string test_root = "test_fork_dirty";
+    setup_local_fork_scenario(test_root);
+
+    const fs::path config_file = fs::path(test_root) / "config.yml";
+    write_fork_test_config(config_file, test_root);
+
+    const fs::path tracked_file =
+        fs::path(test_root) / "hello-world" / "README";
+    {
+        std::ofstream out(tracked_file, std::ios::app);
+        out << "\nlocal modification\n";
+    }
+
+    testing::internal::CaptureStdout();
+    const int result = run_remote_sync_with_config(
+        config_file,
+        "upstream",
+        "origin",
+        {"master"},
+        false);
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    EXPECT_EQ(1, result);
+    EXPECT_NE(std::string::npos, output.find("uncommitted changes"));
+    EXPECT_TRUE(
+        GitManager::get_status((fs::path(test_root) / "hello-world").string())
+            .has_changes);
 }

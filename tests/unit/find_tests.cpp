@@ -11,7 +11,6 @@ namespace fs = std::filesystem;
 const GitGuard git_guard;
 
 namespace {
-using test_utils::CurrentPathGuard;
 using test_utils::TempDir;
 } // namespace
 
@@ -33,10 +32,8 @@ TEST(FindTests, MultiplePathsBecomeMultipleTrees) {
 }
 
 TEST(FindTests, EmptyPathsDefaultToCurrentDirectory) {
-    TempDir temp;
-    CurrentPathGuard cwd_guard;
-    const fs::path output = temp.path() / "repos.yml";
-    fs::current_path(temp.path());
+    test_utils::ScopedTempCwd scratch;
+    const fs::path output = scratch.path() / "repos.yml";
 
     ASSERT_EQ(0, run_find({}, output.string()));
 

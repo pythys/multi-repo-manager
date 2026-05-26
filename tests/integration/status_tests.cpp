@@ -45,6 +45,7 @@ bool contains_status_message(
 }
 
 TEST(StatusTests, ReportsRepositoryStatus) {
+    test_utils::ScopedTempCwd scratch("mrm-status-reports");
     int result = run_scenario("status_checks");
     EXPECT_EQ(0, result);
 
@@ -60,6 +61,7 @@ TEST(StatusTests, ReportsRepositoryStatus) {
 }
 
 TEST(StatusTests, ReportsCleanRepositoryState) {
+    test_utils::ScopedTempCwd scratch("mrm-status-clean");
     int result = run_scenario("status_checks");
     EXPECT_EQ(0, result);
 

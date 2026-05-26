@@ -61,6 +61,7 @@ int run_scenario_with_pruning(
 }
 
 TEST(SyncTests, BasicSyncFunctionality) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-basic");
     int result = run_scenario("basic_sync");
     EXPECT_EQ(0, result);
 
@@ -90,6 +91,7 @@ TEST(SyncTests, BasicSyncFunctionality) {
 }
 
 TEST(SyncTests, NestedRepositoryStructure) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-nested");
     int result = run_scenario("nested_repos");
     EXPECT_EQ(0, result);
 
@@ -118,6 +120,7 @@ TEST(SyncTests, NestedRepositoryStructure) {
 }
 
 TEST(SyncTests, MultipleWorkspaceTrees) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-multi");
     int result = run_scenario("multi_tree");
     EXPECT_EQ(0, result);
 
@@ -130,6 +133,7 @@ TEST(SyncTests, MultipleWorkspaceTrees) {
 }
 
 TEST(SyncTests, BranchConfigurationIsValidated) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-branch-config");
     int result = run_scenario("branch_config");
     EXPECT_EQ(0, result);
 
@@ -176,6 +180,7 @@ TEST(SyncTests, BranchConfigurationIsValidated) {
 }
 
 TEST(SyncTests, UpstreamTrackingIsUpdated) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-upstream");
     int result = run_scenario("upstream_change");
     EXPECT_EQ(0, result);
 
@@ -204,6 +209,7 @@ TEST(SyncTests, UpstreamTrackingIsUpdated) {
 }
 
 TEST(SyncTests, CurrentBranchSwitchesToConfiguredBranch) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-switching");
     int result = run_scenario("branch_switching");
     EXPECT_EQ(0, result);
 
@@ -230,6 +236,7 @@ TEST(SyncTests, OutputFormattingWorksInNonTerminalMode) {
         GTEST_SKIP() << "Only valid for non-terminal execution mode";
     }
 
+    test_utils::ScopedTempCwd scratch("mrm-sync-output");
     testing::internal::CaptureStdout();
     int result = run_scenario("basic_sync");
     const std::string output = testing::internal::GetCapturedStdout();
@@ -242,6 +249,7 @@ TEST(SyncTests, OutputFormattingWorksInNonTerminalMode) {
 }
 
 TEST(SyncTests, PruneRemotesRemovesExtraRemotes) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-prune-remotes");
     int result = run_scenario("pruning_test");
     EXPECT_EQ(0, result);
 
@@ -267,6 +275,7 @@ TEST(SyncTests, PruneRemotesRemovesExtraRemotes) {
 }
 
 TEST(SyncTests, PruneBranchesRemovesNonConfiguredBranches) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-prune-branches");
     int result = run_scenario("pruning_test");
     EXPECT_EQ(0, result);
 
@@ -292,6 +301,7 @@ TEST(SyncTests, PruneBranchesRemovesNonConfiguredBranches) {
 }
 
 TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-prune-repos");
     int result = run_scenario("pruning_test");
     EXPECT_EQ(0, result);
 
@@ -308,6 +318,7 @@ TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {
 }
 
 TEST(SyncTests, TimeoutConfigurationIsRespected) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-timeout");
     int result = run_sync(
         SyncOptions{
             .config_file = get_scenario_path("basic_sync"),
@@ -321,6 +332,7 @@ TEST(SyncTests, TimeoutConfigurationIsRespected) {
 }
 
 TEST(SyncTests, ZeroTimeoutDisablesTimeout) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-zero-timeout");
     int result = run_sync(
         SyncOptions{
             .config_file = get_scenario_path("basic_sync"),
@@ -334,6 +346,7 @@ TEST(SyncTests, ZeroTimeoutDisablesTimeout) {
 }
 
 TEST(SyncTests, DefaultTimeoutIsApplied) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-default-timeout");
     int result = run_sync(
         SyncOptions{
             .config_file = get_scenario_path("basic_sync"),

@@ -10,14 +10,11 @@ namespace fs = std::filesystem;
 const GitGuard git_guard;
 
 using test_utils::contains;
-using test_utils::CurrentPathGuard;
 using test_utils::read_file;
-using test_utils::TempDir;
+using test_utils::ScopedTempCwd;
 
 TEST(InitTests, CreatesBasicWorkspaceStructure) {
-    TempDir temp("mrm-init-tests");
-    CurrentPathGuard cwd_guard;
-    fs::current_path(temp.path());
+    ScopedTempCwd scratch("mrm-init-tests");
 
     InitOptions options;
     options.repos_path = "repos";
@@ -32,9 +29,7 @@ TEST(InitTests, CreatesBasicWorkspaceStructure) {
 }
 
 TEST(InitTests, CustomReposPathSubstitutedInAllFiles) {
-    TempDir temp("mrm-init-tests");
-    CurrentPathGuard cwd_guard;
-    fs::current_path(temp.path());
+    ScopedTempCwd scratch("mrm-init-tests");
 
     InitOptions options;
     options.repos_path = "custom-repos";
@@ -54,9 +49,7 @@ TEST(InitTests, CustomReposPathSubstitutedInAllFiles) {
 }
 
 TEST(InitTests, FailsIfDirectoryNotEmpty) {
-    TempDir temp("mrm-init-tests");
-    CurrentPathGuard cwd_guard;
-    fs::current_path(temp.path());
+    ScopedTempCwd scratch("mrm-init-tests");
 
     std::ofstream existing("some_file.txt");
     existing << "content\n";

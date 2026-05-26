@@ -1,3 +1,4 @@
+#include "command/sync.hpp"
 #include "command/update.hpp"
 #include "persistence/config.hpp"
 #include "persistence/discovery.hpp"
@@ -18,7 +19,20 @@ std::string get_update_scenario_path(const std::string &scenario_name) {
            scenario_name + ".yml";
 }
 
+int prepare_repos(const std::string &scenario_name) {
+    return run_sync(
+        SyncOptions{
+            .config_file = get_update_scenario_path(scenario_name),
+            .root_patterns = {},
+            .prune_remotes = false,
+            .prune_branches = false,
+            .prune_repos = false,
+            .jobs = 1});
+}
+
 TEST(UpdateTests, TimeoutConfigurationIsRespected) {
+    test_utils::ScopedTempCwd scratch("mrm-update-timeout");
+    ASSERT_EQ(0, prepare_repos("basic_repositories"));
     int result = run_update(
         UpdateOptions{
             .selector =
@@ -34,6 +48,8 @@ TEST(UpdateTests, TimeoutConfigurationIsRespected) {
 }
 
 TEST(UpdateTests, ZeroTimeoutDisablesTimeout) {
+    test_utils::ScopedTempCwd scratch("mrm-update-zero-timeout");
+    ASSERT_EQ(0, prepare_repos("basic_repositories"));
     int result = run_update(
         UpdateOptions{
             .selector =
@@ -49,6 +65,8 @@ TEST(UpdateTests, ZeroTimeoutDisablesTimeout) {
 }
 
 TEST(UpdateTests, DefaultTimeoutIsApplied) {
+    test_utils::ScopedTempCwd scratch("mrm-update-default-timeout");
+    ASSERT_EQ(0, prepare_repos("basic_repositories"));
     int result = run_update(
         UpdateOptions{
             .selector =
@@ -63,6 +81,8 @@ TEST(UpdateTests, DefaultTimeoutIsApplied) {
 }
 
 TEST(UpdateTests, CustomTimeoutWorksWithMultipleRepos) {
+    test_utils::ScopedTempCwd scratch("mrm-update-custom-timeout");
+    ASSERT_EQ(0, prepare_repos("multiple_trees"));
     int result = run_update(
         UpdateOptions{
             .selector =
