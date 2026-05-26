@@ -32,7 +32,8 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages \
 COPY . /usr/src/mrm
 
 RUN cd /usr/src/mrm && \
-    make clean test lint && \
+    make clean && \
+    make test lint && \
     make install
 
 RUN strip /usr/local/bin/mrm
