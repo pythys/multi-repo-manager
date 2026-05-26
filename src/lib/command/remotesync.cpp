@@ -223,6 +223,17 @@ void process_repo_sync(
             return;
         }
 
+        if (GitManager::get_status(repo_job.path).has_changes) {
+            tracker.set_phase(
+                repo_job.root,
+                repo_job.name,
+                RepoPhase::FAILED,
+                "Skipped: repository has uncommitted changes",
+                MessageLevel::ERROR);
+            has_error.store(true);
+            return;
+        }
+
         const auto repo_branches = GitManager::get_branches(repo_job.path);
         const auto current_it =
             std::ranges::find_if(repo_branches, [](const Branch &branch) {
@@ -251,7 +262,10 @@ void process_repo_sync(
             }
         }
         if (!original_branch.empty()) {
-            GitManager::switch_branch(repo_job.path, original_branch);
+            GitManager::switch_branch(
+                repo_job.path,
+                original_branch,
+                SwitchMode::FORCE);
         }
         if (!repo_failed) {
             tracker.set_phase(

@@ -47,3 +47,5 @@ mrm remotesync --source upstream --target origin \
 Notes:
 - `remotesync` pulls the source remote into the local branch before pushing.
 - If the source branch is missing, it falls back to a local branch when present.
+- Repositories with uncommitted changes are skipped and reported as failed.
+  Commit or stash local work before running `remotesync`.

@@ -57,6 +57,8 @@ using GitTree = GitResource<git_tree, git_tree_free>;
 using GitDiff = GitResource<git_diff, git_diff_free>;
 using GitDiffStats = GitResource<git_diff_stats, git_diff_stats_free>;
 
+enum class SwitchMode { PRESERVE, FORCE };
+
 class GitBuffer {
     git_buf buf_;
 
@@ -883,14 +885,15 @@ class GitManager {
         return true;
     }
 
-    static void
-    switch_branch(const std::string &path, const std::string &branch_name) {
+    static void switch_branch(
+        const std::string &path,
+        const std::string &branch_name,
+        SwitchMode mode = SwitchMode::PRESERVE) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
             "Failed to open repository in " + path,
             repo.get());
-
         GitReference branch_ref;
         const int lookup_code = git_branch_lookup(
             branch_ref.get_address(),
@@ -905,30 +908,36 @@ class GitManager {
             lookup_code,
             "Failed to lookup branch in " + path,
             repo.get());
-
         GitObject target_obj;
         check_error(
             git_reference_peel(
                 target_obj.get_address(),
                 branch_ref.get(),
-                GIT_OBJECT_COMMIT),
+                GIT_OBJECT_TREE),
             "Failed to peel branch reference in " + path,
             repo.get());
-
+        git_checkout_options checkout_opts;
+        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
+        checkout_opts.checkout_strategy =
+            mode == SwitchMode::FORCE
+                ? GIT_CHECKOUT_FORCE
+                : (GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING);
+        const int checkout_err =
+            git_checkout_tree(repo.get(), target_obj.get(), &checkout_opts);
+        if (mode == SwitchMode::PRESERVE && checkout_err == GIT_ECONFLICT) {
+            throw std::runtime_error(
+                "Uncommitted changes would be lost switching to " +
+                branch_name + " in " + path);
+        }
+        check_error(
+            checkout_err,
+            "Failed to checkout branch tree in " + path,
+            repo.get());
         check_error(
             git_repository_set_head(
                 repo.get(),
                 git_reference_name(branch_ref.get())),
             "Failed to set HEAD in " + path,
-            repo.get());
-
-        git_checkout_options checkout_opts;
-        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
-        checkout_opts.checkout_strategy =
-            GIT_CHECKOUT_SAFE | GIT_CHECKOUT_RECREATE_MISSING;
-        check_error(
-            git_checkout_head(repo.get(), &checkout_opts),
-            "Failed to checkout branch in " + path,
             repo.get());
     }
 

@@ -69,4 +69,3 @@ TEST_F(GitManagerTimeoutTests, CloneWithDefaultTimeout) {
             repo_path.string());
     });
 }
-
