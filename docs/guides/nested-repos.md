@@ -1,7 +1,7 @@
 # nested repos guide
 
 Nested repositories are supported. Each repo is still defined as a separate
-entry in `mrm.yml` with a nested `name`.
+entry in `mrm.yml` with a nested `name`, its remotes, and its tracked branches.
 
 ## example layout
 
@@ -36,10 +36,41 @@ mrm find work --save
 This will generate nested repo entries like:
 
 ```yaml
-name: app
-name: app/plugins/auth
-name: app/plugins/billing
-name: app/vendor/widgets
+trees:
+  - root: work
+    repos:
+      - name: app
+        remotes:
+          - name: origin
+            url: git@github.com:org/app.git
+        branches:
+          - name: master
+            remote: origin
+            is_current: true
+      - name: app/plugins/auth
+        remotes:
+          - name: origin
+            url: git@github.com:org/auth-plugin.git
+        branches:
+          - name: master
+            remote: origin
+            is_current: true
+      - name: app/plugins/billing
+        remotes:
+          - name: origin
+            url: git@github.com:org/billing-plugin.git
+        branches:
+          - name: master
+            remote: origin
+            is_current: true
+      - name: app/vendor/widgets
+        remotes:
+          - name: origin
+            url: git@github.com:org/widgets.git
+        branches:
+          - name: master
+            remote: origin
+            is_current: true
 ```
 
 ## operating safely

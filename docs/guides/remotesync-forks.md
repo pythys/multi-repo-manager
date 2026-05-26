@@ -11,7 +11,7 @@ git remote -v
 git remote add upstream git@github.com:ORG/REPO.git
 ```
 
-Regenerate config so `mrm.yml` captures the remotes:
+Regenerate config so `mrm.yml` captures the remotes and tracked branches:
 
 ```sh
 mrm find <roots> --save

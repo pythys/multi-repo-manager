@@ -1,7 +1,7 @@
 # yaml schema
 
-This page describes the schema of `mrm.yml`. It is a reference for how `mrm
-find` writes the file, not a primary configuration guide.
+This page describes the schema of `mrm.yml`. It is a reference for the YAML
+that `mrm find` writes and `mrm sync` reads, not a primary configuration guide.
 
 If `--config` is omitted, `mrm.yml` in the current directory is used.
 
@@ -39,9 +39,14 @@ trees:
 - The `repos` are a collection of repositories under the tree.
 - Each repo has a `name` (relative to the tree root), a list of `remotes`, and a
   list of `branches`.
-- Each remote has a `name` and a `URL`.
+- Each remote has a `name` and a `url`.
 - Each branch has a `name`, a `remote` it tracks, and a boolean `is_current`
   indicating if it is the currently selected branch.
+- `branches` contains local branches that track a remote branch. Local branches
+  without upstream tracking are not written by `mrm find`.
+- `mrm sync` creates missing configured branches from `<remote>/<name>`, updates
+  branch upstream tracking when needed, and switches to the branch with
+  `is_current: true`.
 
 ## minimal example
 
@@ -53,6 +58,10 @@ trees:
         remotes:
           - name: origin
             url: https://github.com/sharkdp/fd
+        branches:
+          - name: master
+            remote: origin
+            is_current: true
 ```
 
 ## example with branches
@@ -81,18 +90,30 @@ trees:
         remotes:
           - name: origin
             url: https://git.mycompany.com/org/app.git
+        branches:
+          - name: master
+            remote: origin
+            is_current: true
   - root: personal
     repos:
       - name: blog
         remotes:
           - name: origin
             url: https://git.example.com/user/blog.git
+        branches:
+          - name: main
+            remote: origin
+            is_current: true
 ```
 
 ## notes
 
 - `name` is relative to `root`.
 - Nested repo paths are allowed (for example `parent/child`).
+- `remotes` is required for each repo; `origin` is required when `sync` needs to
+  clone a missing repo.
+- `branches` may be empty, but configured branch entries require `name`,
+  `remote`, and `is_current`.
 - During `sync`, missing repos are cloned and existing repos are reconciled.
 
 ## guides

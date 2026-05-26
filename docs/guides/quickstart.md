@@ -52,4 +52,5 @@ git add mrm.yml
 git commit -m "Add cli repo"
 ```
 
-Regenerate the config whenever you add, remove, or move repos.
+Regenerate the config whenever you add, remove, or move repos, change remotes,
+or change tracked branches.

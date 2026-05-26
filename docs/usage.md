@@ -105,6 +105,7 @@ Behavior:
 - scans specified paths for Git repositories (`.git` directories)
 - outputs YAML config to stdout or saves to file
 - each path becomes one `tree.root` in the generated config
+- records repository names, remotes, and local branches with upstream tracking
 
 Options:
 - `--save` (`-s`): save to file instead of stdout (default: `mrm.yml`)
@@ -312,6 +313,7 @@ Discover repositories by scanning directories:
 - scans specified paths for Git repositories (`.git` directories)
 - creates in-memory structure equivalent to config file
 - each path becomes one tree root
+- records remotes and local branches with upstream tracking
 - repeatable: `--find ~/work --find ~/personal`
 - short form: `-f`
 - supports [filtering](#filtering) to target subset of repos
