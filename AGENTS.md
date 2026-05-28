@@ -12,7 +12,7 @@ Run in order:
 3. `make lint`
 4. `make test`
 5. Fix failures
-6. `make scan` (slow ~ 2-5 minutes)
+6. `make scan` (slow ~ 1-5 minutes)
 7. Repeat until complete
 
 - Do not run `make clean build` as it leads to race conditions.
