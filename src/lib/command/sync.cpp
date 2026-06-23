@@ -153,12 +153,14 @@ void sync_branches(
             GitManager::set_branch_upstream(
                 repo_path,
                 desired_branch.name,
-                desired_branch.remote);
+                desired_branch.remote,
+                timeout_seconds);
         } else if (repo_it->remote != desired_branch.remote) {
             bool success = GitManager::set_branch_upstream(
                 repo_path,
                 desired_branch.name,
-                desired_branch.remote);
+                desired_branch.remote,
+                timeout_seconds);
             if (!success) {
                 tracker.set_phase(
                     root,
@@ -252,6 +254,14 @@ void update_repository(
     auto to_add = find_remotes(repo->remotes, remotes, MatchType::TO_ADD);
     for (const auto &remote : to_add) {
         GitManager::add_remote(repo_path, remote);
+    }
+    for (const auto &remote : repo->remotes) {
+        auto existing = std::ranges::find_if(remotes, [&](const Remote &r) {
+            return r.name == remote.name;
+        });
+        if (existing != remotes.end() && existing->url != remote.url) {
+            GitManager::set_remote_url(repo_path, remote);
+        }
     }
     sync_branches(
         tracker,

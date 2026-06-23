@@ -23,6 +23,7 @@ std::string get_scenario_path(const std::string &scenario_name) {
         {"multi_tree", "scenarios/sync/multiple_trees.yml"},
         {"branch_config", "scenarios/branch/configuration.yml"},
         {"upstream_change", "scenarios/sync/upstream_changes.yml"},
+        {"remote_url_update", "scenarios/sync/remote_url_update.yml"},
         {"branch_switching", "scenarios/branch/switching.yml"},
         {"pruning_test", "scenarios/sync/repository_pruning.yml"}};
 
@@ -195,6 +196,7 @@ TEST(SyncTests, UpstreamTrackingIsUpdated) {
     ASSERT_NE(master_branch_it, repos[0].branches.end());
 
     EXPECT_TRUE(master_branch_it->is_current);
+    EXPECT_EQ("upstream", master_branch_it->remote);
 
     bool has_origin =
         std::ranges::any_of(repos[0].remotes, [](const Remote &r) {
@@ -206,6 +208,30 @@ TEST(SyncTests, UpstreamTrackingIsUpdated) {
         });
     EXPECT_TRUE(has_origin);
     EXPECT_TRUE(has_upstream);
+}
+
+TEST(SyncTests, RemoteUrlIsUpdated) {
+    test_utils::ScopedTempCwd scratch("mrm-sync-remote-url");
+    int result = run_scenario("basic_sync");
+    EXPECT_EQ(0, result);
+
+    std::vector<Remote> remotes =
+        GitManager::get_remotes("test_basic/hello-world");
+    auto origin_it = std::ranges::find_if(remotes, [](const Remote &remote) {
+        return remote.name == "origin";
+    });
+    ASSERT_NE(origin_it, remotes.end());
+    EXPECT_EQ("https://github.com/octocat/Hello-World", origin_it->url);
+
+    result = run_scenario("remote_url_update");
+    EXPECT_EQ(0, result);
+
+    remotes = GitManager::get_remotes("test_basic/hello-world");
+    origin_it = std::ranges::find_if(remotes, [](const Remote &remote) {
+        return remote.name == "origin";
+    });
+    ASSERT_NE(origin_it, remotes.end());
+    EXPECT_EQ("https://github.com/octocat/Hello-World.git", origin_it->url);
 }
 
 TEST(SyncTests, CurrentBranchSwitchesToConfiguredBranch) {

@@ -17,7 +17,8 @@ foreach(test_src ${UNIT_TESTS})
     target_link_libraries(${test_name} PRIVATE GTest::gtest_main)
     target_link_libraries(${test_name} PRIVATE mrm_core)
     include(GoogleTest)
-    gtest_discover_tests(${test_name} PROPERTIES LABELS unit)
+    gtest_discover_tests(${test_name} DISCOVERY_TIMEOUT 30 PROPERTIES LABELS
+                                                                      unit)
 endforeach()
 
 set(INTEGRATION_TESTS
@@ -30,5 +31,6 @@ foreach(test_src ${INTEGRATION_TESTS})
     target_link_libraries(${test_name} PRIVATE GTest::gtest_main)
     target_link_libraries(${test_name} PRIVATE mrm_core)
     include(GoogleTest)
-    gtest_discover_tests(${test_name} PROPERTIES LABELS integration)
+    gtest_discover_tests(${test_name} DISCOVERY_TIMEOUT 30
+                         PROPERTIES LABELS integration)
 endforeach()

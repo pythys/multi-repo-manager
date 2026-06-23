@@ -626,6 +626,22 @@ class GitManager {
             repo.get());
     }
 
+    static void set_remote_url(const std::string &path, const Remote &remote) {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        check_error(
+            git_remote_set_url(
+                repo.get(),
+                remote.name.c_str(),
+                remote.url.c_str()),
+            "Failed to set remote URL in " + path,
+            repo.get());
+    }
+
     static std::vector<Remote> get_remotes(const std::string &path) {
         GitRepository repo;
         check_error(
@@ -756,7 +772,8 @@ class GitManager {
     static bool set_branch_upstream(
         const std::string &path,
         const std::string &branch_name,
-        const std::string &remote_name) {
+        const std::string &remote_name,
+        int timeout = DEFAULT_TIMEOUT) {
         GitRepository repo;
         check_error(
             git_repository_open(repo.get_address(), path.c_str()),
@@ -784,7 +801,11 @@ class GitManager {
             remote_ref_name.c_str());
 
         if (lookup_code == GIT_ENOTFOUND) {
-            return false;
+            fetch_branch(repo.get(), path, remote_name, branch_name, timeout);
+            lookup_code = git_reference_lookup(
+                remote_ref.get_address(),
+                repo.get(),
+                remote_ref_name.c_str());
         }
         check_error(
             lookup_code,

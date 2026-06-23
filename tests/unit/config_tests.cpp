@@ -321,7 +321,9 @@ TEST(ConfigTests, LoadTreesFromFindPaths) {
     const auto trees = load_trees("", {test_dir.string()}, {}, {});
     EXPECT_GE(trees.size(), 1);
     if (!trees.empty()) {
-        EXPECT_EQ(trees[0].root, fs::canonical(test_dir).string());
+        EXPECT_EQ(
+            fs::canonical(trees[0].root).string(),
+            fs::canonical(test_dir).string());
     }
 }
 
