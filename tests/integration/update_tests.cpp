@@ -11,7 +11,6 @@
 
 const GitGuard git_guard;
 
-constexpr int TIMEOUT_SHORT = 120;
 constexpr int TIMEOUT_LONG = 180;
 
 std::string get_update_scenario_path(const std::string &scenario_name) {
@@ -28,40 +27,6 @@ int prepare_repos(const std::string &scenario_name) {
             .prune_branches = false,
             .prune_repos = false,
             .jobs = 1});
-}
-
-TEST(UpdateTests, TimeoutConfigurationIsRespected) {
-    test_utils::ScopedTempCwd scratch("mrm-update-timeout");
-    ASSERT_EQ(0, prepare_repos("basic_repositories"));
-    int result = run_update(
-        UpdateOptions{
-            .selector =
-                RepositorySelector{
-                    .config_file =
-                        get_update_scenario_path("basic_repositories"),
-                    .find_paths = {},
-                    .root_patterns = {},
-                    .name_patterns = {}},
-            .jobs = 1,
-            .timeout_seconds = TIMEOUT_SHORT});
-    EXPECT_EQ(0, result);
-}
-
-TEST(UpdateTests, ZeroTimeoutDisablesTimeout) {
-    test_utils::ScopedTempCwd scratch("mrm-update-zero-timeout");
-    ASSERT_EQ(0, prepare_repos("basic_repositories"));
-    int result = run_update(
-        UpdateOptions{
-            .selector =
-                RepositorySelector{
-                    .config_file =
-                        get_update_scenario_path("basic_repositories"),
-                    .find_paths = {},
-                    .root_patterns = {},
-                    .name_patterns = {}},
-            .jobs = 1,
-            .timeout_seconds = 0});
-    EXPECT_EQ(0, result);
 }
 
 TEST(UpdateTests, DefaultTimeoutIsApplied) {

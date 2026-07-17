@@ -20,6 +20,7 @@ Run in order:
 ## Notes for Agents
 
 - Write tests for critical functionality without breaking public signatures.
+- Do not inline yaml in testing code, instead use well named scenario files.
 - Keep documentation in "/docs" in sync with code changes.
 - Library source code used in this project can be found at ~/.conan2/p.
 - Prefer terse, functional and portable (linux, macos, windows) code.

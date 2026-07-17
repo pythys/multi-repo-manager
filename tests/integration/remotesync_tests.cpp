@@ -31,9 +31,11 @@ void setup_local_fork_scenario(const std::string &root_name) {
     GitManager::init(origin_dir.string(), "master");
     GitManager::init(upstream_dir.string(), "master");
 
-    GitManager::clone(
-        "https://github.com/octocat/Hello-World",
-        repo_dir.string());
+    const fs::path seed_dir = root_dir / "seed";
+    GitManager::init(seed_dir.string(), "master");
+    test_utils::write_file(seed_dir / "README", "hello world\n");
+    GitManager::commit(seed_dir.string(), "seed");
+    GitManager::clone(seed_dir.string(), repo_dir.string());
 
     GitManager::remove_remote(
         repo_dir.string(),
@@ -127,60 +129,16 @@ TEST(RemoteSyncTests, DryRunReportsPlannedOperations) {
     write_fork_test_config(config_file, test_root);
 
     testing::internal::CaptureStdout();
-    int result = run_remote_sync_with_config(
-        config_file,
-        "upstream",
-        "origin",
-        {"master"},
-        false);
-    (void)result;
-    const std::string output = testing::internal::GetCapturedStdout();
-
-    EXPECT_NE(std::string::npos, output.find("hello-world"));
-}
-
-TEST(RemoteSyncTests, SyncsBetweenConfiguredRemotes) {
-    test_utils::ScopedTempCwd scratch("mrm-remotesync-sync");
-
-    const std::string test_root = "test_fork_sync";
-    setup_local_fork_scenario(test_root);
-
-    const fs::path config_file = fs::path(test_root) / "config.yml";
-    write_fork_test_config(config_file, test_root);
-
-    testing::internal::CaptureStdout();
-    int result = run_remote_sync_with_config(
-        config_file,
-        "upstream",
-        "origin",
-        {"master"},
-        false);
-    (void)result;
-    const std::string output = testing::internal::GetCapturedStdout();
-
-    EXPECT_NE(std::string::npos, output.find("hello-world"));
-}
-
-TEST(RemoteSyncTests, HandlesMultipleRepositoriesWithLocalForks) {
-    test_utils::ScopedTempCwd scratch("mrm-remotesync-multi");
-
-    const std::string test_root = "test_fork_multi";
-    setup_local_fork_scenario(test_root);
-
-    const fs::path config_file = fs::path(test_root) / "config.yml";
-    write_fork_test_config(config_file, test_root);
-
-    testing::internal::CaptureStdout();
-    int result = run_remote_sync_with_config(
+    run_remote_sync_with_config(
         config_file,
         "upstream",
         "origin",
         {"master"},
         true);
-    (void)result;
     const std::string output = testing::internal::GetCapturedStdout();
 
     EXPECT_NE(std::string::npos, output.find("mrm report"));
+    EXPECT_NE(std::string::npos, output.find("hello-world"));
 }
 
 TEST(RemoteSyncTests, SkipsRepositoryWithUncommittedChanges) {

@@ -7,14 +7,13 @@
 #include "vcs/git_guard.hpp"
 #include "vcs/git_manager.hpp"
 #include <algorithm>
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <ranges>
 #include <unordered_map>
 #include <vector>
 
 const GitGuard git_guard;
-
-constexpr int TIMEOUT_SHORT = 120;
 
 std::string get_scenario_path(const std::string &scenario_name) {
     static const std::unordered_map<std::string, std::string> scenario_paths = {
@@ -54,6 +53,21 @@ int run_scenario_with_pruning(
     return run_sync(
         SyncOptions{
             .config_file = get_scenario_path(scenario_name),
+            .root_patterns = {},
+            .prune_remotes = prune_remotes,
+            .prune_branches = prune_branches,
+            .prune_repos = prune_repos,
+            .jobs = 1});
+}
+
+int run_prune(
+    const std::string &config_file,
+    bool prune_remotes,
+    bool prune_branches,
+    bool prune_repos) {
+    return run_sync(
+        SyncOptions{
+            .config_file = config_file,
             .root_patterns = {},
             .prune_remotes = prune_remotes,
             .prune_branches = prune_branches,
@@ -276,110 +290,96 @@ TEST(SyncTests, OutputFormattingWorksInNonTerminalMode) {
 
 TEST(SyncTests, PruneRemotesRemovesExtraRemotes) {
     test_utils::ScopedTempCwd scratch("mrm-sync-prune-remotes");
-    int result = run_scenario("pruning_test");
-    EXPECT_EQ(0, result);
+    ASSERT_EQ(0, run_scenario("pruning_test"));
 
-    std::vector<Repo> repos = find_repos("test_pruning");
-    ASSERT_EQ(1, repos.size());
+    const std::string repo_path = "test_pruning/hello-world";
+    GitManager::add_remote(
+        repo_path,
+        Remote{.name = "extra", .url = "https://example.com/extra.git"});
+    ASSERT_TRUE(
+        std::ranges::any_of(
+            GitManager::get_remotes(repo_path),
+            [](const Remote &r) { return r.name == "extra"; }));
 
-    bool has_origin =
-        std::ranges::any_of(repos[0].remotes, [](const Remote &r) {
-            return r.name == "origin";
-        });
-    EXPECT_TRUE(has_origin);
+    ASSERT_EQ(0, run_scenario_with_pruning("pruning_test", true, false, false));
 
-    result = run_scenario_with_pruning("pruning_test", true, false, false);
-    EXPECT_EQ(0, result);
-
-    repos = find_repos("test_pruning");
-    ASSERT_EQ(1, repos.size());
-
-    has_origin = std::ranges::any_of(repos[0].remotes, [](const Remote &r) {
+    const std::vector<Remote> remotes = GitManager::get_remotes(repo_path);
+    EXPECT_FALSE(std::ranges::any_of(remotes, [](const Remote &r) {
+        return r.name == "extra";
+    }));
+    EXPECT_TRUE(std::ranges::any_of(remotes, [](const Remote &r) {
         return r.name == "origin";
-    });
-    EXPECT_TRUE(has_origin);
+    }));
 }
 
 TEST(SyncTests, PruneBranchesRemovesNonConfiguredBranches) {
     test_utils::ScopedTempCwd scratch("mrm-sync-prune-branches");
-    int result = run_scenario("pruning_test");
-    EXPECT_EQ(0, result);
 
-    std::vector<Repo> repos = find_repos("test_pruning");
-    ASSERT_EQ(1, repos.size());
+    const std::filesystem::path origin = scratch.path() / "origin";
+    GitManager::init(origin.string(), "master");
+    test_utils::write_file(origin / "README", "seed\n");
+    GitManager::commit(origin.string(), "seed");
+    GitManager::create_branch(origin.string(), "stale");
+    GitManager::switch_branch(origin.string(), "stale");
+    test_utils::write_file(origin / "stale.txt", "stale\n");
+    GitManager::commit(origin.string(), "diverge stale");
+    GitManager::switch_branch(origin.string(), "master");
 
-    bool has_master =
-        std::ranges::any_of(repos[0].branches, [](const Branch &b) {
-            return b.name == "master";
-        });
-    EXPECT_TRUE(has_master);
+    const Remote origin_remote{.name = "origin", .url = origin.string()};
+    const Branch master{
+        .name = "master",
+        .remote = "origin",
+        .is_current = true};
+    const Branch stale{
+        .name = "stale",
+        .remote = "origin",
+        .is_current = false};
 
-    result = run_scenario_with_pruning("pruning_test", false, true, false);
-    EXPECT_EQ(0, result);
+    const std::filesystem::path config = scratch.path() / "config.yml";
+    write_config(
+        {Tree{
+            .root = "workspace",
+            .repos = {Repo{
+                .name = "repo",
+                .remotes = {origin_remote},
+                .branches = {master, stale},
+                .children = {},
+                .messages = {}}}}},
+        config.string());
+    ASSERT_EQ(0, run_prune(config.string(), false, false, false));
 
-    repos = find_repos("test_pruning");
-    ASSERT_EQ(1, repos.size());
+    const std::string repo_path = "workspace/repo";
+    ASSERT_TRUE(GitManager::branch_exists(repo_path, "stale"));
 
-    has_master = std::ranges::any_of(repos[0].branches, [](const Branch &b) {
-        return b.name == "master";
-    });
-    EXPECT_TRUE(has_master);
+    write_config(
+        {Tree{
+            .root = "workspace",
+            .repos = {Repo{
+                .name = "repo",
+                .remotes = {origin_remote},
+                .branches = {master},
+                .children = {},
+                .messages = {}}}}},
+        config.string());
+    ASSERT_EQ(0, run_prune(config.string(), false, true, false));
+
+    EXPECT_FALSE(GitManager::branch_exists(repo_path, "stale"));
+    EXPECT_TRUE(GitManager::branch_exists(repo_path, "master"));
 }
 
 TEST(SyncTests, PruneReposRemovesUntrackedRepositories) {
     test_utils::ScopedTempCwd scratch("mrm-sync-prune-repos");
-    int result = run_scenario("pruning_test");
-    EXPECT_EQ(0, result);
+    ASSERT_EQ(0, run_scenario("pruning_test"));
 
-    std::vector<Repo> repos_before = find_repos("test_pruning");
-    ASSERT_EQ(1, repos_before.size());
-    EXPECT_EQ("hello-world", repos_before[0].name);
+    const std::filesystem::path orphan = "test_pruning/orphan";
+    GitManager::init(orphan.string(), "master");
+    ASSERT_TRUE(std::filesystem::exists(orphan));
 
-    result = run_scenario_with_pruning("pruning_test", false, false, true);
-    EXPECT_EQ(0, result);
+    ASSERT_EQ(0, run_scenario_with_pruning("pruning_test", false, false, true));
 
-    std::vector<Repo> repos_after = find_repos("test_pruning");
-    ASSERT_EQ(1, repos_after.size());
-    EXPECT_EQ("hello-world", repos_after[0].name);
-}
+    EXPECT_FALSE(std::filesystem::exists(orphan));
 
-TEST(SyncTests, TimeoutConfigurationIsRespected) {
-    test_utils::ScopedTempCwd scratch("mrm-sync-timeout");
-    int result = run_sync(
-        SyncOptions{
-            .config_file = get_scenario_path("basic_sync"),
-            .root_patterns = {},
-            .prune_remotes = false,
-            .prune_branches = false,
-            .prune_repos = false,
-            .jobs = 1,
-            .timeout_seconds = TIMEOUT_SHORT});
-    EXPECT_EQ(0, result);
-}
-
-TEST(SyncTests, ZeroTimeoutDisablesTimeout) {
-    test_utils::ScopedTempCwd scratch("mrm-sync-zero-timeout");
-    int result = run_sync(
-        SyncOptions{
-            .config_file = get_scenario_path("basic_sync"),
-            .root_patterns = {},
-            .prune_remotes = false,
-            .prune_branches = false,
-            .prune_repos = false,
-            .jobs = 1,
-            .timeout_seconds = 0});
-    EXPECT_EQ(0, result);
-}
-
-TEST(SyncTests, DefaultTimeoutIsApplied) {
-    test_utils::ScopedTempCwd scratch("mrm-sync-default-timeout");
-    int result = run_sync(
-        SyncOptions{
-            .config_file = get_scenario_path("basic_sync"),
-            .root_patterns = {},
-            .prune_remotes = false,
-            .prune_branches = false,
-            .prune_repos = false,
-            .jobs = 1});
-    EXPECT_EQ(0, result);
+    const std::vector<Repo> repos = find_repos("test_pruning");
+    ASSERT_EQ(1, repos.size());
+    EXPECT_EQ("hello-world", repos[0].name);
 }

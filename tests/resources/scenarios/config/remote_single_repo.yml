@@ -1,0 +1,7 @@
+trees:
+  - root: demo
+    repos:
+      - name: app
+        remotes:
+          - name: origin
+            url: u

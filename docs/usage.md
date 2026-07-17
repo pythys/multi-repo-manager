@@ -298,12 +298,47 @@ options:
 ```sh
 mrm status --config myrepos.yml
 mrm update  # uses mrm.yml by default
+mrm sync --config git@github.com:org/infra.git//mrm.yml
 ```
 
 Load repository configuration from YAML file:
 - default: `mrm.yml` in current directory
 - short form: `-c`
 - supports [filtering](#filtering) to target subset of repos
+- accepts a git repository reference, see [remote config](#remote-config)
+
+### remote config
+
+`--config` accepts a git repository reference so the config can live in a repo
+and be shared across a team. mrm shallow-clones the repo and reads the file out
+of it, using the same transports and SSH authentication as repository cloning
+(see [SSH authentication](#ssh-authentication)). This works with any git host
+(GitHub, GitLab, Bitbucket, self-hosted) over SSH or HTTPS, public or private.
+
+Syntax: `<repo-url>//<path-in-repo>[?ref=<ref>]`
+
+- `<repo-url>`: any URL mrm can clone (`git@host:org/repo.git`,
+  `https://host/org/repo.git`, `ssh://...`)
+- `//`: separates the repo URL from the file path inside it
+- `<path-in-repo>`: path to the YAML file within the repository
+- `?ref=<ref>`: optional branch or tag (defaults to the repo's default branch)
+
+```sh
+# SSH (uses ssh-agent or ~/.ssh keys, supports private repos)
+mrm sync --config git@github.com:org/infra.git//mrm.yml
+
+# HTTPS
+mrm sync --config https://github.com/org/infra.git//config/mrm.yml
+
+# Pin a branch or tag
+mrm sync --config git@gitlab.com:org/infra.git//mrm.yml?ref=stable
+```
+
+Notes:
+- works for any command that accepts `--config`
+- the file path is relative to the repository root; `..` and absolute paths are
+  rejected
+- private repos work whenever `git clone` of that repo would work for you
 
 ### --find (adhoc)
 

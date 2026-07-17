@@ -3,7 +3,10 @@
 This page describes the schema of `mrm.yml`. It is a reference for the YAML
 that `mrm find` writes and `mrm sync` reads, not a primary configuration guide.
 
-If `--config` is omitted, `mrm.yml` in the current directory is used.
+If `--config` is omitted, `mrm.yml` in the current directory is used. `--config`
+also accepts a git repository reference (`<repo-url>//<path>[?ref=<ref>]`) so the
+config can be fetched from a repo over SSH or HTTPS; see
+[remote config](usage.md#remote-config).
 
 ## recommended workflow
 

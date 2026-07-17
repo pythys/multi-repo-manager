@@ -12,7 +12,6 @@
 #include "util/command_options.hpp"
 #include "util/constants.hpp"
 #include <CLI/CLI.hpp>
-#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -268,9 +267,6 @@ Available placeholders:
         return app.exit(e);
     }
 
-    const bool needs_input =
-        *sync || *status || *update || *remotesync || *exec || *list;
-
     const bool has_find = !status_find_paths.empty() ||
                           !update_find_paths.empty() ||
                           !remotesync_find_paths.empty() ||
@@ -279,15 +275,6 @@ Available placeholders:
     if (*sync && has_find) {
         std::cerr << "Error: sync command does not support --find.\n";
         std::cerr << "Use --config instead.\n";
-        return 1;
-    }
-
-    std::error_code error;
-    const bool has_config_file = std::filesystem::exists(config_file, error);
-    if (needs_input && !has_find && !has_config_file) {
-        std::cerr << "Config file not found: " << config_file << "\n";
-        std::cerr << "Use --config <file>, --find <paths>, or run `mrm find "
-                     "--save` to create one.\n";
         return 1;
     }
 

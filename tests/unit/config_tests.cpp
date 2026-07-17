@@ -10,14 +10,16 @@
 
 namespace fs = std::filesystem;
 
+std::string config_scenario(const std::string &filename) {
+    return std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename;
+}
+
 std::vector<Tree> parse_config(const std::string &filename) {
-    return get_config(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
+    return get_config(config_scenario(filename));
 }
 
 std::vector<Tree> parse_dependencies(const std::string &filename) {
-    return get_dependencies(
-        std::string(TEST_RESOURCES_DIR) + "/scenarios/config/" + filename);
+    return get_dependencies(config_scenario(filename));
 }
 
 namespace {
@@ -384,4 +386,62 @@ TEST(ConfigTests, LoadTreesFromFindInvalidPath) {
     EXPECT_THROW(
         load_trees("", {nonexistent.string()}, {}, {}),
         std::runtime_error);
+}
+
+namespace {
+void commit_scenario(
+    const fs::path &repo_path,
+    const std::string &name,
+    const std::string &fixture) {
+    fs::copy_file(
+        config_scenario(fixture),
+        repo_path / name,
+        fs::copy_options::overwrite_existing);
+    GitManager::commit(repo_path.string(), "commit " + name);
+}
+} // namespace
+
+TEST(ConfigTests, GetConfigMissingLocalFileThrows) {
+    EXPECT_THROW(
+        get_config("definitely-missing-config.yml"),
+        std::runtime_error);
+}
+
+TEST(ConfigTests, GetConfigMissingTreesNodeIsEmpty) {
+    EXPECT_TRUE(get_config(config_scenario("missing_trees.yml")).empty());
+}
+
+TEST(ConfigTests, GetConfigMalformedYamlIsGraceful) {
+    EXPECT_TRUE(get_config(config_scenario("malformed_trees.yml")).empty());
+}
+
+TEST(ConfigTests, GetConfigRejectsPathTraversal) {
+    EXPECT_THROW(get_config("repo//../secret.yml"), std::runtime_error);
+}
+
+TEST(ConfigTests, GetConfigFetchesFromLocalRepoAtRef) {
+    TempDir temp;
+    const fs::path repo = temp.path() / "infra";
+    GitManager::init(repo.string(), "master");
+    commit_scenario(repo, "repos.yml", "remote_single_repo.yml");
+    GitManager::create_branch(repo.string(), "stable");
+
+    const std::string source = repo.string() + "//repos.yml?ref=stable";
+    const std::vector<Tree> trees = get_config(source);
+    ASSERT_EQ(1, trees.size());
+    EXPECT_EQ("demo", trees[0].root);
+}
+
+TEST(ConfigTests, GetConfigFetchesFromLocalRepo) {
+    TempDir temp;
+    const fs::path repo = temp.path() / "infra";
+    GitManager::init(repo.string(), "master");
+    commit_scenario(repo, "repos.yml", "remote_single_repo.yml");
+
+    const std::string source = repo.string() + "//repos.yml";
+    const std::vector<Tree> trees = get_config(source);
+    ASSERT_EQ(1, trees.size());
+    EXPECT_EQ("demo", trees[0].root);
+    ASSERT_EQ(1, trees[0].repos.size());
+    EXPECT_EQ("app", trees[0].repos[0].name);
 }

@@ -55,6 +55,7 @@ using GitStatusList = GitResource<git_status_list, git_status_list_free>;
 using GitBranchIterator =
     GitResource<git_branch_iterator, git_branch_iterator_free>;
 using GitTree = GitResource<git_tree, git_tree_free>;
+using GitIndex = GitResource<git_index, git_index_free>;
 using GitDiff = GitResource<git_diff, git_diff_free>;
 using GitDiffStats = GitResource<git_diff_stats, git_diff_stats_free>;
 
@@ -565,14 +566,128 @@ class GitManager {
             repo.get());
     }
 
+    static void commit(const std::string &path, const std::string &message) {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        GitIndex index;
+        check_error(
+            git_repository_index(index.get_address(), repo.get()),
+            "Failed to open index in " + path,
+            repo.get());
+        check_error(
+            git_index_add_all(
+                index.get(),
+                nullptr,
+                GIT_INDEX_ADD_DEFAULT,
+                nullptr,
+                nullptr),
+            "Failed to stage changes in " + path,
+            repo.get());
+        check_error(
+            git_index_write(index.get()),
+            "Failed to write index in " + path,
+            repo.get());
+
+        git_oid tree_oid;
+        check_error(
+            git_index_write_tree(&tree_oid, index.get()),
+            "Failed to write tree in " + path,
+            repo.get());
+        GitTree tree;
+        check_error(
+            git_tree_lookup(tree.get_address(), repo.get(), &tree_oid),
+            "Failed to lookup tree in " + path,
+            repo.get());
+
+        GitSignature signature;
+        check_error(
+            git_signature_now(
+                signature.get_address(),
+                "mrm",
+                "noreply@localhost"),
+            "Failed to create signature in " + path,
+            repo.get());
+
+        git_oid parent_oid;
+        const bool has_parent =
+            git_reference_name_to_id(&parent_oid, repo.get(), "HEAD") == 0;
+        GitCommit parent;
+        std::vector<const git_commit *> parents;
+        if (has_parent) {
+            check_error(
+                git_commit_lookup(
+                    parent.get_address(),
+                    repo.get(),
+                    &parent_oid),
+                "Failed to lookup parent commit in " + path,
+                repo.get());
+            parents.push_back(parent.get());
+        }
+
+        git_oid commit_oid;
+        check_error(
+            git_commit_create(
+                &commit_oid,
+                repo.get(),
+                "HEAD",
+                signature.get(),
+                signature.get(),
+                nullptr,
+                message.c_str(),
+                tree.get(),
+                parents.size(),
+                parents.data()),
+            "Failed to create commit in " + path,
+            repo.get());
+    }
+
+    static void
+    create_branch(const std::string &path, const std::string &branch_name) {
+        GitRepository repo;
+        check_error(
+            git_repository_open(repo.get_address(), path.c_str()),
+            "Failed to open repository in " + path,
+            repo.get());
+
+        git_oid head_oid;
+        check_error(
+            git_reference_name_to_id(&head_oid, repo.get(), "HEAD"),
+            "Failed to resolve HEAD in " + path,
+            repo.get());
+        GitCommit commit;
+        check_error(
+            git_commit_lookup(commit.get_address(), repo.get(), &head_oid),
+            "Failed to lookup HEAD commit in " + path,
+            repo.get());
+        GitReference branch_ref;
+        check_error(
+            git_branch_create(
+                branch_ref.get_address(),
+                repo.get(),
+                branch_name.c_str(),
+                commit.get(),
+                0),
+            "Failed to create branch in " + path,
+            repo.get());
+    }
+
     static void clone(
         const std::string &source,
         const std::string &destination,
-        int timeout = DEFAULT_TIMEOUT) {
+        int timeout = DEFAULT_TIMEOUT,
+        int depth = 0,
+        const std::string &branch = "") {
         GitRepository repo;
         git_clone_options clone_opts;
         git_clone_options_init(&clone_opts, GIT_CLONE_OPTIONS_VERSION);
         clone_opts.bare = 0;
+        if (!branch.empty()) {
+            clone_opts.checkout_branch = branch.c_str();
+        }
 
         git_checkout_options checkout_opts;
         git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
@@ -581,6 +696,9 @@ class GitManager {
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
+        if (depth > 0) {
+            fetch_opts.depth = depth;
+        }
         TimeoutContext context(timeout > 0 ? timeout : 0);
         fetch_opts.callbacks = create_timeout_callbacks(&context);
         clone_opts.fetch_opts = fetch_opts;
