@@ -536,6 +536,50 @@ class GitManager {
         return summary_lines;
     }
 
+    static void checkout_ref(
+        git_repository *repo,
+        const std::string &destination,
+        const std::string &ref) {
+        GitObject target;
+        if (git_revparse_single(target.get_address(), repo, ref.c_str()) != 0) {
+            const std::string remote_ref = "origin/" + ref;
+            check_error(
+                git_revparse_single(
+                    target.get_address(),
+                    repo,
+                    remote_ref.c_str()),
+                "Failed to resolve ref '" + ref + "' in " + destination,
+                repo);
+        }
+
+        GitObject tree;
+        check_error(
+            git_object_peel(tree.get_address(), target.get(), GIT_OBJECT_TREE),
+            "Failed to peel ref '" + ref + "' in " + destination,
+            repo);
+
+        git_checkout_options checkout_opts;
+        git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
+        checkout_opts.checkout_strategy = GIT_CHECKOUT_FORCE;
+        check_error(
+            git_checkout_tree(repo, tree.get(), &checkout_opts),
+            "Failed to checkout ref '" + ref + "' in " + destination,
+            repo);
+
+        GitObject commit;
+        check_error(
+            git_object_peel(
+                commit.get_address(),
+                target.get(),
+                GIT_OBJECT_COMMIT),
+            "Failed to peel ref '" + ref + "' to commit in " + destination,
+            repo);
+        check_error(
+            git_repository_set_head_detached(repo, git_object_id(commit.get())),
+            "Failed to set HEAD to ref '" + ref + "' in " + destination,
+            repo);
+    }
+
   public:
     static bool is_repo(const std::string &path) {
         const bool path_exists = std::filesystem::exists(path);
@@ -680,14 +724,11 @@ class GitManager {
         const std::string &destination,
         int timeout = DEFAULT_TIMEOUT,
         int depth = 0,
-        const std::string &branch = "") {
+        const std::string &ref = "") {
         GitRepository repo;
         git_clone_options clone_opts;
         git_clone_options_init(&clone_opts, GIT_CLONE_OPTIONS_VERSION);
         clone_opts.bare = 0;
-        if (!branch.empty()) {
-            clone_opts.checkout_branch = branch.c_str();
-        }
 
         git_checkout_options checkout_opts;
         git_checkout_options_init(&checkout_opts, GIT_CHECKOUT_OPTIONS_VERSION);
@@ -709,8 +750,12 @@ class GitManager {
                 source.c_str(),
                 destination.c_str(),
                 &clone_opts),
-            "Failed to clone repository in" + destination,
+            "Failed to clone repository in " + destination,
             repo.get());
+
+        if (!ref.empty()) {
+            checkout_ref(repo.get(), destination, ref);
+        }
     }
 
     static void add_remote(const std::string &path, const Remote &remote) {

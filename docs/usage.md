@@ -321,7 +321,8 @@ Syntax: `<repo-url>//<path-in-repo>[?ref=<ref>]`
   `https://host/org/repo.git`, `ssh://...`)
 - `//`: separates the repo URL from the file path inside it
 - `<path-in-repo>`: path to the YAML file within the repository
-- `?ref=<ref>`: optional branch or tag (defaults to the repo's default branch)
+- `?ref=<ref>`: optional branch, tag, or commit (defaults to the repo's default
+  branch)
 
 ```sh
 # SSH (uses ssh-agent or ~/.ssh keys, supports private repos)
@@ -330,7 +331,7 @@ mrm sync --config git@github.com:org/infra.git//mrm.yml
 # HTTPS
 mrm sync --config https://github.com/org/infra.git//config/mrm.yml
 
-# Pin a branch or tag
+# Pin a branch, tag, or commit
 mrm sync --config git@gitlab.com:org/infra.git//mrm.yml?ref=stable
 ```
 
