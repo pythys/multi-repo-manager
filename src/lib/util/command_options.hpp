@@ -10,6 +10,7 @@ struct RepositorySelector {
     std::vector<std::string> find_paths;
     std::vector<std::string> root_patterns;
     std::vector<std::string> name_patterns;
+    int min_depth = 0;
 };
 
 struct StatusOptions {

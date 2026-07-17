@@ -103,12 +103,15 @@ mrm find client fork personal --save myrepos.yml
 
 Behavior:
 - scans specified paths for Git repositories (`.git` directories)
+- a path that is itself a repository is included, recorded with `name: .`
 - outputs YAML config to stdout or saves to file
 - each path becomes one `tree.root` in the generated config
 - records repository names, remotes, and local branches with upstream tracking
 
 Options:
 - `--save` (`-s`): save to file instead of stdout (default: `mrm.yml`)
+- `--mindepth <N>`: minimum depth of repositories to record; `--mindepth 1`
+  excludes the search path itself while keeping nested repositories
 
 Recommended workflow:
 - make changes in repositories first (remotes, branches, layout)
@@ -311,11 +314,14 @@ mrm update --find ~/work ~/personal --jobs 8
 
 Discover repositories by scanning directories:
 - scans specified paths for Git repositories (`.git` directories)
+- a path that is itself a repository is included, recorded with `name: .`
 - creates in-memory structure equivalent to config file
 - each path becomes one tree root
 - records remotes and local branches with upstream tracking
 - repeatable: `--find ~/work --find ~/personal`
 - short form: `-f`
+- `--mindepth <N>`: minimum discovery depth; `--mindepth 1` excludes the
+  search path itself while keeping nested repositories
 - supports [filtering](#filtering) to target subset of repos
 - `sync` command does not support it as it requires a yaml file
 

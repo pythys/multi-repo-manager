@@ -66,27 +66,35 @@ Tree to_tree(const YAML::Node &node) {
     return {.root = node["root"].as<std::string>(), .repos = repos};
 }
 
+namespace {
+std::string child_prefix(const std::string &name) {
+    return name == "." ? std::string{} : name + "/";
+}
+} // namespace
+
 bool is_direct_child(
     const Repo parent,
     const Repo child,
     const std::vector<Repo> &all_repos) {
-    const bool child_is_longer = child.name.size() > parent.name.size();
-    const bool child_contains_parent =
-        child.name.starts_with(parent.name + "/");
+    if (child.name == parent.name) {
+        return false;
+    }
+    const std::string parent_prefix = child_prefix(parent.name);
+    if (!child.name.starts_with(parent_prefix)) {
+        return false;
+    }
     const bool intermediate_exists =
         std::ranges::any_of(all_repos, [&](const Repo &middle) {
-            const bool middle_is_longer =
-                middle.name.size() > parent.name.size();
-            const bool middle_is_shorter =
-                middle.name.size() < child.name.size();
+            if (middle.name == parent.name || middle.name == child.name) {
+                return false;
+            }
             const bool middle_contains_parent =
-                middle.name.starts_with(parent.name + "/");
+                middle.name.starts_with(parent_prefix);
             const bool child_contains_middle =
-                child.name.starts_with(middle.name + "/");
-            return middle_is_longer && middle_is_shorter &&
-                   middle_contains_parent && child_contains_middle;
+                child.name.starts_with(child_prefix(middle.name));
+            return middle_contains_parent && child_contains_middle;
         });
-    return child_is_longer && child_contains_parent && !intermediate_exists;
+    return !intermediate_exists;
 }
 
 std::vector<Repo>
@@ -307,7 +315,8 @@ std::vector<Tree> load_trees(
     const std::string &config_file,
     const std::vector<std::string> &find_paths,
     const std::vector<std::string> &root_patterns,
-    const std::vector<std::string> &name_patterns) {
+    const std::vector<std::string> &name_patterns,
+    int min_depth) {
     std::vector<Tree> trees;
 
     if (!find_paths.empty()) {
@@ -321,7 +330,9 @@ std::vector<Tree> load_trees(
         for (const auto &path : find_paths) {
             std::string normalized = normalize_path(path);
             trees.push_back(
-                Tree{.root = normalized, .repos = find_repos(normalized)});
+                Tree{
+                    .root = normalized,
+                    .repos = find_repos(normalized, min_depth)});
         }
     } else {
         trees = get_config(config_file);

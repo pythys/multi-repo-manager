@@ -66,6 +66,21 @@ TEST(ConfigTests, MultipleTrees) {
     EXPECT_EQ(trees.size(), 2);
 }
 
+TEST(ConfigTests, RootRepoBecomesParentOfNested) {
+    TempDir temp;
+    const std::string config = (temp.path() / "root_repo.yml").string();
+    const std::vector<Tree> input = {
+        make_test_tree(".", {make_test_repo("."), make_test_repo("child")})};
+    write_config(input, config);
+
+    const std::vector<Tree> trees = get_dependencies(config);
+    ASSERT_EQ(1, trees.size());
+    ASSERT_EQ(1, trees[0].repos.size());
+    EXPECT_EQ(".", trees[0].repos[0].name);
+    ASSERT_EQ(1, trees[0].repos[0].children.size());
+    EXPECT_EQ("child", trees[0].repos[0].children[0].name);
+}
+
 TEST(ConfigTests, FilterTreesByExactRoot) {
     const std::vector<Tree> trees = {
         Tree{.root = "r/client", .repos = {}},

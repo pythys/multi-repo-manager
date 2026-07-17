@@ -22,7 +22,8 @@ int run_list(const ListOptions &options) {
         options.selector.config_file,
         options.selector.find_paths,
         options.selector.root_patterns,
-        options.selector.name_patterns);
+        options.selector.name_patterns,
+        options.selector.min_depth);
 
     if (config.empty() || all_repos_empty(config)) {
         if (options.summary_mode) {

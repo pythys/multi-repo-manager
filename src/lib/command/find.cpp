@@ -9,7 +9,8 @@
 
 int run_find(
     const std::vector<std::string> &find_paths,
-    const std::string &save_path) {
+    const std::string &save_path,
+    int min_depth) {
     std::vector<std::string> roots = find_paths;
     if (roots.empty()) {
         roots.emplace_back(".");
@@ -21,7 +22,7 @@ int run_find(
         trees.push_back(
             Tree{
                 .root = normalized_root,
-                .repos = find_repos(normalized_root)});
+                .repos = find_repos(normalized_root, min_depth)});
     }
 
     std::string config_output = make_config(trees);

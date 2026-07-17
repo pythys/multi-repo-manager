@@ -179,7 +179,8 @@ int run_exec(const ExecutionOptions &options) {
         options.selector.config_file,
         options.selector.find_paths,
         options.selector.root_patterns,
-        options.selector.name_patterns);
+        options.selector.name_patterns,
+        options.selector.min_depth);
 
     const ExecPlanResult plan = plan_exec(options.command, trees);
     if (!plan.error.empty()) {

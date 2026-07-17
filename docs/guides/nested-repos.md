@@ -73,6 +73,12 @@ trees:
             is_current: true
 ```
 
+## when the root is itself a repo
+
+If the path you scan is itself a repository, it is recorded as a sibling entry
+with `name: .` alongside its nested repos. Use `mrm find <path> --mindepth 1` to
+exclude the root repository and keep only the nested ones.
+
 ## operating safely
 
 - Use `mrm status` to verify each nested repo is clean.

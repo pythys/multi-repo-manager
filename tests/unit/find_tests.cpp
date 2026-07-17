@@ -1,7 +1,9 @@
 #include "command/find.hpp"
 #include "persistence/config.hpp"
+#include "persistence/discovery.hpp"
 #include "test_utils.hpp"
 #include "vcs/git_guard.hpp"
+#include "vcs/git_manager.hpp"
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
@@ -40,6 +42,51 @@ TEST(FindTests, EmptyPathsDefaultToCurrentDirectory) {
     const std::vector<Tree> trees = get_config(output.string());
     ASSERT_EQ(1, trees.size());
     EXPECT_EQ(".", trees[0].root);
+}
+
+TEST(FindTests, RootThatIsItselfARepoIsIncluded) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repo";
+    fs::create_directories(root);
+    GitManager::init(root.string(), "master");
+
+    const std::vector<Repo> repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    EXPECT_EQ(".", repos[0].name);
+    EXPECT_EQ(fs::canonical(root / repos[0].name), fs::canonical(root));
+}
+
+TEST(FindTests, MindepthExcludesRootButKeepsNested) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repo";
+    const fs::path nested = root / "child";
+    fs::create_directories(nested);
+    GitManager::init(root.string(), "master");
+    GitManager::init(nested.string(), "master");
+
+    const std::vector<Repo> included = find_repos(root.string());
+    ASSERT_EQ(2, included.size());
+    EXPECT_EQ(".", included[0].name);
+    EXPECT_EQ("child", included[1].name);
+
+    const std::vector<Repo> excluded = find_repos(root.string(), 1);
+    ASSERT_EQ(1, excluded.size());
+    EXPECT_EQ("child", excluded[0].name);
+}
+
+TEST(FindTests, RootRepoNameRoundTrips) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repo";
+    const fs::path output = temp.path() / "repos.yml";
+    fs::create_directories(root);
+    GitManager::init(root.string(), "master");
+
+    ASSERT_EQ(0, run_find({root.string()}, output.string()));
+
+    const std::vector<Tree> trees = get_config(output.string());
+    ASSERT_EQ(1, trees.size());
+    ASSERT_EQ(1, trees[0].repos.size());
+    EXPECT_EQ(".", trees[0].repos[0].name);
 }
 
 TEST(FindTests, PermissionDeniedEntryIsIgnored) {

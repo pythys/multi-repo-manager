@@ -29,6 +29,13 @@ bool is_git_repo(const fs::path &dir) {
     const fs::path git_dir = dir / ".git";
     return is_accessible_directory(git_dir) && has_entries(git_dir);
 }
+
+int name_depth(const std::string &name) {
+    if (name == ".") {
+        return 0;
+    }
+    return static_cast<int>(std::ranges::count(name, '/')) + 1;
+}
 } // namespace
 
 std::string normalize_path(const std::string &path) {
@@ -37,11 +44,31 @@ std::string normalize_path(const std::string &path) {
     return normalized.starts_with("./") ? normalized.substr(2) : normalized;
 }
 
-std::vector<Repo> find_repos(const std::string &path) {
+std::vector<Repo> find_repos(const std::string &path, int min_depth) {
     std::vector<Repo> repos;
     const fs::path root(path);
     if (!is_accessible_directory(root)) {
         return repos;
+    }
+
+    const auto collect = [&](const fs::path &dirpath) {
+        const std::string name = fs::relative(dirpath, root).string();
+        if (name_depth(name) < min_depth) {
+            return;
+        }
+        try {
+            Repo repo;
+            repo.name = name;
+            repo.remotes = GitManager::get_remotes(dirpath);
+            repo.branches = GitManager::get_branches(dirpath);
+            repos.push_back(repo);
+        } catch (const std::exception &e) {
+            std::cerr << "Skipping " << dirpath << ": " << e.what() << '\n';
+        }
+    };
+
+    if (is_git_repo(root)) {
+        collect(root);
     }
 
     using Walker = fs::recursive_directory_iterator;
@@ -67,17 +94,7 @@ std::vector<Repo> find_repos(const std::string &path) {
         }
 
         if (is_git_repo(dirpath)) {
-            try {
-                auto remotes = GitManager::get_remotes(dirpath);
-                auto branches = GitManager::get_branches(dirpath);
-                Repo repo;
-                repo.name = fs::relative(dirpath, root).string();
-                repo.remotes = remotes;
-                repo.branches = branches;
-                repos.push_back(repo);
-            } catch (const std::exception &e) {
-                std::cerr << "Skipping " << dirpath << ": " << e.what() << '\n';
-            }
+            collect(dirpath);
         }
 
         it.increment(ec);

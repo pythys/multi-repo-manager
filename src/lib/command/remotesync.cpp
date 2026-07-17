@@ -291,7 +291,8 @@ int run_remotesync(const RemoteSyncOptions &options) {
         options.selector.config_file,
         options.selector.find_paths,
         options.selector.root_patterns,
-        options.selector.name_patterns);
+        options.selector.name_patterns,
+        options.selector.min_depth);
 
     TrackedOperation op(trees, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();

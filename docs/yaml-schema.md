@@ -38,7 +38,8 @@ trees:
 - A `root` is a path relative to the config file.
 - The `repos` are a collection of repositories under the tree.
 - Each repo has a `name` (relative to the tree root), a list of `remotes`, and a
-  list of `branches`.
+  list of `branches`. When the tree root is itself a repository, its `name` is
+  `.`.
 - Each remote has a `name` and a `url`.
 - Each branch has a `name`, a `remote` it tracks, and a boolean `is_current`
   indicating if it is the currently selected branch.
