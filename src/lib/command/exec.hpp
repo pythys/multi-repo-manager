@@ -8,7 +8,7 @@
 
 struct ExecPlanItem {
     std::string repo_path;
-    std::vector<std::string> command_parts;
+    std::string command;
 };
 
 struct ExecPlanResult {

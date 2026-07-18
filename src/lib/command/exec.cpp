@@ -21,16 +21,6 @@ namespace asio = boost::asio;
 
 namespace {
 
-std::string
-replace_all(std::string str, const std::string &from, const std::string &to) {
-    size_t pos = 0;
-    while ((pos = str.find(from, pos)) != std::string::npos) {
-        str.replace(pos, from.length(), to);
-        pos += to.length();
-    }
-    return str;
-}
-
 std::string substitute_placeholders(
     const std::string &command,
     const std::string &repo_path,
@@ -92,40 +82,19 @@ std::vector<std::string> split_command(const std::string &command) {
     return args;
 }
 
-std::vector<std::string> build_command_for_repo(
-    const std::string &custom_command,
-    const std::string &repo_path,
-    const std::string &repo_name,
-    const std::string &tree_root) {
-    const std::string substituted = substitute_placeholders(
-        custom_command,
-        repo_path,
-        repo_name,
-        tree_root);
-    return split_command(substituted);
-}
-
 struct ExecResult {
     int exit_code;
     std::vector<std::string> output_lines;
 };
 
-ExecResult execute_in_repo(
-    const std::string &repo_path,
-    const std::vector<std::string> &command_parts) {
-    if (command_parts.empty()) {
+ExecResult
+execute_in_repo(const std::string &repo_path, const std::string &full_command) {
+    if (full_command.empty()) {
         return {.exit_code = 1, .output_lines = {}};
     }
 
     namespace bp = boost::process::v1;
     try {
-        std::ostringstream command_stream;
-        command_stream << command_parts[0];
-        for (size_t i = 1; i < command_parts.size(); ++i) {
-            command_stream << " " << command_parts[i];
-        }
-        const std::string full_command = command_stream.str();
-
         boost::asio::io_context ioc;
         std::future<std::string> stdout_data;
         std::future<std::string> stderr_data;
@@ -205,7 +174,7 @@ int run_exec(const ExecutionOptions &options) {
                 "Executing command");
 
             const ExecResult result =
-                execute_in_repo(item.repo_path, item.command_parts);
+                execute_in_repo(item.repo_path, item.command);
 
             for (const auto &line : result.output_lines) {
                 tracker.set_phase(
@@ -246,21 +215,18 @@ plan_exec(const std::string &custom_command, const std::vector<Tree> &config) {
         for (const auto &repo : tree.repos) {
             const std::string repo_path =
                 construct_repo_path(tree.root, repo.name);
-            const std::vector<std::string> command_parts =
-                build_command_for_repo(
-                    custom_command,
-                    repo_path,
-                    repo.name,
-                    tree.root);
-            if (command_parts.empty()) {
+            const std::string substituted = substitute_placeholders(
+                custom_command,
+                repo_path,
+                repo.name,
+                tree.root);
+            if (split_command(substituted).empty()) {
                 return {
                     .items = {},
                     .error = "Invalid command syntax: " + custom_command};
             }
             items.push_back(
-                ExecPlanItem{
-                    .repo_path = repo_path,
-                    .command_parts = command_parts});
+                ExecPlanItem{.repo_path = repo_path, .command = substituted});
         }
     }
     return {.items = items, .error = ""};
