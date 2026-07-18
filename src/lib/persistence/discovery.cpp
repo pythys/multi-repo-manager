@@ -40,8 +40,14 @@ int name_depth(const std::string &name) {
 
 std::string normalize_path(const std::string &path) {
     const fs::path fsp(path);
-    const std::string normalized = fsp.lexically_normal().string();
-    return normalized.starts_with("./") ? normalized.substr(2) : normalized;
+    std::string normalized = fsp.lexically_normal().string();
+    if (normalized.starts_with("./")) {
+        normalized = normalized.substr(2);
+    }
+    if (normalized.size() > 1 && normalized.back() == '/') {
+        normalized.pop_back();
+    }
+    return normalized;
 }
 
 std::vector<Repo> find_repos(const std::string &path, int min_depth) {

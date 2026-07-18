@@ -133,6 +133,7 @@ OptionSpec extract_option_spec(CLI::Option &option) {
     const bool is_flag =
         option.get_expected_min() == 0 && option.get_expected_max() == 0;
     spec.takes_value = !is_flag;
+    spec.repeatable = option.get_expected_max() > 1;
     if (spec.takes_value) {
         spec.value = derive_value_spec_from_type(option.get_type_name());
         std::vector<std::string> choices = extract_enum_choices(option);
@@ -149,6 +150,7 @@ ArgSpec extract_positional_spec(CLI::Option &option) {
     spec.name = option.get_name();
     spec.description = option.get_description();
     spec.optional = !option.get_required();
+    spec.repeatable = option.get_expected_max() > 1;
     spec.values = derive_value_spec_from_type(option.get_type_name());
     std::vector<std::string> choices = extract_enum_choices(option);
     if (!choices.empty()) {

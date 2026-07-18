@@ -82,12 +82,16 @@ std::string option_description(const OptionSpec &option) {
 std::string format_option_entry(const OptionSpec &option) {
     std::ostringstream out;
     if (option.flags.size() > 1) {
-        out << "'(" << join_flags_space(option.flags) << ")'";
+        if (option.repeatable) {
+            out << "'*'";
+        } else {
+            out << "'(" << join_flags_space(option.flags) << ")'";
+        }
         out << "{" << join_flags_comma(option.flags) << "}";
         out << "'[" << option_description(option) << "]";
     } else {
-        out << "'" << option.flags.front() << "[" << option_description(option)
-            << "]";
+        out << "'" << (option.repeatable ? "*" : "") << option.flags.front()
+            << "[" << option_description(option) << "]";
     }
 
     if (option.takes_value) {
@@ -111,7 +115,7 @@ std::string format_option_entry(const OptionSpec &option) {
 
 std::string format_positional_entry(const ArgSpec &arg) {
     std::ostringstream out;
-    out << "'1:" << arg.name;
+    out << "'" << (arg.repeatable ? "*" : "1") << ":" << arg.name;
     const std::string action = value_action_from_hint(arg.values);
     if (!action.empty()) {
         out << ":" << action;

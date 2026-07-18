@@ -121,7 +121,9 @@ void append_positional_completion(
     if (arg->values.hint == ValueHint::None) {
         return;
     }
-    out << indent << "if [[ $COMP_CWORD -eq 2 ]]; then\n";
+    const std::string condition = arg->repeatable ? "-ge 2" : "-eq 2";
+    out << indent << "if [[ $cur != -* && $COMP_CWORD " << condition
+        << " ]]; then\n";
     append_value_completion(out, arg->values, indent + "  ");
     out << indent << "fi\n\n";
 }

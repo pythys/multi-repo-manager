@@ -91,6 +91,45 @@ TEST(CompletionSpecTests, ExtractsSubcommandOptionsAndPositionals) {
 
     const YAML::Node targets_positional = find_positional(sync_node, "targets");
     ASSERT_TRUE(targets_positional);
+    EXPECT_TRUE(targets_positional["repeatable"].as<bool>());
+}
+
+TEST(CompletionZshTests, RepeatablePositionalUsesStarSlot) {
+    CLI::App app("mrm");
+    app.name("mrm");
+
+    auto *find = app.add_subcommand("find", "Find repositories");
+    std::vector<std::string> paths;
+    find->add_option("paths", paths, "paths")->type_name("dir");
+
+    auto *init = app.add_subcommand("init", "Initialize");
+    std::string name;
+    init->add_option("name", name, "name")->type_name("dir");
+
+    const std::string script = generate_script(app, "zsh");
+
+    EXPECT_NE(script.find("'*:paths:_files -/'"), std::string::npos);
+    EXPECT_NE(script.find("'1:name:_files -/'"), std::string::npos);
+}
+
+TEST(CompletionZshTests, RepeatableOptionCanRepeatAndDropsExclusion) {
+    CLI::App app("mrm");
+    app.name("mrm");
+
+    auto *status = app.add_subcommand("status", "Status");
+    std::vector<std::string> find_paths;
+    status->add_option("--find,-f", find_paths, "find repositories in paths")
+        ->type_name("dir");
+    std::string config;
+    status->add_option("--config,-c", config, "config file")->type_name("file");
+
+    const std::string script = generate_script(app, "zsh");
+
+    EXPECT_NE(
+        script.find("'*'{-f,--find}'[find repositories in paths]"),
+        std::string::npos);
+    EXPECT_EQ(script.find("'(-f --find)'"), std::string::npos);
+    EXPECT_NE(script.find("'(-c --config)'{-c,--config}"), std::string::npos);
 }
 
 TEST(CompletionSpecTests, ExtractsNestedSubcommands) {

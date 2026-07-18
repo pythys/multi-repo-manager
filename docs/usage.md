@@ -462,6 +462,9 @@ bash:
 echo 'source <(mrm completion bash)' >> ~/.bashrc
 ```
 
+Repeatable positional arguments complete multiple values, so tab completion
+works for each path in `mrm find one two three`.
+
 ## guides
 
 - [Quick Start](guides/quickstart.md)

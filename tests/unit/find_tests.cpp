@@ -33,6 +33,33 @@ TEST(FindTests, MultiplePathsBecomeMultipleTrees) {
     EXPECT_EQ(second.lexically_normal().string(), trees[1].root);
 }
 
+TEST(NormalizePathTests, StripsTrailingSlashFromCompletedPath) {
+    EXPECT_EQ("fork/moqui-framework", normalize_path("fork/moqui-framework/"));
+    EXPECT_EQ("fork", normalize_path("./fork/"));
+    EXPECT_EQ("a/b", normalize_path("a/b/./"));
+}
+
+TEST(NormalizePathTests, PreservesRootAndDotPaths) {
+    EXPECT_EQ("/", normalize_path("/"));
+    EXPECT_EQ(".", normalize_path("."));
+    EXPECT_EQ(".", normalize_path("./"));
+}
+
+TEST(FindTests, TrailingSlashRootMatchesFilter) {
+    TempDir temp;
+    const fs::path root = temp.path() / "repo";
+    const fs::path output = temp.path() / "repos.yml";
+    fs::create_directories(root);
+    GitManager::init(root.string(), "master");
+
+    ASSERT_EQ(0, run_find({root.string() + "/"}, output.string()));
+
+    const std::vector<Tree> trees = get_config(output.string());
+    ASSERT_EQ(1, trees.size());
+    EXPECT_NE('/', trees[0].root.back());
+    EXPECT_EQ(root.lexically_normal().string(), trees[0].root);
+}
+
 TEST(FindTests, EmptyPathsDefaultToCurrentDirectory) {
     test_utils::ScopedTempCwd scratch;
     const fs::path output = scratch.path() / "repos.yml";
