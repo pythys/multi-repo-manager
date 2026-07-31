@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang \
+            clang-format \
+            clang-tidy \
+            clang-tools \
+            cmake \
+            gcc \
+            make \
+            ninja-build
+
+      - name: Install Python tooling
+        run: python3 -m pip install conan cmake-format
+
+      - name: Configure Conan
+        run: conan profile detect --force
+
+      - name: Build
+        run: |
+          make clean
+          make build
+
+      - name: Lint
+        run: make lint
+
+      - name: Test
+        run: make test
+
+      - name: Static analysis
+        run: make scan
