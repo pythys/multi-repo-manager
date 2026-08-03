@@ -2,7 +2,7 @@
 
 ## Next
 
-- Create a one-line curl installer
+- create github pages for docs
 
 ## Backlog
 
