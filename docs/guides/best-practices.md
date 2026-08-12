@@ -73,5 +73,5 @@ mrm remotesync --source upstream --target origin --branch master
 Example: bulk check remotes
 
 ```sh
-mrm exec --command "remote -v"
+mrm exec --command "git remote -v"
 ```
