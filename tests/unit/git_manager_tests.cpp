@@ -110,6 +110,46 @@ TEST(GitManagerLocalTests, CreateBranchIsCheckoutableViaClone) {
     EXPECT_TRUE(fs::exists(clone / "file.txt"));
 }
 
+TEST(GitManagerLocalTests, GetBranchesReturnsDeterministicSortedOrder) {
+    TempDir temp;
+    const fs::path source = temp.path() / "source";
+    GitManager::init(source.string(), "master");
+    test_utils::write_file(source / "file.txt", "hello\n");
+    GitManager::commit(source.string(), "initial");
+    GitManager::create_branch(source.string(), "agentic");
+
+    const fs::path clone = temp.path() / "clone";
+    GitManager::clone(source.string(), clone.string());
+    GitManager::add_branch(
+        clone.string(),
+        Branch{.name = "agentic", .remote = "origin", .is_current = false});
+
+    const std::vector<Branch> branches =
+        GitManager::get_branches(clone.string());
+    ASSERT_EQ(2, branches.size());
+    EXPECT_EQ("agentic", branches[0].name);
+    EXPECT_FALSE(branches[0].is_current);
+    EXPECT_EQ("master", branches[1].name);
+    EXPECT_TRUE(branches[1].is_current);
+}
+
+TEST(GitManagerLocalTests, GetRemotesReturnsDeterministicSortedOrder) {
+    TempDir temp;
+    const fs::path repo = temp.path() / "src";
+    GitManager::init(repo.string(), "master");
+    GitManager::add_remote(
+        repo.string(),
+        Remote{.name = "upstream", .url = "https://example.com/upstream.git"});
+    GitManager::add_remote(
+        repo.string(),
+        Remote{.name = "agentic", .url = "https://example.com/agentic.git"});
+
+    const std::vector<Remote> remotes = GitManager::get_remotes(repo.string());
+    ASSERT_EQ(2, remotes.size());
+    EXPECT_EQ("agentic", remotes[0].name);
+    EXPECT_EQ("upstream", remotes[1].name);
+}
+
 TEST(GitManagerNetworkTests, CloneFromGitHubOverHttps) {
     TempDir temp;
     const fs::path clone = temp.path() / "hello";

@@ -836,6 +836,12 @@ class GitManager {
             remotes.push_back(r);
         }
         git_strarray_dispose(&remote_names);
+        std::ranges::sort(remotes, [](const Remote &lhs, const Remote &rhs) {
+            if (lhs.name != rhs.name) {
+                return lhs.name < rhs.name;
+            }
+            return lhs.url < rhs.url;
+        });
         return remotes;
     }
 
@@ -1043,6 +1049,12 @@ class GitManager {
                     .remote = remote_name,
                     .is_current = is_current});
         }
+        std::ranges::sort(branches, [](const Branch &lhs, const Branch &rhs) {
+            if (lhs.name != rhs.name) {
+                return lhs.name < rhs.name;
+            }
+            return lhs.remote < rhs.remote;
+        });
         return branches;
     }
 
