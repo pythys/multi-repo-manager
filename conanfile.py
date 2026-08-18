@@ -2,7 +2,7 @@ from conan import ConanFile
 
 class MrmConan(ConanFile):
     name = "mrm"
-    version = "0.1.0"
+    version = "0.1.1"
     package_type = "application"
     settings = "os", "compiler", "build_type", "arch"
     requires = (

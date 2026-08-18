@@ -3,7 +3,7 @@
 ## one-line installer (macos, linux)
 
 ```sh
-curl -fsSL https://github.com/pythys/multi-repo-manager/raw/master/scripts/install.sh | sh -s -- --version 0.1.0
+curl -fsSL https://github.com/pythys/multi-repo-manager/raw/master/scripts/install.sh | sh -s -- --version 0.1.1
 ```
 
 The installer prints a copy-pastable command to add the install directory to your PATH.
