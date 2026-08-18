@@ -18,7 +18,7 @@ interactive FTXUI interface backed by a native C++ runtime.
 Quick install:
 
 ```sh
-curl -fsSL https://github.com/pythys/multi-repo-manager/raw/master/scripts/install.sh | sh -s -- --version 0.1.1
+curl -fsSL https://github.com/pythys/multi-repo-manager/raw/master/scripts/install.sh | sh -s -- --version 0.1.0
 ```
 
 Example Command:
