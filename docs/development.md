@@ -44,6 +44,11 @@ make watch
 
 To get help on tasks `make help`
 
+## documentation
+
+Documentation is built with `make docs` and published from `build/docs` to
+GitHub Pages on pushes to `master`.
+
 ## compile options
 
 ```sh

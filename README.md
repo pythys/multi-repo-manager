@@ -27,6 +27,8 @@ Example Command:
 mrm update --config myrepos.yml --jobs 15
 ```
 
+Documentation: https://pythys.github.io/multi-repo-manager/
+
 - 📦 [Installation](docs/install.md)
 - 🏁 [Quick Start](docs/guides/quickstart.md)
 - 🚀 [Usage](docs/usage.md)
