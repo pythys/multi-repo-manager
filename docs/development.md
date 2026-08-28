@@ -37,8 +37,6 @@ make clean
 make build
 make lint
 make test
-# live reload
-make watch
 ```
 
 To get help on tasks `make help`
