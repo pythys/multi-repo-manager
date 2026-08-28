@@ -8,7 +8,6 @@
 - [cmake](https://cmake.org) build generator
 - [conan](https://conan.io) package manager
 - [docker](https://docs.docker.com/engine/install/) containerization
-- [entr](https://github.com/eradman/entr) file watcher
 - [gcc](https://gcc.gnu.org/git/?p=gcc.git) compiler
 - [gdb](git://sourceware.org/git/binutils-gdb.git) debugger (gcc)
 - [lldb](https://lldb.llvm.org) debugger (clang)

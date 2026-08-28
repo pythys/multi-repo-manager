@@ -92,12 +92,6 @@ scan: ## Scan source code with clang-tidy
 		-header-filter='(src|tests)/.*\.hpp$$' \
 		'$(SCANFILTER)'
 
-.PHONY: watch
-watch: ## Cycle of clean test lint
-	$(call check_bin, entr)
-	@echo "Watching file changes..."
-	@find . -type f ! -path './build/*' | entr -d make clean test lint
-
 .PHONY: install
 install: ## Install mrm
 	@echo "Installing mrm ..."
