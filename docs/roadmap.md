@@ -11,6 +11,7 @@
 
 ## Backlog
 
+- Allow remove config access (url, github, gitlab, etc).
 - Support per-repo SSH key specification in YAML schema
 - Ability to pass SSH keys
 - Status command to report differences of local vs remote
