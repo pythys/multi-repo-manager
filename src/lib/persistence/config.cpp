@@ -9,9 +9,11 @@
 #include <iostream>
 #include <iterator>
 #include <optional>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
@@ -67,6 +69,20 @@ Tree to_tree(const YAML::Node &node) {
     return {.root = node["root"].as<std::string>(), .repos = repos};
 }
 
+void validate_unique_repos(const std::vector<Tree> &trees) {
+    std::set<std::pair<std::string, std::string>> identities;
+    for (const auto &tree : trees) {
+        for (const auto &repo : tree.repos) {
+            const auto [_, inserted] = identities.emplace(tree.root, repo.name);
+            if (!inserted) {
+                throw std::runtime_error(
+                    "Duplicate repository '" + repo.name + "' in tree '" +
+                    tree.root + "'");
+            }
+        }
+    }
+}
+
 std::vector<Tree> parse_config_text(const std::string &yaml) {
     std::vector<Tree> trees;
     try {
@@ -82,6 +98,7 @@ std::vector<Tree> parse_config_text(const std::string &yaml) {
     } catch (YAML::Exception &e) {
         std::cerr << "Error loading YAML file: " << e.what() << '\n';
     }
+    validate_unique_repos(trees);
     return trees;
 }
 

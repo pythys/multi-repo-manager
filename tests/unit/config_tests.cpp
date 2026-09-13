@@ -281,6 +281,18 @@ TEST(ConfigTests, LoadTreesFromConfigFile) {
     EXPECT_EQ(4, trees[0].repos.size());
 }
 
+TEST(ConfigTests, RejectsDuplicateRepositories) {
+    TempDir temp;
+    const std::string config = (temp.path() / "repos.yml").string();
+    write_config(
+        {make_test_tree(
+            "projects",
+            {make_test_repo("app"), make_test_repo("app")})},
+        config);
+
+    EXPECT_THROW(get_config(config), std::runtime_error);
+}
+
 TEST(ConfigTests, LoadTreesWithRootFilter) {
     const auto trees = load_trees(
         std::string(TEST_RESOURCES_DIR) +

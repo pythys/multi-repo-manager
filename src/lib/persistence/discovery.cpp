@@ -85,7 +85,8 @@ std::vector<Repo> find_repos(const std::string &path, int min_depth) {
     }
     const Walker end;
     while (it != end) {
-        if (ec || !it->is_directory(ec)) {
+        const bool is_symlink = it->is_symlink(ec);
+        if (ec || is_symlink || !it->is_directory(ec)) {
             ec.clear();
             it.increment(ec);
             continue;

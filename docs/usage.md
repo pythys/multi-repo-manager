@@ -103,6 +103,7 @@ mrm find client fork personal --save myrepos.yml
 
 Behavior:
 - scans specified paths for Git repositories (`.git` directories)
+- skips symbolic links to avoid discovering the same repository through aliases
 - a path that is itself a repository is included, recorded with `name: .`
 - outputs YAML config to stdout or saves to file
 - each path becomes one `tree.root` in the generated config

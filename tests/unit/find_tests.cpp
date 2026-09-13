@@ -101,6 +101,19 @@ TEST(FindTests, MindepthExcludesRootButKeepsNested) {
     EXPECT_EQ("child", excluded[0].name);
 }
 
+TEST(FindTests, SkipsSymbolicLinkToRepository) {
+    TempDir temp;
+    const fs::path root = temp.path() / "root";
+    const fs::path repo = root / "repo";
+    fs::create_directories(repo / ".openclaw");
+    GitManager::init(repo.string(), "master");
+    fs::create_directory_symlink("..", repo / ".openclaw" / "repo");
+
+    const std::vector<Repo> repos = find_repos(root.string());
+    ASSERT_EQ(1, repos.size());
+    EXPECT_EQ("repo", repos[0].name);
+}
+
 TEST(FindTests, RootRepoNameRoundTrips) {
     TempDir temp;
     const fs::path root = temp.path() / "repo";
