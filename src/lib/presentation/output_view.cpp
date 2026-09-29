@@ -2,6 +2,7 @@
 #include "core/tree.hpp"
 #include <algorithm>
 #include <atomic>
+#include <cstdlib>
 #include <ftxui/component/component.hpp>
 #include <ftxui/component/screen_interactive.hpp>
 #include <ftxui/dom/elements.hpp>
@@ -20,6 +21,7 @@ namespace {
 
 constexpr std::size_t kScrollSingleStep = 1;
 constexpr std::size_t kScrollWheelStep = 3;
+constexpr int kInterruptedExitCode = 130;
 
 std::string convert_phase_to_string(RepoPhase phase) {
     switch (phase) {
@@ -552,8 +554,6 @@ class TuiView final : public OutputView {
         if (ui_thread_.joinable()) {
             ui_thread_.join();
         }
-
-        render_tui_output(tracker_, format_);
     }
 
   private:
@@ -649,6 +649,8 @@ class TuiView final : public OutputView {
 
     void run_ui_loop() {
         auto screen = ftxui::ScreenInteractive::Fullscreen();
+        screen.ForceHandleCtrlC(false);
+        bool interrupted = false;
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
             exit_loop_ = screen.ExitLoopClosure();
@@ -658,13 +660,22 @@ class TuiView final : public OutputView {
         }
 
         auto renderer = ftxui::Renderer([this] { return render_ui(); });
-        auto component =
-            ftxui::CatchEvent(renderer, [this](ftxui::Event event) {
-                return handle_input_event(std::move(event));
-            });
+        auto component = ftxui::CatchEvent(renderer, [&](ftxui::Event event) {
+            if (event == ftxui::Event::CtrlC) {
+                interrupted = true;
+                screen.Exit();
+                return true;
+            }
+            return handle_input_event(std::move(event));
+        });
 
         screen.Loop(component);
         reset_terminal_state();
+        render_tui_output(tracker_, format_);
+
+        if (interrupted) {
+            std::_Exit(kInterruptedExitCode);
+        }
 
         {
             std::scoped_lock<std::mutex> lock(screen_mutex_);
