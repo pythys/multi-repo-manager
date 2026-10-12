@@ -12,12 +12,12 @@
 ## Backlog
 
 - Allow remote config access (url, github, gitlab, etc).
-- Support per-repo SSH key specification in YAML schema
-- Ability to pass SSH keys
-- Status command to report differences of local vs remote
-- Add `--dry-run` flag to sync
-- Support git worktrees
-- Add capability to interact properly with submodules in git
-- Shallow or partial clones for very large repos
-- Add powershell completion
 - Add GUI support with [imgui](https://github.com/ocornut/imgui)
+- Support per-repo SSH key specification in YAML schema.
+- Add ability to pass SSH keys to the cli.
+- Report local vs remote differences in status command.
+- Support git worktrees
+- Support git submodules
+- Support shallow clones
+- Add powershell completion
+- Add `--dry-run` flag to sync
