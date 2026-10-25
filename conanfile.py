@@ -17,5 +17,6 @@ class MrmConan(ConanFile):
 
     def configure(self):
         self.options["*"].shared = False
-        if self.settings.os == "Macos": # macos ssl bugfix
+        self.options["boost"].without_cobalt = True # recipe bug #29193 workaround
+        if self.settings.os == "Macos": # macos ssl workaround
             self.options["libgit2"].with_https = "security"
