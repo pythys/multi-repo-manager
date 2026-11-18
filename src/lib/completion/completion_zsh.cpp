@@ -132,6 +132,8 @@ std::string render_zsh(const CompletionSpec &spec) {
     out << "_" << spec.root.name << "() {\n";
     out << "  local context state state_descr line\n";
     out << "  typeset -A opt_args\n\n";
+    out << "  zstyle ':completion:*:*:" << spec.root.name
+        << ":*:options' sort false\n\n";
     out << "  _arguments -C \\\n";
 
     for (const auto &option : spec.root.options) {
@@ -150,7 +152,7 @@ std::string render_zsh(const CompletionSpec &spec) {
         out << "        '" << subcommand.name << ":" << desc << "'\n";
     }
     out << "      )\n";
-    out << "      zstyle ':completion:*:" << spec.root.name
+    out << "      zstyle ':completion:*:*:" << spec.root.name
         << ":*:values' sort false\n";
     out << "      _describe 'command' subcmds\n";
     out << "      ;;\n";

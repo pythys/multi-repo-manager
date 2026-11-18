@@ -23,7 +23,8 @@ int run_list(const ListOptions &options) {
         options.selector.find_paths,
         options.selector.root_patterns,
         options.selector.name_patterns,
-        options.selector.min_depth);
+        options.selector.min_depth,
+        options.selector.max_depth);
 
     if (config.empty() || all_repos_empty(config)) {
         if (options.summary_mode) {

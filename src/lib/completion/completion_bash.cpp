@@ -186,8 +186,9 @@ std::string render_bash(const CompletionSpec &spec) {
 
     out << "    COMPREPLY=( $(compgen -W \"$opts\" -- \"$cur\") )\n";
     out << "}\n\n";
-    out << "complete -F _" << spec.root.name << "_completion " << spec.root.name
-        << "\n";
+    out << "complete -o nosort -F _" << spec.root.name << "_completion "
+        << spec.root.name << " 2>/dev/null || complete -F _" << spec.root.name
+        << "_completion " << spec.root.name << "\n";
 
     return out.str();
 }

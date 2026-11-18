@@ -281,6 +281,65 @@ TEST(ConfigTests, LoadTreesFromConfigFile) {
     EXPECT_EQ(4, trees[0].repos.size());
 }
 
+TEST(ConfigTests, LoadTreesFromConfigHonorsDepthRange) {
+    const std::string config = config_scenario("nested_repositories.yml");
+
+    const auto shallow = load_trees(config, {}, {}, {}, 0, 1);
+    ASSERT_EQ(1, shallow.size());
+    ASSERT_EQ(1, shallow[0].repos.size());
+    EXPECT_EQ("parent", shallow[0].repos[0].name);
+
+    const auto middle = load_trees(config, {}, {}, {}, 2, 2);
+    ASSERT_EQ(1, middle.size());
+    ASSERT_EQ(2, middle[0].repos.size());
+    EXPECT_EQ("parent/child1", middle[0].repos[0].name);
+    EXPECT_EQ("parent/child2", middle[0].repos[1].name);
+
+    const auto deep = load_trees(config, {}, {}, {}, 3, 3);
+    ASSERT_EQ(1, deep.size());
+    ASSERT_EQ(1, deep[0].repos.size());
+    EXPECT_EQ("parent/child1/not_a_repo/grandchild1", deep[0].repos[0].name);
+
+    EXPECT_TRUE(load_trees(config, {}, {}, {}, 0, 0).empty());
+}
+
+TEST(ConfigTests, LoadTreesFromConfigHonorsRootRepoDepth) {
+    const std::string config = config_scenario("depth_ranges.yml");
+
+    const auto root_only = load_trees(config, {}, {}, {}, 0, 0);
+    ASSERT_EQ(1, root_only.size());
+    ASSERT_EQ(1, root_only[0].repos.size());
+    EXPECT_EQ(".", root_only[0].repos[0].name);
+
+    const auto top = load_trees(config, {}, {}, {}, 0, 1);
+    ASSERT_EQ(1, top.size());
+    ASSERT_EQ(3, top[0].repos.size());
+    EXPECT_EQ(".", top[0].repos[0].name);
+    EXPECT_EQ("app", top[0].repos[1].name);
+    EXPECT_EQ("vendor/widgets", top[0].repos[2].name);
+
+    const auto second = load_trees(config, {}, {}, {}, 2, 2);
+    ASSERT_EQ(1, second.size());
+    ASSERT_EQ(1, second[0].repos.size());
+    EXPECT_EQ("app/plugins/auth", second[0].repos[0].name);
+
+    const auto third = load_trees(config, {}, {}, {}, 3, 3);
+    ASSERT_EQ(1, third.size());
+    ASSERT_EQ(1, third[0].repos.size());
+    EXPECT_EQ("app/plugins/auth/vendor/deep", third[0].repos[0].name);
+}
+
+TEST(ConfigTests, ConfigDepthAppliesBeforeNameFiltering) {
+    const std::string config = config_scenario("nested_repositories.yml");
+
+    EXPECT_TRUE(load_trees(config, {}, {}, {"*grandchild*"}, 0, 2).empty());
+
+    const auto deep = load_trees(config, {}, {}, {"*grandchild*"}, 3, 3);
+    ASSERT_EQ(1, deep.size());
+    ASSERT_EQ(1, deep[0].repos.size());
+    EXPECT_EQ("parent/child1/not_a_repo/grandchild1", deep[0].repos[0].name);
+}
+
 TEST(ConfigTests, RejectsDuplicateRepositories) {
     TempDir temp;
     const std::string config = (temp.path() / "repos.yml").string();
@@ -354,6 +413,25 @@ TEST(ConfigTests, LoadTreesFromFindPaths) {
             fs::canonical(trees[0].root).string(),
             fs::canonical(test_dir).string());
     }
+}
+
+TEST(ConfigTests, LoadTreesFromFindPathsHonorsMaxDepth) {
+    test_utils::TempDir temp;
+
+    const auto root = temp.path() / "root";
+    const auto child = root / "a" / "child";
+    const auto grandchild = child / "b" / "grandchild";
+    fs::create_directories(grandchild);
+
+    GitManager::init(root.string(), "master");
+    GitManager::init(child.string(), "master");
+    GitManager::init(grandchild.string(), "master");
+
+    const auto trees = load_trees("", {root.string()}, {}, {}, 0, 1);
+    ASSERT_EQ(trees.size(), 1);
+    ASSERT_EQ(trees[0].repos.size(), 2);
+    EXPECT_EQ(trees[0].repos[0].name, ".");
+    EXPECT_EQ(trees[0].repos[1].name, "a/child");
 }
 
 TEST(ConfigTests, LoadTreesFromMultipleFindPaths) {

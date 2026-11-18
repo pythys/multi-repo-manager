@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <iostream>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -29,13 +30,6 @@ bool is_git_repo(const fs::path &dir) {
     const fs::path git_dir = dir / ".git";
     return is_accessible_directory(git_dir) && has_entries(git_dir);
 }
-
-int name_depth(const std::string &name) {
-    if (name == ".") {
-        return 0;
-    }
-    return static_cast<int>(std::ranges::count(name, '/')) + 1;
-}
 } // namespace
 
 std::string normalize_path(const std::string &path) {
@@ -50,8 +44,10 @@ std::string normalize_path(const std::string &path) {
     return normalized;
 }
 
-std::vector<Repo> find_repos(const std::string &path, int min_depth) {
+std::vector<Repo>
+find_repos(const std::string &path, int min_depth, int max_depth) {
     std::vector<Repo> repos;
+    std::map<std::string, int> repo_depths;
     const fs::path root(path);
     if (!is_accessible_directory(root)) {
         return repos;
@@ -59,9 +55,34 @@ std::vector<Repo> find_repos(const std::string &path, int min_depth) {
 
     const auto collect = [&](const fs::path &dirpath) {
         const std::string name = fs::relative(dirpath, root).string();
-        if (name_depth(name) < min_depth) {
-            return;
+        int depth = 0;
+        if (name != ".") {
+            depth = 1;
+            fs::path parent = dirpath.parent_path();
+            while (true) {
+                const std::string parent_name =
+                    fs::relative(parent, root).string();
+                if (parent_name == ".") {
+                    const auto root_depth = repo_depths.find(".");
+                    if (root_depth != repo_depths.end()) {
+                        depth = root_depth->second + 1;
+                    }
+                    break;
+                }
+                const auto parent_depth = repo_depths.find(parent_name);
+                if (parent_depth != repo_depths.end()) {
+                    depth = parent_depth->second + 1;
+                    break;
+                }
+                parent = parent.parent_path();
+            }
         }
+
+        repo_depths[name] = depth;
+        if (depth < min_depth || depth > max_depth) {
+            return depth >= max_depth;
+        }
+
         try {
             Repo repo;
             repo.name = name;
@@ -71,10 +92,15 @@ std::vector<Repo> find_repos(const std::string &path, int min_depth) {
         } catch (const std::exception &e) {
             std::cerr << "Skipping " << dirpath << ": " << e.what() << '\n';
         }
+        return depth >= max_depth;
     };
 
     if (is_git_repo(root)) {
         collect(root);
+    }
+
+    if (max_depth == 0) {
+        return repos;
     }
 
     using Walker = fs::recursive_directory_iterator;
@@ -100,8 +126,8 @@ std::vector<Repo> find_repos(const std::string &path, int min_depth) {
             continue;
         }
 
-        if (is_git_repo(dirpath)) {
-            collect(dirpath);
+        if (is_git_repo(dirpath) && collect(dirpath)) {
+            it.disable_recursion_pending();
         }
 
         it.increment(ec);

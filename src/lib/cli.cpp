@@ -16,6 +16,27 @@
 #include <string>
 #include <vector>
 
+namespace {
+void add_depth_options(CLI::App *command, int &min_depth, int &max_depth) {
+    command->add_option("--mindepth,-l", min_depth, "minimum repository depth")
+        ->type_name("N");
+    command->add_option("--maxdepth,-L", max_depth, "maximum repository depth")
+        ->type_name("N");
+}
+
+bool depth_range_valid(int min_depth, int max_depth) {
+    if (min_depth < 0 || max_depth < 0) {
+        std::cerr << "Error: depth values must be non-negative.\n";
+        return false;
+    }
+    if (min_depth > max_depth) {
+        std::cerr << "Error: --mindepth must not exceed --maxdepth.\n";
+        return false;
+    }
+    return true;
+}
+} // namespace
+
 int parse_cli(int argc, char **argv) {
     CLI::App app("multi-repo-manager", "mrm");
     std::string config_file = "mrm.yml";
@@ -61,8 +82,8 @@ int parse_cli(int argc, char **argv) {
             "filter by repository name pattern")
         ->type_name("pattern");
     int list_min_depth = 0;
-    list->add_option("--mindepth", list_min_depth, "minimum discovery depth")
-        ->type_name("N");
+    int list_max_depth = UNLIMITED_DEPTH;
+    add_depth_options(list, list_min_depth, list_max_depth);
     bool list_summary_mode = false;
     list->add_flag(
         "--summary,-s",
@@ -79,8 +100,8 @@ int parse_cli(int argc, char **argv) {
             ->type_name("file")
             ->expected(0, 1);
     int find_min_depth = 0;
-    find->add_option("--mindepth", find_min_depth, "minimum discovery depth")
-        ->type_name("N");
+    int find_max_depth = UNLIMITED_DEPTH;
+    add_depth_options(find, find_min_depth, find_max_depth);
 
     CLI::App *status = app.add_subcommand("status", "Show repository status");
     status->alias("st");
@@ -104,9 +125,8 @@ int parse_cli(int argc, char **argv) {
             "filter by repository name pattern")
         ->type_name("pattern");
     int status_min_depth = 0;
-    status
-        ->add_option("--mindepth", status_min_depth, "minimum discovery depth")
-        ->type_name("N");
+    int status_max_depth = UNLIMITED_DEPTH;
+    add_depth_options(status, status_min_depth, status_max_depth);
     bool status_modified_only = false;
     status->add_flag(
         "--modified,-m",
@@ -148,9 +168,8 @@ int parse_cli(int argc, char **argv) {
             "filter by repository name pattern")
         ->type_name("pattern");
     int update_min_depth = 0;
-    update
-        ->add_option("--mindepth", update_min_depth, "minimum discovery depth")
-        ->type_name("N");
+    int update_max_depth = UNLIMITED_DEPTH;
+    add_depth_options(update, update_min_depth, update_max_depth);
 
     CLI::App *remotesync =
         app.add_subcommand("remotesync", "Sync between remotes");
@@ -203,12 +222,8 @@ int parse_cli(int argc, char **argv) {
             "filter by repository name pattern")
         ->type_name("pattern");
     int remotesync_min_depth = 0;
-    remotesync
-        ->add_option(
-            "--mindepth",
-            remotesync_min_depth,
-            "minimum discovery depth")
-        ->type_name("N");
+    int remotesync_max_depth = UNLIMITED_DEPTH;
+    add_depth_options(remotesync, remotesync_min_depth, remotesync_max_depth);
 
     CLI::App *exec =
         app.add_subcommand("exec", "Execute command in repositories");
@@ -238,8 +253,8 @@ Available placeholders:
             "filter by repository name pattern")
         ->type_name("pattern");
     int exec_min_depth = 0;
-    exec->add_option("--mindepth", exec_min_depth, "minimum discovery depth")
-        ->type_name("N");
+    int exec_max_depth = UNLIMITED_DEPTH;
+    add_depth_options(exec, exec_min_depth, exec_max_depth);
     int exec_jobs = 0;
     exec->add_option("--jobs,-j", exec_jobs, "number of jobs")->type_name("N");
 
@@ -265,6 +280,17 @@ Available placeholders:
         app.parse(argc, argv);
     } catch (const CLI::ParseError &e) {
         return app.exit(e);
+    }
+
+    const bool depth_valid =
+        depth_range_valid(list_min_depth, list_max_depth) &&
+        depth_range_valid(find_min_depth, find_max_depth) &&
+        depth_range_valid(status_min_depth, status_max_depth) &&
+        depth_range_valid(update_min_depth, update_max_depth) &&
+        depth_range_valid(remotesync_min_depth, remotesync_max_depth) &&
+        depth_range_valid(exec_min_depth, exec_max_depth);
+    if (!depth_valid) {
+        return 1;
     }
 
     const bool has_find = !status_find_paths.empty() ||
@@ -296,11 +322,14 @@ Available placeholders:
     if (*list) {
         ListOptions options{
             .selector =
-                {.config_file = config_file,
-                 .find_paths = list_find_paths,
-                 .root_patterns = list_root_patterns,
-                 .name_patterns = list_name_patterns,
-                 .min_depth = list_min_depth},
+                {
+                    .config_file = config_file,
+                    .find_paths = list_find_paths,
+                    .root_patterns = list_root_patterns,
+                    .name_patterns = list_name_patterns,
+                    .min_depth = list_min_depth,
+                    .max_depth = list_max_depth,
+                },
             .summary_mode = list_summary_mode};
         return run_list(options);
     }
@@ -309,17 +338,20 @@ Available placeholders:
         if (save_option->count() > 0 && save_path.empty()) {
             save_path = "mrm.yml";
         }
-        return run_find(find_paths, save_path, find_min_depth);
+        return run_find(find_paths, save_path, find_min_depth, find_max_depth);
     }
 
     if (*status) {
         StatusOptions options{
             .selector =
-                {.config_file = config_file,
-                 .find_paths = status_find_paths,
-                 .root_patterns = status_root_patterns,
-                 .name_patterns = status_name_patterns,
-                 .min_depth = status_min_depth},
+                {
+                    .config_file = config_file,
+                    .find_paths = status_find_paths,
+                    .root_patterns = status_root_patterns,
+                    .name_patterns = status_name_patterns,
+                    .min_depth = status_min_depth,
+                    .max_depth = status_max_depth,
+                },
             .modified_only = status_modified_only,
             .jobs = status_jobs};
         return run_status(options);
@@ -328,11 +360,14 @@ Available placeholders:
     if (*update) {
         UpdateOptions options{
             .selector =
-                {.config_file = config_file,
-                 .find_paths = update_find_paths,
-                 .root_patterns = update_root_patterns,
-                 .name_patterns = update_name_patterns,
-                 .min_depth = update_min_depth},
+                {
+                    .config_file = config_file,
+                    .find_paths = update_find_paths,
+                    .root_patterns = update_root_patterns,
+                    .name_patterns = update_name_patterns,
+                    .min_depth = update_min_depth,
+                    .max_depth = update_max_depth,
+                },
             .jobs = update_jobs,
             .timeout_seconds = update_timeout_seconds};
         return run_update(options);
@@ -341,11 +376,14 @@ Available placeholders:
     if (*remotesync) {
         RemoteSyncOptions options{
             .selector =
-                {.config_file = config_file,
-                 .find_paths = remotesync_find_paths,
-                 .root_patterns = remotesync_root_patterns,
-                 .name_patterns = remotesync_name_patterns,
-                 .min_depth = remotesync_min_depth},
+                {
+                    .config_file = config_file,
+                    .find_paths = remotesync_find_paths,
+                    .root_patterns = remotesync_root_patterns,
+                    .name_patterns = remotesync_name_patterns,
+                    .min_depth = remotesync_min_depth,
+                    .max_depth = remotesync_max_depth,
+                },
             .source_remote = remotesync_source,
             .target_remote = remotesync_target,
             .branches = remotesync_branches,
@@ -358,11 +396,14 @@ Available placeholders:
     if (*exec) {
         ExecutionOptions options{
             .selector =
-                {.config_file = config_file,
-                 .find_paths = exec_find_paths,
-                 .root_patterns = exec_root_patterns,
-                 .name_patterns = exec_name_patterns,
-                 .min_depth = exec_min_depth},
+                {
+                    .config_file = config_file,
+                    .find_paths = exec_find_paths,
+                    .root_patterns = exec_root_patterns,
+                    .name_patterns = exec_name_patterns,
+                    .min_depth = exec_min_depth,
+                    .max_depth = exec_max_depth,
+                },
             .command = custom_command,
             .jobs = exec_jobs};
         return run_exec(options);

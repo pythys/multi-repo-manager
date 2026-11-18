@@ -1,0 +1,23 @@
+trees:
+- root: .
+  repos:
+  - name: .
+    remotes:
+    - name: origin
+      url: https://example.com/root.git
+  - name: app
+    remotes:
+    - name: origin
+      url: https://example.com/app.git
+  - name: app/plugins/auth
+    remotes:
+    - name: origin
+      url: https://example.com/auth.git
+  - name: app/plugins/auth/vendor/deep
+    remotes:
+    - name: origin
+      url: https://example.com/deep.git
+  - name: vendor/widgets
+    remotes:
+    - name: origin
+      url: https://example.com/widgets.git

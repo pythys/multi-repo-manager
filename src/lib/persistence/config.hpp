@@ -2,6 +2,7 @@
 #define SRC_LIB_PERSISTENCE_CONFIG_HPP_
 
 #include "core/tree.hpp"
+#include "util/constants.hpp"
 #include <string>
 #include <vector>
 
@@ -28,6 +29,7 @@ std::vector<Tree> load_trees(
     const std::vector<std::string> &find_paths,
     const std::vector<std::string> &root_patterns,
     const std::vector<std::string> &name_patterns,
-    int min_depth = 0);
+    int min_depth = 0,
+    int max_depth = UNLIMITED_DEPTH);
 
 #endif // SRC_LIB_PERSISTENCE_CONFIG_HPP_

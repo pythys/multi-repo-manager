@@ -20,7 +20,8 @@ int run_update(const UpdateOptions &options) {
         options.selector.find_paths,
         options.selector.root_patterns,
         options.selector.name_patterns,
-        options.selector.min_depth);
+        options.selector.min_depth,
+        options.selector.max_depth);
 
     TrackedOperation op(config, DisplayFormat::PROGRESS);
     auto &tracker = op.tracker();

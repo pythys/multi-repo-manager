@@ -84,6 +84,8 @@ Options:
 - `--find <path>` (`-f`): discover repos, see [source options](#source-options)
 - `--root <pattern>` (`-r`): filter by tree root, see [filtering](#filtering)
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
+- `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
+- `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -111,8 +113,17 @@ Behavior:
 
 Options:
 - `--save` (`-s`): save to file instead of stdout (default: `mrm.yml`)
-- `--mindepth <N>`: minimum depth of repositories to record; `--mindepth 1`
+- `--mindepth <N>` (`-l`): minimum depth of repositories to record; `--mindepth 1`
   excludes the search path itself while keeping nested repositories
+- `--maxdepth <N>` (`-L`): maximum depth of repositories to record; `--maxdepth 0`
+  keeps only the search path itself; default is unlimited
+
+Depth is repository hierarchy depth, not directory depth. If the searched path is
+a repository it has depth `0`; repositories nested anywhere beneath it have depth
+`1`; repositories nested beneath those have depth `2`; intermediate
+non-repository directories do not count. If the searched path is not a
+repository, the outermost repositories below it have depth `1`. Both bounds are
+inclusive.
 
 Recommended workflow:
 - make changes in repositories first (remotes, branches, layout)
@@ -149,6 +160,8 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
+- `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--modified` (`-m`): show only repositories with changes
 
 See [output modes](#output-modes) for terminal-specific formatting.
@@ -177,6 +190,8 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
+- `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--timeout <seconds>` (`-T`): network operation timeout in seconds (default: 300, 0 = disabled)
 
 See [output modes](#output-modes) for terminal-specific formatting.
@@ -206,6 +221,8 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
+- `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--timeout <seconds>` (`-T`): network operation timeout in seconds (default: 300, 0 = disabled)
 - `--source <remote>` (`-s`): source remote name (required)
 - `--target <remote>` (`-t`): target remote name (required)
@@ -252,6 +269,8 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--jobs <n>` (`-j`): max concurrent operations, see
   [concurrency](#concurrency)
+- `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
+- `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--command <cmd>`: command to execute (required)
 
 See [output modes](#output-modes) for terminal-specific formatting.
@@ -357,8 +376,17 @@ Discover repositories by scanning directories:
 - records remotes and local branches with upstream tracking
 - repeatable: `--find ~/work --find ~/personal`
 - short form: `-f`
-- `--mindepth <N>`: minimum discovery depth; `--mindepth 1` excludes the
+- `--mindepth <N>` (`-l`): minimum discovery depth; `--mindepth 1` excludes the
   search path itself while keeping nested repositories
+- `--maxdepth <N>` (`-L`): maximum discovery depth; `--maxdepth 0` keeps only
+  the search path itself; default is unlimited
+- depth counts enclosing repositories, not directories: a repository at the
+  search path is `0`, repositories nested anywhere beneath it are `1`, and so
+  on; intermediate non-repository directories do not count
+- if the search path is not a repository, its outermost repositories are `1`
+- both bounds are inclusive
+- the same depth filters also apply to repositories loaded from a config file,
+  see [filtering](#filtering)
 - supports [filtering](#filtering) to target subset of repos
 - `sync` command does not support it as it requires a yaml file
 
@@ -383,6 +411,14 @@ mrm exec --config myrepos.yml --name "*react*" --name "*vue*" --command "fetch -
 Filter options:
 - `--root <pattern>` (`-r`): filter by tree root (top-level directories)
 - `--name <pattern>` (`-n`): filter by repository name
+- `--mindepth <N>` (`-l`): minimum repository depth
+- `--maxdepth <N>` (`-L`): maximum repository depth
+
+Depth counts enclosing repositories, not directories. For repositories loaded
+from a config file, enclosing repositories are determined by repository name
+prefixes within the same tree. A repository at the tree root has depth `0`; if
+the tree has no root repository, its outermost repositories have depth `1`.
+Both bounds are inclusive.
 
 Pattern syntax:
 - `*`: matches any characters

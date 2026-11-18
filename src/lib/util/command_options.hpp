@@ -11,6 +11,7 @@ struct RepositorySelector {
     std::vector<std::string> root_patterns;
     std::vector<std::string> name_patterns;
     int min_depth = 0;
+    int max_depth = UNLIMITED_DEPTH;
 };
 
 struct StatusOptions {

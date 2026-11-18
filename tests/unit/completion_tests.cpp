@@ -1,5 +1,8 @@
+#include "cli.hpp"
 #include "command/completion.hpp"
 #include <gtest/gtest.h>
+#include <string>
+#include <vector>
 #include <yaml-cpp/yaml.h>
 
 namespace {
@@ -36,6 +39,26 @@ find_option_with_flag(const YAML::Node &command, const std::string &flag) {
         }
     }
     return {};
+}
+
+int option_index(const YAML::Node &command, const std::string &flag) {
+    const YAML::Node options = command["options"];
+    if (!options || !options.IsSequence()) {
+        return -1;
+    }
+    int index = 0;
+    for (const YAML::Node option : options) {
+        const YAML::Node flags = option["flags"];
+        if (flags && flags.IsSequence()) {
+            for (const YAML::Node entry : flags) {
+                if (entry.as<std::string>() == flag) {
+                    return index;
+                }
+            }
+        }
+        ++index;
+    }
+    return -1;
 }
 
 YAML::Node find_positional(const YAML::Node &command, const std::string &name) {
@@ -150,4 +173,80 @@ TEST(CompletionSpecTests, ExtractsNestedSubcommands) {
     ASSERT_TRUE(remote_node);
     const YAML::Node add_node = find_subcommand(remote_node, "add");
     ASSERT_TRUE(add_node);
+}
+
+TEST(CompletionSpecTests, ActualCliOrdersDepthAfterRootAndName) {
+    std::vector<std::string> args{"mrm", "completion", "spec"};
+    std::vector<char *> argv;
+    argv.reserve(args.size());
+    for (auto &arg : args) {
+        argv.push_back(arg.data());
+    }
+
+    testing::internal::CaptureStdout();
+    const int result = parse_cli(static_cast<int>(argv.size()), argv.data());
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    ASSERT_EQ(0, result);
+    const YAML::Node root = YAML::Load(output)["root"];
+    ASSERT_TRUE(root);
+
+    for (const std::string &command_name :
+         {"list", "status", "update", "remotesync", "exec"}) {
+        const YAML::Node command = find_subcommand(root, command_name);
+        ASSERT_TRUE(command) << command_name;
+
+        const int root_index = option_index(command, "--root");
+        const int name_index = option_index(command, "--name");
+        const int min_depth_index = option_index(command, "--mindepth");
+        const int max_depth_index = option_index(command, "--maxdepth");
+
+        EXPECT_GE(root_index, 0) << command_name;
+        EXPECT_GE(name_index, 0) << command_name;
+        EXPECT_GE(min_depth_index, 0) << command_name;
+        EXPECT_GE(max_depth_index, 0) << command_name;
+        EXPECT_LT(root_index, name_index) << command_name;
+        EXPECT_LT(name_index, min_depth_index) << command_name;
+        EXPECT_LT(min_depth_index, max_depth_index) << command_name;
+    }
+
+    const YAML::Node find_command = find_subcommand(root, "find");
+    ASSERT_TRUE(find_command);
+    EXPECT_LT(
+        option_index(find_command, "--save"),
+        option_index(find_command, "--mindepth"));
+    EXPECT_LT(
+        option_index(find_command, "--mindepth"),
+        option_index(find_command, "--maxdepth"));
+}
+
+TEST(CompletionSortingTests, PreservesRepositoryFilterOrder) {
+    CLI::App app("mrm");
+    app.name("mrm");
+
+    auto *list = app.add_subcommand("list", "List repositories");
+    std::vector<std::string> root_patterns;
+    std::vector<std::string> name_patterns;
+    int min_depth = 0;
+    int max_depth = 0;
+    list->add_option("--root,-r", root_patterns, "root tree pattern");
+    list->add_option("--name,-n", name_patterns, "name pattern");
+    list->add_option("--mindepth,-l", min_depth, "minimum depth");
+    list->add_option("--maxdepth,-L", max_depth, "maximum depth");
+
+    const std::string zsh = generate_script(app, "zsh");
+    EXPECT_NE(
+        zsh.find("zstyle ':completion:*:*:mrm:*:options' sort false"),
+        std::string::npos);
+    EXPECT_LT(zsh.find("--root"), zsh.find("--name"));
+    EXPECT_LT(zsh.find("--name"), zsh.find("--mindepth"));
+    EXPECT_LT(zsh.find("--mindepth"), zsh.find("--maxdepth"));
+
+    const std::string bash = generate_script(app, "bash");
+    EXPECT_NE(
+        bash.find("complete -o nosort -F _mrm_completion mrm"),
+        std::string::npos);
+    EXPECT_LT(bash.find("--root"), bash.find("--name"));
+    EXPECT_LT(bash.find("--name"), bash.find("--mindepth"));
+    EXPECT_LT(bash.find("--mindepth"), bash.find("--maxdepth"));
 }

@@ -77,7 +77,12 @@ trees:
 
 If the path you scan is itself a repository, it is recorded as a sibling entry
 with `name: .` alongside its nested repos. Use `mrm find <path> --mindepth 1` to
-exclude the root repository and keep only the nested ones.
+exclude the root repository and keep only the nested ones. Use
+`mrm find <path> --maxdepth 1` to keep the root repository and its child
+repositories, regardless of how many folders separate them.
+
+The same depth filters apply to repositories loaded from `mrm.yml`. Enclosing
+repositories are inferred from repository name prefixes within each tree.
 
 ## operating safely
 

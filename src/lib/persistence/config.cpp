@@ -270,6 +270,55 @@ std::vector<Repo> to_dependency_tree(
     return child_repos;
 }
 
+int repository_depth(
+    const std::string &name,
+    const std::set<std::string> &repo_names) {
+    if (name == ".") {
+        return 0;
+    }
+
+    int depth = 1;
+    std::size_t separator = name.find('/');
+    while (separator != std::string::npos) {
+        if (repo_names.contains(name.substr(0, separator))) {
+            ++depth;
+        }
+        separator = name.find('/', separator + 1);
+    }
+    return depth;
+}
+
+std::vector<Tree> filter_trees_by_depth(
+    const std::vector<Tree> &trees,
+    int min_depth,
+    int max_depth) {
+    if (min_depth <= 0 && max_depth == UNLIMITED_DEPTH) {
+        return trees;
+    }
+
+    std::vector<Tree> filtered;
+    for (const auto &tree : trees) {
+        std::set<std::string> repo_names;
+        for (const auto &repo : tree.repos) {
+            repo_names.insert(repo.name);
+        }
+
+        Tree filtered_tree = tree;
+        filtered_tree.repos.clear();
+        for (const auto &repo : tree.repos) {
+            const int depth = repository_depth(repo.name, repo_names);
+            if (depth >= min_depth && depth <= max_depth) {
+                filtered_tree.repos.push_back(repo);
+            }
+        }
+
+        if (!filtered_tree.repos.empty()) {
+            filtered.push_back(std::move(filtered_tree));
+        }
+    }
+    return filtered;
+}
+
 bool root_matches_pattern(const std::string &root, const std::string &pattern) {
     std::size_t root_index = 0;
     std::size_t pattern_index = 0;
@@ -460,7 +509,8 @@ std::vector<Tree> load_trees(
     const std::vector<std::string> &find_paths,
     const std::vector<std::string> &root_patterns,
     const std::vector<std::string> &name_patterns,
-    int min_depth) {
+    int min_depth,
+    int max_depth) {
     std::vector<Tree> trees;
 
     if (!find_paths.empty()) {
@@ -476,10 +526,11 @@ std::vector<Tree> load_trees(
             trees.push_back(
                 Tree{
                     .root = normalized,
-                    .repos = find_repos(normalized, min_depth)});
+                    .repos = find_repos(normalized, min_depth, max_depth)});
         }
     } else {
         trees = get_config(config_file);
+        trees = filter_trees_by_depth(trees, min_depth, max_depth);
     }
 
     trees = filter_trees_by_root(trees, root_patterns);
