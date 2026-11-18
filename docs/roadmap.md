@@ -17,6 +17,7 @@
 - Allow remote config access (url, github, gitlab, etc).
 - Add GUI support with [imgui](https://github.com/ocornut/imgui)
 - Add ability to pass SSH keys to the cli.
+- Allow path substitution in yaml like ~/Desktop or $HOME/Desktop.
 - Report local vs remote differences in status command.
 - Auto scroll to active work in sync unless manually scrolled away
 - Support git worktrees
