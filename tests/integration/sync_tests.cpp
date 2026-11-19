@@ -24,7 +24,8 @@ std::string get_scenario_path(const std::string &scenario_name) {
         {"upstream_change", "scenarios/sync/upstream_changes.yml"},
         {"remote_url_update", "scenarios/sync/remote_url_update.yml"},
         {"branch_switching", "scenarios/branch/switching.yml"},
-        {"pruning_test", "scenarios/sync/repository_pruning.yml"}};
+        {"pruning_test", "scenarios/sync/repository_pruning.yml"},
+    };
 
     auto it = scenario_paths.find(scenario_name);
     if (it != scenario_paths.end()) {
@@ -42,7 +43,8 @@ int run_scenario(const std::string &scenario_name) {
             .prune_remotes = false,
             .prune_branches = false,
             .prune_repos = false,
-            .jobs = 1});
+            .jobs = 1,
+        });
 }
 
 int run_scenario_with_pruning(
@@ -57,7 +59,8 @@ int run_scenario_with_pruning(
             .prune_remotes = prune_remotes,
             .prune_branches = prune_branches,
             .prune_repos = prune_repos,
-            .jobs = 1});
+            .jobs = 1,
+        });
 }
 
 int run_prune(
@@ -72,7 +75,8 @@ int run_prune(
             .prune_remotes = prune_remotes,
             .prune_branches = prune_branches,
             .prune_repos = prune_repos,
-            .jobs = 1});
+            .jobs = 1,
+        });
 }
 
 TEST(SyncTests, BasicSyncFunctionality) {
@@ -329,22 +333,31 @@ TEST(SyncTests, PruneBranchesRemovesNonConfiguredBranches) {
     const Branch master{
         .name = "master",
         .remote = "origin",
-        .is_current = true};
+        .is_current = true,
+    };
     const Branch stale{
         .name = "stale",
         .remote = "origin",
-        .is_current = false};
+        .is_current = false,
+    };
 
     const std::filesystem::path config = scratch.path() / "config.yml";
     write_config(
-        {Tree{
-            .root = "workspace",
-            .repos = {Repo{
-                .name = "repo",
-                .remotes = {origin_remote},
-                .branches = {master, stale},
-                .children = {},
-                .messages = {}}}}},
+        {
+            Tree{
+                .root = "workspace",
+                .repos =
+                    {
+                        Repo{
+                            .name = "repo",
+                            .remotes = {origin_remote},
+                            .branches = {master, stale},
+                            .children = {},
+                            .messages = {},
+                        },
+                    },
+            },
+        },
         config.string());
     ASSERT_EQ(0, run_prune(config.string(), false, false, false));
 
@@ -352,14 +365,21 @@ TEST(SyncTests, PruneBranchesRemovesNonConfiguredBranches) {
     ASSERT_TRUE(GitManager::branch_exists(repo_path, "stale"));
 
     write_config(
-        {Tree{
-            .root = "workspace",
-            .repos = {Repo{
-                .name = "repo",
-                .remotes = {origin_remote},
-                .branches = {master},
-                .children = {},
-                .messages = {}}}}},
+        {
+            Tree{
+                .root = "workspace",
+                .repos =
+                    {
+                        Repo{
+                            .name = "repo",
+                            .remotes = {origin_remote},
+                            .branches = {master},
+                            .children = {},
+                            .messages = {},
+                        },
+                    },
+            },
+        },
         config.string());
     ASSERT_EQ(0, run_prune(config.string(), false, true, false));
 

@@ -23,7 +23,8 @@ int run_find(
         trees.push_back(
             Tree{
                 .root = normalized_root,
-                .repos = find_repos(normalized_root, min_depth, max_depth)});
+                .repos = find_repos(normalized_root, min_depth, max_depth),
+            });
     }
 
     std::string config_output = make_config(trees);

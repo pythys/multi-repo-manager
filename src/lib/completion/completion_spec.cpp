@@ -1,9 +1,10 @@
 #include "completion/completion_spec.hpp"
+#include <string_view>
 #include <yaml-cpp/yaml.h>
 
 namespace {
 
-std::string format_value_hint(ValueHint hint) {
+std::string_view format_value_hint(ValueHint hint) {
     switch (hint) {
     case ValueHint::None:
         return "none";

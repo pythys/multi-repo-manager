@@ -9,16 +9,23 @@ namespace {
 constexpr int WAITER_SLEEP_MS = 10;
 
 std::vector<Tree> make_trees() {
-    return {Tree{
-        .root = "root",
-        .repos = {Repo{
-            .name = "repo",
+    return {
+        Tree{
+            .root = "root",
+            .repos =
+                {
+                    Repo{
+                        .name = "repo",
 
-            .phase = RepoPhase::QUEUED,
-            .remotes = {},
-            .branches = {},
-            .children = {},
-            .messages = {}}}}};
+                        .phase = RepoPhase::QUEUED,
+                        .remotes = {},
+                        .branches = {},
+                        .children = {},
+                        .messages = {},
+                    },
+                },
+        },
+    };
 }
 } // namespace
 

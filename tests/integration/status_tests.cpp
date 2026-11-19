@@ -14,7 +14,8 @@ const GitGuard git_guard;
 
 std::string get_scenario_path(const std::string &scenario_name) {
     static const std::unordered_map<std::string, std::string> scenario_paths = {
-        {"status_checks", "scenarios/status/repository_checks.yml"}};
+        {"status_checks", "scenarios/status/repository_checks.yml"},
+    };
 
     auto it = scenario_paths.find(scenario_name);
     if (it != scenario_paths.end()) {
@@ -32,7 +33,8 @@ int run_scenario(const std::string &scenario_name) {
             .prune_remotes = false,
             .prune_branches = false,
             .prune_repos = false,
-            .jobs = 1});
+            .jobs = 1,
+        });
 }
 
 TEST(StatusTests, ReportsRepositoryStatus) {

@@ -29,7 +29,8 @@ void Tracker::set_phase(
             .repo = repo,
             .phase = phase,
             .level = level,
-            .message = message});
+            .message = message,
+        });
     condition_.notify_one();
 }
 

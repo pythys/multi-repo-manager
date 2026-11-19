@@ -26,7 +26,8 @@ int prepare_repos(const std::string &scenario_name) {
             .prune_remotes = false,
             .prune_branches = false,
             .prune_repos = false,
-            .jobs = 1});
+            .jobs = 1,
+        });
 }
 
 TEST(UpdateTests, DefaultTimeoutIsApplied) {
@@ -40,8 +41,10 @@ TEST(UpdateTests, DefaultTimeoutIsApplied) {
                         get_update_scenario_path("basic_repositories"),
                     .find_paths = {},
                     .root_patterns = {},
-                    .name_patterns = {}},
-            .jobs = 1});
+                    .name_patterns = {},
+                },
+            .jobs = 1,
+        });
     EXPECT_EQ(0, result);
 }
 
@@ -55,8 +58,10 @@ TEST(UpdateTests, CustomTimeoutWorksWithMultipleRepos) {
                     .config_file = get_update_scenario_path("multiple_trees"),
                     .find_paths = {},
                     .root_patterns = {},
-                    .name_patterns = {}},
+                    .name_patterns = {},
+                },
             .jobs = 2,
-            .timeout_seconds = TIMEOUT_LONG});
+            .timeout_seconds = TIMEOUT_LONG,
+        });
     EXPECT_EQ(0, result);
 }

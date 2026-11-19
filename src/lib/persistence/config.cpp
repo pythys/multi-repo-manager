@@ -23,14 +23,16 @@ namespace fs = std::filesystem;
 Remote to_remote(const YAML::Node &node) {
     return Remote{
         .name = node["name"].as<std::string>(),
-        .url = node["url"].as<std::string>()};
+        .url = node["url"].as<std::string>(),
+    };
 }
 
 Branch to_branch(const YAML::Node &node) {
     return Branch{
         .name = node["name"].as<std::string>(),
         .remote = node["remote"].as<std::string>(),
-        .is_current = node["is_current"].as<bool>()};
+        .is_current = node["is_current"].as<bool>(),
+    };
 }
 
 Repo to_repo(const YAML::Node &node) {
@@ -60,7 +62,8 @@ Repo to_repo(const YAML::Node &node) {
         .remotes = remotes,
         .branches = branches,
         .children = {},
-        .messages = {}};
+        .messages = {},
+    };
 }
 
 Tree to_tree(const YAML::Node &node) {
@@ -526,7 +529,8 @@ std::vector<Tree> load_trees(
             trees.push_back(
                 Tree{
                     .root = normalized,
-                    .repos = find_repos(normalized, min_depth, max_depth)});
+                    .repos = find_repos(normalized, min_depth, max_depth),
+                });
         }
     } else {
         trees = get_config(config_file);

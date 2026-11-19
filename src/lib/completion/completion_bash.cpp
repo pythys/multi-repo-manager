@@ -147,7 +147,7 @@ std::string render_bash(const CompletionSpec &spec) {
     }
 
     const std::string root_opts = join_flags(
-        spec.root.options.empty() ? std::vector<std::string>{} : [&]() {
+        spec.root.options.empty() ? std::vector<std::string>{} : [&] {
             std::vector<std::string> flags;
             for (const auto &opt : spec.root.options) {
                 flags.insert(flags.end(), opt.flags.begin(), opt.flags.end());

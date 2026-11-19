@@ -72,7 +72,8 @@ TEST(ConfigTests, RootRepoBecomesParentOfNested) {
     TempDir temp;
     const std::string config = (temp.path() / "root_repo.yml").string();
     const std::vector<Tree> input = {
-        make_test_tree(".", {make_test_repo("."), make_test_repo("child")})};
+        make_test_tree(".", {make_test_repo("."), make_test_repo("child")}),
+    };
     write_config(input, config);
 
     const std::vector<Tree> trees = get_dependencies(config);
@@ -109,9 +110,11 @@ TEST(ConfigTests, FilterTreesByNameExactMatch) {
     const std::vector<Tree> trees = {
         make_test_tree(
             "projects",
-            {make_test_repo("frontend"),
-             make_test_repo("backend"),
-             make_test_repo("database")}),
+            {
+                make_test_repo("frontend"),
+                make_test_repo("backend"),
+                make_test_repo("database"),
+            }),
     };
     const std::vector<Tree> filtered = filter_trees_by_name(trees, {"backend"});
     ASSERT_EQ(1, filtered.size());
@@ -123,9 +126,11 @@ TEST(ConfigTests, FilterTreesByNameWildcardPattern) {
     const std::vector<Tree> trees = {
         make_test_tree(
             "projects",
-            {make_test_repo("api-gateway"),
-             make_test_repo("api-service"),
-             make_test_repo("frontend-app")}),
+            {
+                make_test_repo("api-gateway"),
+                make_test_repo("api-service"),
+                make_test_repo("frontend-app"),
+            }),
     };
     const std::vector<Tree> filtered = filter_trees_by_name(trees, {"*api*"});
     ASSERT_EQ(1, filtered.size());
@@ -138,9 +143,11 @@ TEST(ConfigTests, FilterTreesByNameMultiplePatterns) {
     const std::vector<Tree> trees = {
         make_test_tree(
             "projects",
-            {make_test_repo("frontend"),
-             make_test_repo("backend"),
-             make_test_repo("mobile")}),
+            {
+                make_test_repo("frontend"),
+                make_test_repo("backend"),
+                make_test_repo("mobile"),
+            }),
     };
     const std::vector<Tree> filtered =
         filter_trees_by_name(trees, {"frontend", "mobile"});
@@ -187,9 +194,11 @@ TEST(ConfigTests, FilterTreesByNameQuestionMarkWildcard) {
     const std::vector<Tree> trees = {
         make_test_tree(
             "projects",
-            {make_test_repo("app1"),
-             make_test_repo("app2"),
-             make_test_repo("app12")}),
+            {
+                make_test_repo("app1"),
+                make_test_repo("app2"),
+                make_test_repo("app12"),
+            }),
     };
     const std::vector<Tree> filtered = filter_trees_by_name(trees, {"app?"});
     ASSERT_EQ(1, filtered.size());
@@ -344,9 +353,11 @@ TEST(ConfigTests, RejectsDuplicateRepositories) {
     TempDir temp;
     const std::string config = (temp.path() / "repos.yml").string();
     write_config(
-        {make_test_tree(
-            "projects",
-            {make_test_repo("app"), make_test_repo("app")})},
+        {
+            make_test_tree(
+                "projects",
+                {make_test_repo("app"), make_test_repo("app")}),
+        },
         config);
 
     EXPECT_THROW(get_config(config), std::runtime_error);

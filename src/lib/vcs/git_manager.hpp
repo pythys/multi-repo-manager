@@ -20,7 +20,7 @@ enum class BranchSyncState : std::uint8_t {
     UP_TO_DATE,
     SOURCE_AHEAD,
     TARGET_AHEAD,
-    DIVERGED
+    DIVERGED,
 };
 
 template <typename T, void (*free_resource)(T *)> class GitResource {
@@ -106,41 +106,65 @@ class GitManager {
             const char *label;
             const git_diff_delta *delta;
         };
-        const std::array<StatusRule, 11> rules = {{
-            {.flag = GIT_STATUS_INDEX_NEW,
-             .label = "New file staged: ",
-             .delta = head_to_index},
-            {.flag = GIT_STATUS_INDEX_MODIFIED,
-             .label = "Modified file staged: ",
-             .delta = head_to_index},
-            {.flag = GIT_STATUS_INDEX_DELETED,
-             .label = "Deleted file staged: ",
-             .delta = head_to_index},
-            {.flag = GIT_STATUS_INDEX_RENAMED,
-             .label = "Renamed file staged: ",
-             .delta = head_to_index},
-            {.flag = GIT_STATUS_INDEX_TYPECHANGE,
-             .label = "Type-changed file staged: ",
-             .delta = head_to_index},
-            {.flag = GIT_STATUS_WT_NEW,
-             .label = "New file: ",
-             .delta = index_to_workdir},
-            {.flag = GIT_STATUS_WT_MODIFIED,
-             .label = "Modified file: ",
-             .delta = index_to_workdir},
-            {.flag = GIT_STATUS_WT_DELETED,
-             .label = "Deleted file: ",
-             .delta = index_to_workdir},
-            {.flag = GIT_STATUS_WT_RENAMED,
-             .label = "Renamed file: ",
-             .delta = index_to_workdir},
-            {.flag = GIT_STATUS_WT_TYPECHANGE,
-             .label = "Type-changed file: ",
-             .delta = index_to_workdir},
-            {.flag = GIT_STATUS_CONFLICTED,
-             .label = "Conflicted file: ",
-             .delta = index_to_workdir},
-        }};
+        const std::array<StatusRule, 11> rules = {
+            {
+                {
+                    .flag = GIT_STATUS_INDEX_NEW,
+                    .label = "New file staged: ",
+                    .delta = head_to_index,
+                },
+                {
+                    .flag = GIT_STATUS_INDEX_MODIFIED,
+                    .label = "Modified file staged: ",
+                    .delta = head_to_index,
+                },
+                {
+                    .flag = GIT_STATUS_INDEX_DELETED,
+                    .label = "Deleted file staged: ",
+                    .delta = head_to_index,
+                },
+                {
+                    .flag = GIT_STATUS_INDEX_RENAMED,
+                    .label = "Renamed file staged: ",
+                    .delta = head_to_index,
+                },
+                {
+                    .flag = GIT_STATUS_INDEX_TYPECHANGE,
+                    .label = "Type-changed file staged: ",
+                    .delta = head_to_index,
+                },
+                {
+                    .flag = GIT_STATUS_WT_NEW,
+                    .label = "New file: ",
+                    .delta = index_to_workdir,
+                },
+                {
+                    .flag = GIT_STATUS_WT_MODIFIED,
+                    .label = "Modified file: ",
+                    .delta = index_to_workdir,
+                },
+                {
+                    .flag = GIT_STATUS_WT_DELETED,
+                    .label = "Deleted file: ",
+                    .delta = index_to_workdir,
+                },
+                {
+                    .flag = GIT_STATUS_WT_RENAMED,
+                    .label = "Renamed file: ",
+                    .delta = index_to_workdir,
+                },
+                {
+                    .flag = GIT_STATUS_WT_TYPECHANGE,
+                    .label = "Type-changed file: ",
+                    .delta = index_to_workdir,
+                },
+                {
+                    .flag = GIT_STATUS_CONFLICTED,
+                    .label = "Conflicted file: ",
+                    .delta = index_to_workdir,
+                },
+            },
+        };
         for (const auto &rule : rules) {
             if (entry.status & rule.flag) {
                 std::string path = "<unknown>";
@@ -348,7 +372,8 @@ class GitManager {
         std::vector<char *> strings = {refspec_buffer.data()};
         git_strarray refspecs = {
             .strings = strings.data(),
-            .count = strings.size()};
+            .count = strings.size(),
+        };
 
         git_fetch_options fetch_opts;
         git_fetch_options_init(&fetch_opts, GIT_FETCH_OPTIONS_VERSION);
@@ -384,7 +409,8 @@ class GitManager {
         return FetchResult{
             .repo = repo,
             .tracking_ref = tracking_ref,
-            .target_oid = *target_oid};
+            .target_oid = *target_oid,
+        };
     }
 
     static void set_branch_target(
@@ -1047,7 +1073,8 @@ class GitManager {
                 Branch{
                     .name = branch_name,
                     .remote = remote_name,
-                    .is_current = is_current});
+                    .is_current = is_current,
+                });
         }
         std::ranges::sort(branches, [](const Branch &lhs, const Branch &rhs) {
             if (lhs.name != rhs.name) {
@@ -1282,7 +1309,8 @@ class GitManager {
         std::vector<char *> strings = {refspec_buffer.data()};
         git_strarray refspecs = {
             .strings = strings.data(),
-            .count = strings.size()};
+            .count = strings.size(),
+        };
 
         git_push_options push_opts;
         git_push_options_init(&push_opts, GIT_PUSH_OPTIONS_VERSION);
@@ -1393,9 +1421,10 @@ class GitManager {
         git_status_options status_opts;
         git_status_options_init(&status_opts, GIT_STATUS_OPTIONS_VERSION);
         status_opts.show = GIT_STATUS_SHOW_INDEX_AND_WORKDIR;
-        status_opts.flags = GIT_STATUS_OPT_INCLUDE_UNTRACKED |
-                            GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX |
-                            GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR;
+        status_opts.flags =
+            static_cast<unsigned int>(GIT_STATUS_OPT_INCLUDE_UNTRACKED) |
+            static_cast<unsigned int>(GIT_STATUS_OPT_RENAMES_HEAD_TO_INDEX) |
+            static_cast<unsigned int>(GIT_STATUS_OPT_RENAMES_INDEX_TO_WORKDIR);
 
         GitStatusList status_list;
         check_error(
