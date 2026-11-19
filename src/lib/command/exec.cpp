@@ -158,7 +158,7 @@ int run_exec(const ExecutionOptions &options) {
         return 1;
     }
 
-    TrackedOperation op(trees, DisplayFormat::PROGRESS);
+    TrackedOperation op(trees, DisplayFormat::PROGRESS, options.quiet);
     auto &tracker = op.tracker();
 
     std::atomic_bool has_error{false};
@@ -224,7 +224,8 @@ plan_exec(const std::string &custom_command, const std::vector<Tree> &config) {
             if (split_command(substituted).empty()) {
                 return {
                     .items = {},
-                    .error = "Invalid command syntax: " + custom_command};
+                    .error = "Invalid command syntax: " + custom_command,
+                };
             }
             items.push_back(
                 ExecPlanItem{.repo_path = repo_path, .command = substituted});

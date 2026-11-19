@@ -131,6 +131,31 @@ void build_progress_text_lines(
     }
 }
 
+void collect_quiet_progress_lines(
+    const std::string &root,
+    const std::vector<Repo> &repos,
+    std::vector<std::string> &output_lines,
+    std::vector<std::string> &diagnostic_lines) {
+    for (const auto &repo : repos) {
+        const std::string path =
+            (std::filesystem::path(root) / repo.name).string();
+        for (const auto &message : repo.messages) {
+            if (message.level == MessageLevel::OUTPUT) {
+                output_lines.push_back(message.text);
+            } else if (
+                message.level == MessageLevel::WARNING ||
+                message.level == MessageLevel::ERROR) {
+                diagnostic_lines.push_back(path + ": " + message.text);
+            }
+        }
+        collect_quiet_progress_lines(
+            root,
+            repo.children,
+            output_lines,
+            diagnostic_lines);
+    }
+}
+
 struct TableColumnWidths {
     std::size_t root;
     std::size_t name;
@@ -151,7 +176,8 @@ TableColumnWidths compute_table_column_widths(const std::vector<Tree> &trees) {
         .name = kMinNameWidth,
         .remotes = kMinRemotesWidth,
         .branches = kMinBranchesWidth,
-        .current = kMinCurrentWidth};
+        .current = kMinCurrentWidth,
+    };
 
     for (const auto &tree : trees) {
         widths.root = std::max(widths.root, tree.root.length());
@@ -269,11 +295,13 @@ void build_table_text_lines(
             const std::string current = extract_current_branch(repo.branches);
 
             lines.push_back(format_table_text_row(
-                {tree.root,
-                 repo.name,
-                 std::to_string(repo.remotes.size()),
-                 std::to_string(repo.branches.size()),
-                 current},
+                {
+                    tree.root,
+                    repo.name,
+                    std::to_string(repo.remotes.size()),
+                    std::to_string(repo.branches.size()),
+                    current,
+                },
                 widths));
         }
     }
@@ -449,15 +477,41 @@ void build_text_output(
     }
 }
 
-void render_text_output(const Tracker &tracker, DisplayFormat format) {
+void print_lines(const std::vector<std::string> &lines, std::ostream &stream) {
+    for (const auto &line : lines) {
+        stream << line << '\n';
+    }
+    stream.flush();
+}
+
+void render_full_text_output(const Tracker &tracker, DisplayFormat format) {
     const std::vector<Tree> trees = tracker.snapshot();
     std::vector<std::string> lines;
     build_text_output(trees, format, lines);
+    print_lines(lines, std::cout);
+}
 
-    for (const auto &line : lines) {
-        std::cout << line << '\n';
+void render_quiet_text_output(const Tracker &tracker, DisplayFormat format) {
+    const std::vector<Tree> trees = tracker.snapshot();
+    std::vector<std::string> output_lines;
+    std::vector<std::string> diagnostic_lines;
+
+    if (format == DisplayFormat::TABLE) {
+        build_table_text_lines(trees, output_lines);
+    } else if (format == DisplayFormat::SUMMARY) {
+        build_summary_text_lines(trees, output_lines);
+    } else {
+        for (const auto &tree : trees) {
+            collect_quiet_progress_lines(
+                tree.root,
+                tree.repos,
+                output_lines,
+                diagnostic_lines);
+        }
     }
-    std::cout.flush();
+
+    print_lines(output_lines, std::cout);
+    print_lines(diagnostic_lines, std::cerr);
 }
 
 void render_tui_output(const Tracker &tracker, DisplayFormat format) {
@@ -491,8 +545,8 @@ void reset_terminal_state() {
 
 class TextView final : public OutputView {
   public:
-    explicit TextView(Tracker &tracker, DisplayFormat format)
-        : tracker_(tracker), format_(format) {}
+    explicit TextView(Tracker &tracker, DisplayFormat format, OutputStyle style)
+        : tracker_(tracker), format_(format), style_(style) {}
 
     ~TextView() override = default;
 
@@ -502,12 +556,17 @@ class TextView final : public OutputView {
         if (stopped_.exchange(true)) {
             return;
         }
-        render_text_output(tracker_, format_);
+        if (style_ == OutputStyle::QUIET) {
+            render_quiet_text_output(tracker_, format_);
+            return;
+        }
+        render_full_text_output(tracker_, format_);
     }
 
   private:
     Tracker &tracker_;
     DisplayFormat format_;
+    OutputStyle style_;
     std::atomic<bool> stopped_ = false;
 };
 
@@ -700,10 +759,16 @@ class TuiView final : public OutputView {
 
 } // namespace
 
-std::unique_ptr<OutputView>
-create_output_view(OutputMode mode, DisplayFormat format, Tracker &tracker) {
+std::unique_ptr<OutputView> create_output_view(
+    OutputMode mode,
+    DisplayFormat format,
+    Tracker &tracker,
+    OutputStyle style) {
+    if (style == OutputStyle::QUIET) {
+        return std::make_unique<TextView>(tracker, format, style);
+    }
     if (mode == OutputMode::TUI) {
         return std::make_unique<TuiView>(tracker, format);
     }
-    return std::make_unique<TextView>(tracker, format);
+    return std::make_unique<TextView>(tracker, format, style);
 }

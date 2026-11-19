@@ -295,7 +295,7 @@ int run_remotesync(const RemoteSyncOptions &options) {
         options.selector.min_depth,
         options.selector.max_depth);
 
-    TrackedOperation op(trees, DisplayFormat::PROGRESS);
+    TrackedOperation op(trees, DisplayFormat::PROGRESS, options.quiet);
     auto &tracker = op.tracker();
 
     const std::vector<RepoJob> repo_jobs = collect_repos(trees);
@@ -304,7 +304,7 @@ int run_remotesync(const RemoteSyncOptions &options) {
     auto pool = create_thread_pool(options.jobs);
 
     for (const auto &repo_job : repo_jobs) {
-        asio::post(pool, [&, repo_job]() {
+        asio::post(pool, [&, repo_job] {
             process_repo_sync(
                 repo_job,
                 tracker,

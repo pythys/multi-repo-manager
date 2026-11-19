@@ -1,4 +1,6 @@
 #include "command/exec.hpp"
+#include "test_utils.hpp"
+#include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>
@@ -12,31 +14,33 @@ std::vector<Tree> sample_config() {
                 {
                     Repo{
                         .name = "repo1",
-
                         .remotes = {},
                         .branches = {},
                         .children = {},
-                        .messages = {}},
+                        .messages = {},
+                    },
                     Repo{
                         .name = "repo2",
-
                         .remotes = {},
                         .branches = {},
                         .children = {},
-                        .messages = {}},
-                }},
+                        .messages = {},
+                    },
+                },
+        },
         Tree{
             .root = "/workspace-b",
             .repos =
                 {
                     Repo{
                         .name = "repo3",
-
                         .remotes = {},
                         .branches = {},
                         .children = {},
-                        .messages = {}},
-                }},
+                        .messages = {},
+                    },
+                },
+        },
     };
 }
 } // namespace
@@ -161,4 +165,39 @@ TEST(ExecTests, CommandWithoutPlaceholders) {
     ASSERT_TRUE(plan.error.empty());
     ASSERT_EQ(3, plan.items.size());
     EXPECT_EQ(std::string("ls -la"), plan.items[0].command);
+}
+
+TEST(ExecTests, QuietModePrintsOnlyCommandOutput) {
+    test_utils::ScopedTempCwd scratch("mrm-exec-quiet");
+    std::filesystem::create_directories(
+        std::filesystem::path("test_exec_quiet") / "repo1");
+
+    const ExecutionOptions options{
+        .selector =
+            {
+                .config_file = std::string(TEST_RESOURCES_DIR) +
+                               "/scenarios/exec/quiet.yml",
+                .find_paths = {},
+                .root_patterns = {},
+                .name_patterns = {},
+                .min_depth = 0,
+                .max_depth = UNLIMITED_DEPTH,
+            },
+        .command = "echo quiet-output",
+        .jobs = 1,
+        .quiet = true,
+    };
+
+    testing::internal::CaptureStdout();
+    testing::internal::CaptureStderr();
+    const int result = run_exec(options);
+    const std::string output = testing::internal::GetCapturedStdout();
+    const std::string diagnostics = testing::internal::GetCapturedStderr();
+
+    EXPECT_EQ(0, result);
+    EXPECT_EQ("quiet-output\n", output);
+    EXPECT_TRUE(diagnostics.empty());
+    EXPECT_EQ(std::string::npos, output.find("mrm report"));
+    EXPECT_EQ(std::string::npos, output.find("SUCCEEDED"));
+    EXPECT_EQ(std::string::npos, output.find("Executing command"));
 }

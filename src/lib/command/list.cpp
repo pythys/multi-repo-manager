@@ -38,7 +38,7 @@ int run_list(const ListOptions &options) {
     const DisplayFormat format =
         options.summary_mode ? DisplayFormat::SUMMARY : DisplayFormat::TABLE;
 
-    TrackedOperation op(config, format);
+    TrackedOperation op(config, format, options.quiet);
     auto &tracker = op.tracker();
 
     for (const auto &tree : config) {

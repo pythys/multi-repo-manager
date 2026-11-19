@@ -220,6 +220,34 @@ TEST(CompletionSpecTests, ActualCliOrdersDepthAfterRootAndName) {
         option_index(find_command, "--maxdepth"));
 }
 
+TEST(CompletionSpecTests, ActualCliExposesQuietForTrackedCommands) {
+    std::vector<std::string> args{"mrm", "completion", "spec"};
+    std::vector<char *> argv;
+    argv.reserve(args.size());
+    for (auto &arg : args) {
+        argv.push_back(arg.data());
+    }
+
+    testing::internal::CaptureStdout();
+    const int result = parse_cli(static_cast<int>(argv.size()), argv.data());
+    const std::string output = testing::internal::GetCapturedStdout();
+
+    ASSERT_EQ(0, result);
+    const YAML::Node root = YAML::Load(output)["root"];
+    ASSERT_TRUE(root);
+
+    for (const std::string &command_name :
+         {"sync", "list", "status", "update", "remotesync", "exec"}) {
+        const YAML::Node command = find_subcommand(root, command_name);
+        ASSERT_TRUE(command) << command_name;
+
+        const YAML::Node quiet = find_option_with_flag(command, "--quiet");
+        ASSERT_TRUE(quiet) << command_name;
+        EXPECT_FALSE(quiet["takes_value"].as<bool>()) << command_name;
+        EXPECT_TRUE(find_option_with_flag(command, "-q")) << command_name;
+    }
+}
+
 TEST(CompletionSortingTests, PreservesRepositoryFilterOrder) {
     CLI::App app("mrm");
     app.name("mrm");

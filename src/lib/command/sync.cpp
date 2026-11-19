@@ -286,7 +286,7 @@ void sync_repository(
     bool is_existing_repo =
         GitManager::is_repo(construct_repo_path(root, repo->name));
 
-    asio::post(pool, [=, &tracker, &pool, &has_error]() {
+    asio::post(pool, [=, &tracker, &pool, &has_error] {
         try {
             if (is_existing_repo) {
                 update_repository(
@@ -334,7 +334,7 @@ int run_sync(const SyncOptions &options) {
     std::vector<Tree> config = filter_trees_by_root(
         get_dependencies(options.config_file),
         options.root_patterns);
-    TrackedOperation op(config, DisplayFormat::PROGRESS);
+    TrackedOperation op(config, DisplayFormat::PROGRESS, options.quiet);
     auto &tracker = op.tracker();
 
     std::atomic_bool has_error{false};

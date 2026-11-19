@@ -4,10 +4,15 @@
 
 TrackedOperation::TrackedOperation(
     const std::vector<Tree> &trees,
-    DisplayFormat format)
+    DisplayFormat format,
+    bool quiet)
     : tracker_(), view_(nullptr) {
     tracker_.populate(trees);
-    view_ = create_output_view(detect_output_mode(), format, tracker_);
+    view_ = create_output_view(
+        detect_output_mode(),
+        format,
+        tracker_,
+        quiet ? OutputStyle::QUIET : OutputStyle::FULL);
     view_->start();
 }
 

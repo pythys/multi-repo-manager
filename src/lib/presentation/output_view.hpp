@@ -7,6 +7,7 @@
 #include <memory>
 
 enum class DisplayFormat : std::uint8_t { PROGRESS, TABLE, SUMMARY };
+enum class OutputStyle : std::uint8_t { FULL, QUIET };
 
 class OutputView {
   public:
@@ -15,7 +16,10 @@ class OutputView {
     virtual void stop() = 0;
 };
 
-std::unique_ptr<OutputView>
-create_output_view(OutputMode mode, DisplayFormat format, Tracker &tracker);
+std::unique_ptr<OutputView> create_output_view(
+    OutputMode mode,
+    DisplayFormat format,
+    Tracker &tracker,
+    OutputStyle style = OutputStyle::FULL);
 
 #endif // SRC_LIB_PRESENTATION_OUTPUT_VIEW_HPP_

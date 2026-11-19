@@ -1,0 +1,7 @@
+# Exec scenario with a single repository for quiet output checks
+trees:
+- root: test_exec_quiet
+  repos:
+  - name: repo1
+    remotes: []
+    branches: []

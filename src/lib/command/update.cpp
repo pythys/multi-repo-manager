@@ -23,7 +23,7 @@ int run_update(const UpdateOptions &options) {
         options.selector.min_depth,
         options.selector.max_depth);
 
-    TrackedOperation op(config, DisplayFormat::PROGRESS);
+    TrackedOperation op(config, DisplayFormat::PROGRESS, options.quiet);
     auto &tracker = op.tracker();
 
     std::atomic_bool has_error{false};

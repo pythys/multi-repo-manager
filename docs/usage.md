@@ -51,6 +51,7 @@ Options:
 - `--prune-repos` (`-P`): remove repository directories not declared in config
 - `--prune` (`-p`): enable `--prune-remotes`, `--prune-branches`, and
   `--prune-repos`
+- `--quiet` (`-q`): suppress mrm status output, see [quiet mode](#quiet-mode)
 
 Notes:
 - all prune options are opt-in
@@ -86,6 +87,7 @@ Options:
 - `--name <pattern>` (`-n`): filter by repo name, see [filtering](#filtering)
 - `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
 - `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
+- `--quiet` (`-q`): suppress mrm status output, see [quiet mode](#quiet-mode)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -163,6 +165,7 @@ Options:
 - `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
 - `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--modified` (`-m`): show only repositories with changes
+- `--quiet` (`-q`): suppress mrm status output, see [quiet mode](#quiet-mode)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -193,6 +196,7 @@ Options:
 - `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
 - `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--timeout <seconds>` (`-T`): network operation timeout in seconds (default: 300, 0 = disabled)
+- `--quiet` (`-q`): suppress mrm status output, see [quiet mode](#quiet-mode)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -228,6 +232,7 @@ Options:
 - `--target <remote>` (`-t`): target remote name (required)
 - `--branch <name>` (`-b`): branch to sync (repeatable, required)
 - `--dry-run` (`-d`): report what would be pushed without changing remotes
+- `--quiet` (`-q`): suppress mrm status output, see [quiet mode](#quiet-mode)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -272,6 +277,7 @@ Options:
 - `--mindepth <N>` (`-l`): minimum repository depth, see [filtering](#filtering)
 - `--maxdepth <N>` (`-L`): maximum repository depth, see [filtering](#filtering)
 - `--command <cmd>`: command to execute (required)
+- `--quiet` (`-q`): suppress mrm status output, see [quiet mode](#quiet-mode)
 
 See [output modes](#output-modes) for terminal-specific formatting.
 
@@ -472,6 +478,27 @@ TUI controls:
 - arrow keys: scroll up/down
 - mouse wheel: scroll up/down
 - after completion, final plain text report is printed
+
+### quiet mode
+
+Pass `--quiet` (`-q`) to any command that uses the shared progress output
+(`sync`, `list`, `status`, `update`, `remotesync`, `exec`) to remove the mrm
+report framing:
+
+- forces plain text output instead of the TUI
+- omits report headers, tree roots, phase lines, and progress messages
+- `exec`, `status`, and `update` print only command or status output
+- `remotesync` prints only branch result lines
+- `list` prints the table or summary without the `mrm list` title
+- `sync` prints nothing on success
+- warnings and errors are still written to stderr with the repository path
+- exit codes are unchanged
+
+Example:
+
+```sh
+mrm exec --quiet --command "echo {path}"
+```
 
 ## SSH authentication
 

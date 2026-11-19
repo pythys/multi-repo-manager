@@ -18,18 +18,21 @@ struct StatusOptions {
     RepositorySelector selector;
     bool modified_only = false;
     int jobs = 0;
+    bool quiet = false;
 };
 
 struct UpdateOptions {
     RepositorySelector selector;
     int jobs = 0;
     int timeout_seconds = DEFAULT_TIMEOUT;
+    bool quiet = false;
 };
 
 struct ExecutionOptions {
     RepositorySelector selector;
     std::string command;
     int jobs = 0;
+    bool quiet = false;
 };
 
 struct RemoteSyncOptions {
@@ -40,6 +43,7 @@ struct RemoteSyncOptions {
     bool dry_run = false;
     int jobs = 0;
     int timeout_seconds = DEFAULT_TIMEOUT;
+    bool quiet = false;
 };
 
 struct SyncOptions {
@@ -50,11 +54,13 @@ struct SyncOptions {
     bool prune_repos = false;
     int jobs = 0;
     int timeout_seconds = DEFAULT_TIMEOUT;
+    bool quiet = false;
 };
 
 struct ListOptions {
     RepositorySelector selector;
     bool summary_mode = false;
+    bool quiet = false;
 };
 
 struct InitOptions {

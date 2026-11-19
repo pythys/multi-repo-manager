@@ -47,6 +47,8 @@ int parse_cli(int argc, char **argv) {
         ->type_name("file");
     int sync_jobs = 0;
     sync->add_option("--jobs,-j", sync_jobs, "number of jobs")->type_name("N");
+    bool sync_quiet = false;
+    sync->add_flag("--quiet,-q", sync_quiet, "omit mrm status output");
     int sync_timeout_seconds = DEFAULT_TIMEOUT;
     sync->add_option(
             "--timeout,-T",
@@ -89,6 +91,8 @@ int parse_cli(int argc, char **argv) {
         "--summary,-s",
         list_summary_mode,
         "display summary of trees with repository counts");
+    bool list_quiet = false;
+    list->add_flag("--quiet,-q", list_quiet, "omit mrm status output");
 
     CLI::App *find = app.add_subcommand("find", "Find repositories");
     find->alias("fn");
@@ -135,6 +139,8 @@ int parse_cli(int argc, char **argv) {
     int status_jobs = 0;
     status->add_option("--jobs,-j", status_jobs, "number of jobs")
         ->type_name("N");
+    bool status_quiet = false;
+    status->add_flag("--quiet,-q", status_quiet, "omit mrm status output");
 
     CLI::App *update = app.add_subcommand("update", "Update repositories");
     update->alias("up");
@@ -150,6 +156,8 @@ int parse_cli(int argc, char **argv) {
     int update_jobs = 0;
     update->add_option("--jobs,-j", update_jobs, "number of jobs")
         ->type_name("N");
+    bool update_quiet = false;
+    update->add_flag("--quiet,-q", update_quiet, "omit mrm status output");
     int update_timeout_seconds = DEFAULT_TIMEOUT;
     update
         ->add_option(
@@ -203,6 +211,11 @@ int parse_cli(int argc, char **argv) {
     int remotesync_jobs = 0;
     remotesync->add_option("--jobs,-j", remotesync_jobs, "number of jobs")
         ->type_name("N");
+    bool remotesync_quiet = false;
+    remotesync->add_flag(
+        "--quiet,-q",
+        remotesync_quiet,
+        "omit mrm status output");
     int remotesync_timeout_seconds = DEFAULT_TIMEOUT;
     remotesync
         ->add_option(
@@ -257,6 +270,8 @@ Available placeholders:
     add_depth_options(exec, exec_min_depth, exec_max_depth);
     int exec_jobs = 0;
     exec->add_option("--jobs,-j", exec_jobs, "number of jobs")->type_name("N");
+    bool exec_quiet = false;
+    exec->add_flag("--quiet,-q", exec_quiet, "omit mrm status output");
 
     CLI::App *init = app.add_subcommand("init", "Initialize workspace");
     init->alias("in");
@@ -315,7 +330,9 @@ Available placeholders:
             .prune_branches = should_prune_branches,
             .prune_repos = should_prune_repos,
             .jobs = sync_jobs,
-            .timeout_seconds = sync_timeout_seconds};
+            .timeout_seconds = sync_timeout_seconds,
+            .quiet = sync_quiet,
+        };
         return run_sync(options);
     }
 
@@ -330,7 +347,9 @@ Available placeholders:
                     .min_depth = list_min_depth,
                     .max_depth = list_max_depth,
                 },
-            .summary_mode = list_summary_mode};
+            .summary_mode = list_summary_mode,
+            .quiet = list_quiet,
+        };
         return run_list(options);
     }
 
@@ -353,7 +372,9 @@ Available placeholders:
                     .max_depth = status_max_depth,
                 },
             .modified_only = status_modified_only,
-            .jobs = status_jobs};
+            .jobs = status_jobs,
+            .quiet = status_quiet,
+        };
         return run_status(options);
     }
 
@@ -369,7 +390,9 @@ Available placeholders:
                     .max_depth = update_max_depth,
                 },
             .jobs = update_jobs,
-            .timeout_seconds = update_timeout_seconds};
+            .timeout_seconds = update_timeout_seconds,
+            .quiet = update_quiet,
+        };
         return run_update(options);
     }
 
@@ -389,7 +412,9 @@ Available placeholders:
             .branches = remotesync_branches,
             .dry_run = remotesync_dry_run,
             .jobs = remotesync_jobs,
-            .timeout_seconds = remotesync_timeout_seconds};
+            .timeout_seconds = remotesync_timeout_seconds,
+            .quiet = remotesync_quiet,
+        };
         return run_remotesync(options);
     }
 
@@ -405,7 +430,9 @@ Available placeholders:
                     .max_depth = exec_max_depth,
                 },
             .command = custom_command,
-            .jobs = exec_jobs};
+            .jobs = exec_jobs,
+            .quiet = exec_quiet,
+        };
         return run_exec(options);
     }
 

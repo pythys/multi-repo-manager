@@ -10,7 +10,10 @@ class OutputView;
 
 class TrackedOperation {
   public:
-    TrackedOperation(const std::vector<Tree> &trees, DisplayFormat format);
+    TrackedOperation(
+        const std::vector<Tree> &trees,
+        DisplayFormat format,
+        bool quiet = false);
     ~TrackedOperation();
 
     Tracker &tracker();
